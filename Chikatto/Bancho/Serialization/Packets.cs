@@ -1,13 +1,28 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Chikatto.Bancho.Enums;
+using Microsoft.AspNetCore.Mvc.Routing;
 
 namespace Chikatto.Bancho.Serialization
 {
-    public class PacketsReader
+    public static class Packets
     {
+        public static byte[] Write(IEnumerable<Packet> packets)
+        {
+            var bytes = new List<byte>();
+
+            foreach (var packet in packets)
+            {
+                BitConverter.GetBytes((ushort) packet.Type).ToList().ForEach(bytes.Add);
+                bytes.Add(0);
+                BitConverter.GetBytes((uint) packet.Data.Length).ToList().ForEach(bytes.Add);
+                packet.Data.ToList().ForEach(bytes.Add);
+            }
+
+            return bytes.ToArray();
+        }
+        
         public static IEnumerable<Packet> Read(byte[] data)
         {
             var packets = new List<Packet>();

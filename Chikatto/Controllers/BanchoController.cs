@@ -40,16 +40,16 @@ namespace Chikatto.Controllers
             await Request.Body.CopyToAsync(ms);
             ms.Position = 0;
 
-            var osuPackets = PacketsReader.Read(ms.ToArray());
-            
+            var osuPackets = Packets.Read(ms.ToArray());
+
             foreach (var packet in osuPackets)
                 Console.WriteLine(packet);
             
             // TODO: bancho packets
-            return Packets(packets);
+            return SendPackets(packets);
         }
 
-        private FileContentResult Packets(IEnumerable<Packet> packets) =>
+        private FileContentResult SendPackets(IEnumerable<Packet> packets) =>
             File(Array.Empty<byte>(), "application/octet-stream"); //File(PacketWriter.Serialize(packets), "application/octet-stream");
     }
 }
