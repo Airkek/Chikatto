@@ -22,8 +22,6 @@ namespace Chikatto.Controllers
                 return Ok("Running Chikatto");
 
             var packets = new List<BanchoPacket>();
-            
-            packets.Add(new BanchoPacket(PacketType.ServerNotification, new BanchoString("Welcome back to Chikatto!")));
 
             if (string.IsNullOrEmpty(token))
             {
@@ -33,6 +31,8 @@ namespace Chikatto.Controllers
                 
                 return Packets(packets);
             }
+            
+            packets.Add(new BanchoPacket(PacketType.ServerNotification, new BanchoString("Welcome back to Chikatto!")));
             
             // TODO: bancho packets
             return Packets(packets);
