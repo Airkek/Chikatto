@@ -27,6 +27,7 @@ namespace Chikatto.Controllers
 
             if (string.IsNullOrEmpty(token))
             {
+                //packets.Add(new BanchoPacket(Pac));
                 //TODO: auth
                 //Response.Headers["cho-token"] = "chikatto-1337"; //TODO: implement tokens
                 
