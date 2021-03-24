@@ -5,7 +5,7 @@ namespace Chikatto.Bancho
 {
     public class PacketData
     {
-        public byte[] Data;
         public OsuType Type;
+        public byte[] Data;
     }
 }
