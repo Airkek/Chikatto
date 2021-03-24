@@ -1,4 +1,5 @@
-﻿using Chikatto.Bancho.Enums;
+﻿using System;
+using Chikatto.Bancho.Enums;
 
 namespace Chikatto.Bancho
 {
@@ -6,6 +7,12 @@ namespace Chikatto.Bancho
     {
         public PacketType Type;
         public byte[] Data;
+
+        public Packet(PacketType type, byte[] data = null)
+        {
+            Type = type;
+            Data = data ?? Array.Empty<byte>();
+        }
 
         public override string ToString() => $"Packet: {Type}, Data Length: {Data.Length}";
     }

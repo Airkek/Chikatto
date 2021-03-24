@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using Chikatto.Bancho;
+using Chikatto.Bancho.Enums;
 using Chikatto.Bancho.Serialization;
+using Chikatto.Bancho.Serialization.Extensions;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Chikatto.Controllers
@@ -25,15 +27,11 @@ namespace Chikatto.Controllers
 
             if (string.IsNullOrEmpty(token))
             {
+                packets.Add(new Packet(PacketType.BanchoUserId, (-1).GetBytes()));
                 //TODO: auth
                 Response.Headers["cho-token"] = "chikatto-1337";
 
-                return File(new byte[] {  }, "application/octet-stream");
-
-                //packets.Add(new BanchoPacket(PacketType.ServerLoginReply, new BanchoInt(3)));
-                //packets.Add(new BanchoPacket(PacketType.ServerNotification, new BanchoString("Hey! Welcome back to Chikatto")));
-
-                //return Packets(packets);
+                return SendPackets(packets);
             }
 
             await using var ms = new MemoryStream();
@@ -50,6 +48,6 @@ namespace Chikatto.Controllers
         }
 
         private FileContentResult SendPackets(IEnumerable<Packet> packets) =>
-            File(Array.Empty<byte>(), "application/octet-stream"); //File(PacketWriter.Serialize(packets), "application/octet-stream");
+            File(Packets.Write(packets), "application/octet-stream"); 
     }
 }
