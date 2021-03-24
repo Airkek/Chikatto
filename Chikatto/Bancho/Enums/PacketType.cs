@@ -1,4 +1,4 @@
-﻿namespace Chikatto.Bancho
+﻿namespace Chikatto.Bancho.Enums
 {
     public enum PacketType
     {

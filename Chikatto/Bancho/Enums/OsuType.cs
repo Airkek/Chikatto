@@ -1,6 +1,6 @@
-﻿namespace Chikatto.Bancho
+﻿namespace Chikatto.Bancho.Enums
 {
-    public enum OsuTypes
+    public enum OsuType
     {
         #region Integer
         Int8 = 0,
