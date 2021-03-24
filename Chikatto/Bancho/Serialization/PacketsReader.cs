@@ -19,17 +19,22 @@ namespace Chikatto.Bancho.Serialization
                 var length = (int)BitConverter.ToUInt32(data.Take(4).ToArray());
                 data = data.Skip(4).ToArray();
 
-                var packetData = data.Take(length).ToArray();
-                data = data.Skip(length).ToArray();
-                
-                packets.Add(new Packet
+                var packet = new Packet
                 {
-                    Type = packetType,
-                    Data = new PacketData
-                    {
-                        Data = packetData
-                    }
-                });
+                    Type = packetType
+                };
+                
+                if (length == 0)
+                {
+                    packet.Data = Array.Empty<byte>();
+                }
+                else
+                {
+                    packet.Data = data.Take(length).ToArray();
+                    data = data.Skip(length).ToArray();
+                }
+                
+                packets.Add(packet);
             }
 
             return packets;
