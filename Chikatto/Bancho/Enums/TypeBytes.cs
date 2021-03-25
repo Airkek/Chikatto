@@ -19,8 +19,6 @@
         Decimal,
         DateTime,
         ByteArray,
-        CharArray,
-        Unknown,
-        Serializable
+        CharArray
     }
 }

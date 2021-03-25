@@ -17,7 +17,7 @@ namespace Chikatto.Bancho
             Writer = new SerializationWriter(Stream);
         }
 
-        public Packet Dump() => new Packet(Type) { Data = Data };
+        public Packet Dump() => new(Type) { Data = Data };
 
         public void Dispose()
         {

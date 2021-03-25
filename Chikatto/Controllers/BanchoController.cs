@@ -28,11 +28,11 @@ namespace Chikatto.Controllers
             if (string.IsNullOrEmpty(token))
             {
                 using var uidPacket = new WriteablePacket(PacketType.BanchoUserId);
-                uidPacket.Writer.Write(3);
+                uidPacket.Writer.Write(-1);
                 packets.Add(uidPacket.Dump());
                 
                 using var notifyPacket = new WriteablePacket(PacketType.BanchoNotification);
-                uidPacket.Writer.Write("Test");
+                uidPacket.Writer.Write("123");
                 packets.Add(notifyPacket.Dump());
                 
                 //TODO: auth
