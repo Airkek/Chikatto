@@ -19,7 +19,7 @@ namespace Chikatto.Utils
         //7
         public static Packet SendMessage(BanchoMessage message)
         {
-            using var packet = new WriteablePacket(PacketType.BanchoUserPresence);
+            using var packet = new WriteablePacket(PacketType.BanchoSendMessage);
             packet.Writer.WriteBanchoObject(message);
             return packet.Dump();
         }
@@ -54,6 +54,10 @@ namespace Chikatto.Utils
             packet.Writer.Write((byte) 0);
             return packet.Dump();
         }
+        
+        //14
+        public static Packet SpectatorJoined(int id) =>
+            new Packet(PacketType.BanchoSpectatorJoined, BitConverter.GetBytes(id));
         
         //14
         public static Packet SpectatorLeft(int id) =>
@@ -122,6 +126,8 @@ namespace Chikatto.Utils
         public static Packet FellowSpectatorLeft(int id) =>
             new Packet(PacketType.BanchoFellowSpectatorLeft, BitConverter.GetBytes(id));
         
+        //45: unused
+        
         //46
         public static Packet MatchStart(Match match)
         {
@@ -131,7 +137,7 @@ namespace Chikatto.Utils
         }
         
         //48
-        public static Packet MatchScoreFrame( /*ScoreFrame frame*/)
+        public static Packet MatchScoreUpdate( /*ScoreFrame frame*/)
         {
             throw new NotImplementedException();
         }
@@ -151,6 +157,8 @@ namespace Chikatto.Utils
         
         //61
         public static Packet MatchSkip() => new Packet(PacketType.BanchoMatchSkip);
+        
+        //62: unused
         
         //64
         public static Packet ChannelJoinSuccess(string channelName)
@@ -329,7 +337,7 @@ namespace Chikatto.Utils
         }
 
         //101
-        public static Packet UserSilences(string target)
+        public static Packet TargetSilenced(string target)
         {
             var message = new BanchoMessage
             {
@@ -338,7 +346,7 @@ namespace Chikatto.Utils
                 Body = "",
                 ClientId = 0
             };
-            using var packet = new WriteablePacket(PacketType.BanchoUserSilenced);
+            using var packet = new WriteablePacket(PacketType.BanchoTargetIsSilenced);
             packet.Writer.WriteBanchoObject(message);
             return packet.Dump();
         }
