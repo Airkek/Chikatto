@@ -35,14 +35,22 @@ namespace Chikatto.Bancho
         {
             if (!Handlers.ContainsKey(packet.Type))
             {
+#if DEBUG
                 Console.WriteLine($"{user}: NotImplementedPacket: {packet}");
+#endif
+                
                 return;
             }
-            
+#if DEBUG
             var sw = Stopwatch.StartNew();
+#endif
+            
             await Handlers[packet.Type].Invoke(packet, user);
+            
+#if DEBUG
             sw.Stop();
             Console.WriteLine($"{user}: Handled: {packet} (handle took {sw.Elapsed.TotalMilliseconds}ms)");
+#endif
         }
 
         private delegate Task PacketHandler(Packet packet, User token);
