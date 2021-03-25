@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Chikatto.Bancho;
 using Chikatto.Bancho.Enums;
 using Chikatto.Bancho.Serialization;
-using Chikatto.Bancho.Serialization.Extensions;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Chikatto.Controllers
