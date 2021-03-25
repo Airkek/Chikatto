@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Chikatto.Bancho;
 using Chikatto.Bancho.Enums;
@@ -31,7 +33,7 @@ namespace Chikatto.Controllers
                 packets.Add(uidPacket.Dump());
                 
                 using var notifyPacket = new WriteablePacket(PacketType.BanchoNotification);
-                uidPacket.Writer.Write("123");
+                notifyPacket.Writer.Write("Test");
                 packets.Add(notifyPacket.Dump());
                 
                 //TODO: auth
@@ -47,7 +49,15 @@ namespace Chikatto.Controllers
             var osuPackets = Packets.Read(ms.ToArray());
 
             foreach (var packet in osuPackets)
+            {
                 Console.WriteLine(packet);
+                if (packet.Data.Length != 0)
+                {
+                    using var reader = new ReadablePacket(packet);
+                    Console.WriteLine(reader.Reader.ReadObject());
+                }
+            }
+                
             
             // TODO: bancho packets
             return SendPackets(packets);

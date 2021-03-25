@@ -14,6 +14,10 @@ namespace Chikatto.Bancho
         {
             Stream = new MemoryStream();
         }
+        public StreamPacket(PacketType type, byte[] data) : base(type)
+        {
+            Stream = new MemoryStream(data);
+        }
 
         public Packet Dump() => new(Type) { Data = Data };
 

@@ -12,6 +12,11 @@ namespace Chikatto.Bancho
             Reader = new SerializationReader(Stream);
         }
 
+        public ReadablePacket(Packet packet) : base(packet.Type, packet.Data)
+        {
+            Reader = new SerializationReader(Stream);
+        }
+
         public new void Dispose()
         {
             Reader.Dispose();

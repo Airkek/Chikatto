@@ -8,12 +8,14 @@ namespace Chikatto.Bancho.Serialization
 {
     public class SerializationWriter : BinaryWriter
     {
-        public SerializationWriter(Stream output) : base(output) { }
+        public SerializationWriter(Stream output) : base(output, Encoding.UTF8) { }
 
         public override void Write(string value)
         {
             if (value == null)
+            {
                 Write((byte) TypeBytes.Null);
+            }
             else
             {
                 Write((byte) TypeBytes.String);
@@ -65,11 +67,6 @@ namespace Chikatto.Bancho.Serialization
                 Write(value.Count);
                 value.ForEach(t => WriteObject(t));
             }
-        }
-
-        public void WriteRawBytes(byte[] value)
-        {
-            base.Write(value);
         }
 
         public void WriteObject(object obj)
