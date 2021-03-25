@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using Chikatto.Bancho.Enums;
+using Chikatto.Bancho.Objects;
 
 namespace Chikatto.Bancho.Serialization
 {
@@ -68,6 +69,11 @@ namespace Chikatto.Bancho.Serialization
                 value.ForEach(t => WriteObject(t));
             }
         }
+
+        public void WriteBanchoObject<T>(T value) where T : ISerializable
+        {
+            value.Serialize(this);
+        } 
 
         public void WriteObject(object obj)
         {

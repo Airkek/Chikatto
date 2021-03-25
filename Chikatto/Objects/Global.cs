@@ -5,8 +5,6 @@ namespace Chikatto.Objects
 {
     public static class Global
     {
-        public const string Version = "0.0.1";
-
         public static Dictionary<string, int> Test = new() // Test :D <SafeName, Id>
         {
             ["cookiezi"] = 3,

@@ -2,7 +2,10 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Threading.Tasks;
 using Chikatto.Bancho.Enums;
+using Chikatto.Bancho.Objects;
+using Microsoft.AspNetCore.Components.Web;
 
 namespace Chikatto.Bancho.Serialization
 {
@@ -48,6 +51,13 @@ namespace Chikatto.Bancho.Serialization
             
             return list;
         }
+
+        public T ReadBanchoObject<T>() where T : ISerializable, new()
+        {
+            var t = new T();
+            t.Deserialize(this);
+            return t;
+        } 
 
         public object ReadObject()
         {

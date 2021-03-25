@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Chikatto.Bancho;
 using Chikatto.Bancho.Enums;
 using Chikatto.Bancho.Serialization;
+using Chikatto.Constants;
 using Chikatto.Objects;
 using Chikatto.Utils;
 using Microsoft.AspNetCore.Mvc;
@@ -22,7 +23,7 @@ namespace Chikatto.Controllers
         )
         {
             if (Request.Method == "GET" || userAgent != "osu!")
-                return Ok($"Running Chikatto v{Global.Version}");
+                return Ok($"Running Chikatto v{Misc.Version}");
 
             Response.Headers["cho-protocol"] = "19";
             
@@ -57,7 +58,7 @@ namespace Chikatto.Controllers
                 var packets = new List<Packet>();
                 
                 packets.Add(FastPackets.UserId(u.Id));
-                packets.Add(FastPackets.Notification($"Welcome back!\r\nChikatto Build v{Global.Version}"));
+                packets.Add(FastPackets.Notification($"Welcome back!\r\nChikatto Build v{Misc.Version}"));
 
                 Global.TokenCache[u.BanchoToken] = u.Id;
                 Global.UserCache[u.Id] = u;
@@ -81,7 +82,7 @@ namespace Chikatto.Controllers
             var userId = Global.TokenCache[token];
             var user = Global.UserCache[userId];
             
-            var osuPackets = Packets.Read(ms.ToArray());
+            var osuPackets = Packets.GetPackets(ms.ToArray());
 
             foreach (var packet in osuPackets)
                 await packet.Handle(user);

@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Chikatto.Bancho.Enums;
-using Microsoft.AspNetCore.Mvc.Routing;
 
 namespace Chikatto.Bancho.Serialization
 {
@@ -23,7 +22,7 @@ namespace Chikatto.Bancho.Serialization
             return bytes.ToArray();
         }
         
-        public static IEnumerable<Packet> Read(byte[] data)
+        public static IEnumerable<Packet> GetPackets(byte[] data)
         {
             var packets = new List<Packet>();
             while (data.Length >= 7)

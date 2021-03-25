@@ -14,13 +14,18 @@ namespace Chikatto.Bancho
         {
             Writer = new SerializationWriter(Stream);
         }
+        
+        public WriteablePacket(Packet packet) : base(packet.Type, packet.Data)
+        {
+            Writer = new SerializationWriter(Stream);
+        }
 
         public new void Dispose()
         {
             Writer.Dispose();
             base.Dispose();
         }
-        
+
         public new async ValueTask DisposeAsync()
         {
             await Writer.DisposeAsync();
