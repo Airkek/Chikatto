@@ -19,6 +19,7 @@
         Decimal,
         DateTime,
         ByteArray,
-        CharArray
+        CharArray,
+        Serialized //TODO
     }
 }
