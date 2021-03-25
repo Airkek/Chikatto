@@ -15,6 +15,8 @@ namespace Chikatto.Objects
         public string BanchoToken;
 
         public List<Packet> WaitingPackets = new();
+
+        public override string ToString() => $"<{Name} ({Id})>";
         //TODO
     }
 }

@@ -44,15 +44,14 @@ namespace Chikatto.Controllers
                 if (u.Id == -1)
                     return SendPackets(new[] { FastPackets.UserId(-1) });
 
-                if (Global.UserCache.ContainsKey(u.Id) && Global.UserCache[u.Id].LastPong > DateTime.Now.Second - 10)
-                {
-                    return SendPackets(new []
+                if (u.LastPong > DateTime.Now.Second - 10 && u.LastPong <= DateTime.Now.Second)
+                    return SendPackets(new[]
                     {
                         FastPackets.UserId(-1),
                         FastPackets.Notification("User already logged in")
                     });
-                }
                 
+                u.BanchoToken = RandomFabric.GenerateBanchoToken();
                 Response.Headers["cho-token"] = u.BanchoToken;
 
                 var packets = new List<Packet>();
@@ -62,6 +61,8 @@ namespace Chikatto.Controllers
 
                 Global.TokenCache[u.BanchoToken] = u.Id;
                 Global.UserCache[u.Id] = u;
+                
+                Console.WriteLine($"{u} logged in");
                 
                 return SendPackets(packets);
             }

@@ -16,24 +16,35 @@ namespace Chikatto.Bancho
         private static Dictionary<PacketType, PacketHandler> Handlers { get; } = new()
         {
             [OsuPong] = async (x, y) => { }, //TODO: set user last pong time
-            [OsuLogout] = async (x, user) => Global.UserCache.Remove(user.Id),
+            [OsuLogout] = Logout,
             
         };
+
+        public async static Task Logout(Packet packet, User user)
+        {
+            var arg = BitConverter.ToInt32(packet.Data);
+            if (arg == 0)
+            {
+                Global.TokenCache.Remove(user.BanchoToken);
+                Global.UserCache.Remove(user.Id);
+                Console.WriteLine($"{user} logged out");
+            }
+        }
         
         public async static Task Handle(this Packet packet, User user)
         {
             if (!Handlers.ContainsKey(packet.Type))
             {
-                Console.WriteLine($"NotImplementedPacket: {packet}");
+                Console.WriteLine($"{user}: NotImplementedPacket: {packet}");
                 return;
             }
             
             var sw = Stopwatch.StartNew();
-            await Handlers[packet.Type].Invoke(packet.Data, user);
+            await Handlers[packet.Type].Invoke(packet, user);
             sw.Stop();
-            Console.WriteLine($"Handled: {packet} (handle took {sw.Elapsed.TotalMilliseconds}ms)");
+            Console.WriteLine($"{user}: Handled: {packet} (handle took {sw.Elapsed.TotalMilliseconds}ms)");
         }
 
-        private delegate Task PacketHandler(byte[] Data, User token);
+        private delegate Task PacketHandler(Packet packet, User token);
     }
 }

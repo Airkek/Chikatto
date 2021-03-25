@@ -11,14 +11,24 @@ namespace Chikatto.Utils
             if (!Global.Test.ContainsKey(safe)) // :D
                 return new User { Id = -1 };
 
-            return new User
+            var id = Global.Test[safe];
+
+            User user;
+            if (Global.UserCache.ContainsKey(id))
+                user = Global.UserCache[id];
+            else 
             {
-                Id = Global.Test[safe],
-                Name = name, //TODO: dbName
-                SafeName = safe,
-                BanchoToken = RandomFabric.GenerateBanchoToken(),
-                LastPong = DateTime.Now.Second
-            };
+                user = new User
+                {
+                    Id = id,
+                    Name = name, //TODO: dbName
+                    SafeName = safe,
+                    LastPong = 0,
+                    BanchoToken = RandomFabric.GenerateBanchoToken()
+                };
+            }
+
+            return user;
         }
 
         public static string GetSafeName(string name) => name.ToLower().Replace(" ", "_");

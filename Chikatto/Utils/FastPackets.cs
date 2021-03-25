@@ -1,7 +1,6 @@
 ﻿using System;
 using Chikatto.Bancho;
 using Chikatto.Bancho.Enums;
-using Microsoft.Extensions.FileSystemGlobbing.Internal.PatternContexts;
 
 namespace Chikatto.Utils
 {
