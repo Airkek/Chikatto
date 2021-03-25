@@ -13,6 +13,12 @@ namespace Chikatto.Bancho
             Type = type;
         }
         
-        public override string ToString() => $"Packet: {Type}, Data Length: {Data.Length}";
+        public Packet(PacketType type, byte[] data)
+        {
+            Type = type;
+            Data = data;
+        }
+        
+        public override string ToString() => $"<{Type} ({Data.Length})>";
     }
 }

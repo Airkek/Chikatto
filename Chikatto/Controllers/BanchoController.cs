@@ -7,6 +7,8 @@ using System.Threading.Tasks;
 using Chikatto.Bancho;
 using Chikatto.Bancho.Enums;
 using Chikatto.Bancho.Serialization;
+using Chikatto.Objects;
+using Chikatto.Utils;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Chikatto.Controllers
@@ -28,17 +30,30 @@ namespace Chikatto.Controllers
 
             if (string.IsNullOrEmpty(token))
             {
-                using var uidPacket = new WriteablePacket(PacketType.BanchoUserId);
-                uidPacket.Writer.Write(-1);
-                packets.Add(uidPacket.Dump());
-                
-                using var notifyPacket = new WriteablePacket(PacketType.BanchoNotification);
-                notifyPacket.Writer.Write("Test");
-                packets.Add(notifyPacket.Dump());
+                packets.Add(FastPackets.UserId(3));
+                packets.Add(FastPackets.Notification("Test"));
                 
                 //TODO: auth
-                Response.Headers["cho-token"] = "chikatto-1337";
+                token = RandomFabric.GenerateBanchoToken();
+                Response.Headers["cho-token"] = token;
 
+                var user = new User
+                {
+                    Id = 3,
+                    Name = "asd",
+                    SafeName = "asd"
+                };
+                
+                Global.UserCache[token] = user;
+                
+                return SendPackets(packets);
+            }
+
+            if (!Global.UserCache.ContainsKey(token))
+            {
+                packets.Add(FastPackets.Notification("Server has restarted"));
+                packets.Add(FastPackets.ServerRestart(0));
+                
                 return SendPackets(packets);
             }
 
@@ -50,16 +65,11 @@ namespace Chikatto.Controllers
 
             foreach (var packet in osuPackets)
             {
-                Console.WriteLine(packet);
-                if (packet.Data.Length != 0)
-                {
-                    using var reader = new ReadablePacket(packet);
-                    Console.WriteLine(reader.Reader.ReadObject());
-                }
+                var outPacket = await packet.Handle(token);
+                if (outPacket != null)
+                    packets.Add(outPacket);
             }
-                
-            
-            // TODO: bancho packets
+
             return SendPackets(packets);
         }
 
