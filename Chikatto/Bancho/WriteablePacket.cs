@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Threading.Tasks;
 using Chikatto.Bancho.Enums;
 using Chikatto.Bancho.Serialization;
 
@@ -18,6 +19,12 @@ namespace Chikatto.Bancho
         {
             Writer.Dispose();
             base.Dispose();
+        }
+        
+        public new async ValueTask DisposeAsync()
+        {
+            await Writer.DisposeAsync();
+            await base.DisposeAsync();
         }
     }
 }

@@ -1,11 +1,12 @@
 ﻿using System;
 using System.IO;
+using System.Threading.Tasks;
 using Chikatto.Bancho.Enums;
 using Chikatto.Bancho.Serialization;
 
 namespace Chikatto.Bancho
 {
-    public class StreamPacket : Packet, IDisposable
+    public class StreamPacket : Packet, IDisposable, IAsyncDisposable
     {
         public readonly MemoryStream Stream;
         public new byte[] Data => Stream.ToArray();
@@ -24,6 +25,11 @@ namespace Chikatto.Bancho
         public void Dispose()
         {
             Stream.Dispose();
+        }
+
+        public async ValueTask DisposeAsync()
+        {
+            await Stream.DisposeAsync();
         }
     }
 }

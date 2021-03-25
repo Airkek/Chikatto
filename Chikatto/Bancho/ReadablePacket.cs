@@ -1,4 +1,5 @@
-﻿using Chikatto.Bancho.Enums;
+﻿using System.Threading.Tasks;
+using Chikatto.Bancho.Enums;
 using Chikatto.Bancho.Serialization;
 
 namespace Chikatto.Bancho
@@ -21,6 +22,12 @@ namespace Chikatto.Bancho
         {
             Reader.Dispose();
             base.Dispose();
+        }
+
+        public new async ValueTask DisposeAsync()
+        {
+            Reader.Dispose(); // :C
+            await base.DisposeAsync();
         }
     }
 }
