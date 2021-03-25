@@ -1,4 +1,7 @@
-﻿namespace Chikatto.Objects
+﻿using System.Collections.Generic;
+using Chikatto.Bancho;
+
+namespace Chikatto.Objects
 {
     public class User
     {
@@ -6,6 +9,12 @@
         public string SafeName;
 
         public int Id;
+
+        public int LastPong;
+
+        public string BanchoToken;
+
+        public List<Packet> WaitingPackets = new();
         //TODO
     }
 }

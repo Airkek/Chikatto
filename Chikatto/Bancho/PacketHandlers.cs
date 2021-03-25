@@ -4,6 +4,8 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Chikatto.Bancho.Enums;
+using Chikatto.Objects;
+using Chikatto.Utils;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using static Chikatto.Bancho.Enums.PacketType;
 
@@ -13,25 +15,25 @@ namespace Chikatto.Bancho
     {
         private static Dictionary<PacketType, PacketHandler> Handlers { get; } = new()
         {
-            [OsuPong] = async (x, y) => null, //TODO: set user last pong time
+            [OsuPong] = async (x, y) => { }, //TODO: set user last pong time
+            [OsuLogout] = async (x, user) => Global.UserCache.Remove(user.Id),
+            
         };
         
-        public async static Task<Packet> Handle(this Packet packet, string token)
+        public async static Task Handle(this Packet packet, User user)
         {
             if (!Handlers.ContainsKey(packet.Type))
             {
                 Console.WriteLine($"NotImplementedPacket: {packet}");
-                return null;
+                return;
             }
             
             var sw = Stopwatch.StartNew();
-            var outPacket = await Handlers[packet.Type].Invoke(packet.Data, token);
+            await Handlers[packet.Type].Invoke(packet.Data, user);
             sw.Stop();
             Console.WriteLine($"Handled: {packet} (handle took {sw.Elapsed.TotalMilliseconds}ms)");
-            
-            return outPacket;
         }
 
-        private delegate Task<Packet> PacketHandler(byte[] Data, string token);
+        private delegate Task PacketHandler(byte[] Data, User token);
     }
 }

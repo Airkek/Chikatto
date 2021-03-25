@@ -22,55 +22,74 @@ namespace Chikatto.Controllers
         )
         {
             if (Request.Method == "GET" || userAgent != "osu!")
-                return Ok("Running Chikatto");
+                return Ok($"Running Chikatto v{Global.Version}");
 
-            var packets = new List<Packet>();
-            
             Response.Headers["cho-protocol"] = "19";
-
-            if (string.IsNullOrEmpty(token))
-            {
-                packets.Add(FastPackets.UserId(3));
-                packets.Add(FastPackets.Notification("Test"));
-                
-                //TODO: auth
-                token = RandomFabric.GenerateBanchoToken();
-                Response.Headers["cho-token"] = token;
-
-                var user = new User
-                {
-                    Id = 3,
-                    Name = "asd",
-                    SafeName = "asd"
-                };
-                
-                Global.UserCache[token] = user;
-                
-                return SendPackets(packets);
-            }
-
-            if (!Global.UserCache.ContainsKey(token))
-            {
-                packets.Add(FastPackets.Notification("Server has restarted"));
-                packets.Add(FastPackets.ServerRestart(0));
-                
-                return SendPackets(packets);
-            }
-
+            
             await using var ms = new MemoryStream();
             await Request.Body.CopyToAsync(ms);
             ms.Position = 0;
 
+            if (string.IsNullOrEmpty(token))
+            {
+                var req = Encoding.UTF8.GetString(ms.ToArray()).Split(new[] {"\n", "\r\n"}, StringSplitOptions.None);
+
+                if (req.Length != 4)
+                    return NotFound();
+
+                Response.Headers["cho-token"] = "no-token";
+
+                var u = Auth.Login(req[0], req[1]);
+
+                if (u.Id == -1)
+                    return SendPackets(new[] { FastPackets.UserId(-1) });
+
+                if (Global.UserCache.ContainsKey(u.Id) && Global.UserCache[u.Id].LastPong > DateTime.Now.Second - 10)
+                {
+                    return SendPackets(new []
+                    {
+                        FastPackets.UserId(-1),
+                        FastPackets.Notification("User already logged in")
+                    });
+                }
+                
+                Response.Headers["cho-token"] = u.BanchoToken;
+
+                var packets = new List<Packet>();
+                
+                packets.Add(FastPackets.UserId(u.Id));
+                packets.Add(FastPackets.Notification($"Welcome back!\r\nChikatto Build v{Global.Version}"));
+
+                Global.TokenCache[u.BanchoToken] = u.Id;
+                Global.UserCache[u.Id] = u;
+                
+                return SendPackets(packets);
+            }
+
+            if (!Global.TokenCache.ContainsKey(token))
+            {
+                var packets = new[]
+                {
+                    FastPackets.Notification("Server has restarted"), 
+                    FastPackets.ServerRestart(0)
+                };
+                
+                return SendPackets(packets);
+            }
+
+            var userId = Global.TokenCache[token];
+            var user = Global.UserCache[userId];
+            
             var osuPackets = Packets.Read(ms.ToArray());
 
             foreach (var packet in osuPackets)
-            {
-                var outPacket = await packet.Handle(token);
-                if (outPacket != null)
-                    packets.Add(outPacket);
-            }
+                await packet.Handle(user);
 
-            return SendPackets(packets);
+            var res = user.WaitingPackets.ToArray();
+            
+            user.WaitingPackets.Clear();
+
+            return SendPackets(res);
         }
 
         private FileContentResult SendPackets(IEnumerable<Packet> packets) =>
