@@ -22,6 +22,24 @@ namespace Chikatto.Bancho.Serialization
             if (len < 0) return null;
             return Array.Empty<byte>();
         }
+        
+        public IEnumerable<int> ReadInt32Array()
+        {
+            var len = ReadInt16();
+            if (len > 0)
+            {
+                var arr = new int[len];
+                for (var i = 0; i < arr.Length; i++)
+                {
+                    arr[i] = ReadInt32();
+                }
+
+                return arr;
+            }
+                
+            if (len < 0) return null;
+            return Array.Empty<int>();
+        }
 
         public char[] ReadCharArray()
         {

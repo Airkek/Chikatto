@@ -45,12 +45,15 @@ namespace Chikatto.Controllers
                 if (u.Id == -1)
                     return SendPackets(new[] { FastPackets.UserId(-1) });
 
-                if (u.LastPong > DateTime.Now.Second - 10 && u.LastPong <= DateTime.Now.Second)
+                if (u.LastPong > new DateTimeOffset(DateTime.Now).ToUnixTimeMilliseconds() - 10000)
+                {
                     return SendPackets(new[]
                     {
                         FastPackets.UserId(-1),
                         FastPackets.Notification("User already logged in")
                     });
+                }
+                    
                 
                 u.BanchoToken = RandomFabric.GenerateBanchoToken();
                 Response.Headers["cho-token"] = u.BanchoToken;
@@ -58,8 +61,9 @@ namespace Chikatto.Controllers
                 var packets = new List<Packet>();
                 
                 packets.Add(FastPackets.UserId(u.Id));
+                packets.Add(FastPackets.MainMenuIcon($"https://osu.shizofrenia.pw/static/images/logo_ingame.png|https://github.com/Airkek/Chikatto"));
                 packets.Add(FastPackets.Notification($"Welcome back!\r\nChikatto Build v{Misc.Version}"));
-
+                packets.Add(FastPackets.BotPresence());
                 Global.TokenCache[u.BanchoToken] = u.Id;
                 Global.UserCache[u.Id] = u;
                 

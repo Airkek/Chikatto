@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Chikatto.Bancho.Enums;
+using Chikatto.Bancho.Serialization;
 using Chikatto.Objects;
 using Chikatto.Utils;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
@@ -15,9 +16,9 @@ namespace Chikatto.Bancho
     {
         private static Dictionary<PacketType, PacketHandler> Handlers { get; } = new()
         {
-            [OsuPong] = async (x, y) => { }, //TODO: set user last pong time
+            [OsuPong] = async (x, y) => { },
             [OsuLogout] = Logout,
-            
+            [OsuUserStatsRequest] = UserStatsRequest
         };
 
         public async static Task Logout(Packet packet, User user)
@@ -31,8 +32,22 @@ namespace Chikatto.Bancho
             }
         }
         
+        public async static Task UserStatsRequest(Packet packet, User user)
+        {
+            using var p = new ReadablePacket(packet);
+
+            var players = p.Reader.ReadInt32Array();
+            
+            foreach (var i in players)
+            {
+                if(Global.UserCache.ContainsKey(i))
+                    user.WaitingPackets.Add(FastPackets.UserStats(Global.UserCache[i]));
+            }
+        }
+        
         public async static Task Handle(this Packet packet, User user)
         {
+            user.LastPong = new DateTimeOffset(DateTime.Now).ToUnixTimeMilliseconds();
             if (!Handlers.ContainsKey(packet.Type))
             {
 #if DEBUG

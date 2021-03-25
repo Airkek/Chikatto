@@ -10,7 +10,7 @@ namespace Chikatto.Objects
 
         public int Id;
 
-        public int LastPong;
+        public long LastPong;
 
         public string BanchoToken;
 

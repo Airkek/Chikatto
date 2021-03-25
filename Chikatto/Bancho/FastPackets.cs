@@ -7,6 +7,7 @@ using System.Reflection.Metadata.Ecma335;
 using Chikatto.Bancho;
 using Chikatto.Bancho.Enums;
 using Chikatto.Bancho.Objects;
+using Chikatto.Constants;
 using Chikatto.Objects;
 
 namespace Chikatto.Utils
@@ -36,15 +37,54 @@ namespace Chikatto.Utils
         }
         
         //11
-        public static Packet UserStats(User/*Stats*/ stats)
+        public static Packet UserStats(BanchoUserStats stats)
         {
-            throw new NotImplementedException();
+            using var packet = new WriteablePacket(PacketType.BanchoUserStats);
+            packet.Writer.WriteBanchoObject(stats);
+            return packet.Dump();
         }
         //11 overload
-        /*public static Packet UserStats(User stats)
+        public static Packet UserStats(User user)
         {
-            throw new NotImplementedException();
-        }*/
+            //TODO: UserStats from user
+            var stats = new BanchoUserStats
+            {
+                Id = user.Id,
+                Accuracy = 13.37f,
+                Action = 3,
+                Text = "Chikatto's source code",
+                Rank = 1337,
+                MapId = 0,
+                MapMd5 = "",
+                PlayCount = 1337,
+                PP = 1337,
+                RankedScore = 1337,
+                TotalScore = 1337,
+                Mode = GameMode.Standard,
+                Mods = 0
+            };
+            return UserStats(stats);
+        }
+        public static Packet BotStats()
+        {
+            var stats = new BanchoUserStats
+            {
+                Id = 1,
+                Accuracy = 13.37f,
+                Action = 3,
+                Text = "Chikatto's source code",
+                Rank = 1337,
+                MapId = 0,
+                MapMd5 = "",
+                PlayCount = 1337,
+                PP = 1337,
+                RankedScore = 1337,
+                TotalScore = 1337,
+                Mode = GameMode.Standard,
+                Mods = 0
+            };
+            return UserStats(stats);
+        }
         
         //12
         public static Packet Logout(int uid) 
@@ -85,18 +125,18 @@ namespace Chikatto.Utils
         }
         
         //24
-        public static Packet NewMatch(Match match)
+        public static Packet NewMatch(BanchoMatch banchoMatch)
         {
             using var packet = new WriteablePacket(PacketType.BanchoNewMatch);
-            packet.Writer.WriteBanchoObject(match);
+            packet.Writer.WriteBanchoObject(banchoMatch);
             return packet.Dump();
         }
         
         //26
-        public static Packet UpdateMatch(Match match, bool sendPassword = true)
+        public static Packet UpdateMatch(BanchoMatch banchoMatch, bool sendPassword = true)
         {
             using var packet = new WriteablePacket(PacketType.BanchoUpdateMatch);
-            packet.Writer.WriteBanchoObject(match);
+            packet.Writer.WriteBanchoObject(banchoMatch);
             return packet.Dump();
         }
         
@@ -108,10 +148,10 @@ namespace Chikatto.Utils
         public static Packet ToggleBlockNonFriendPm() => new Packet(PacketType.BanchoToggleBlockNonFriendPm);
         
         //36
-        public static Packet MatchJoinSuccess(Match match)
+        public static Packet MatchJoinSuccess(BanchoMatch banchoMatch)
         {
             using var packet = new WriteablePacket(PacketType.BanchoMatchJoinSuccess);
-            packet.Writer.WriteBanchoObject(match);
+            packet.Writer.WriteBanchoObject(banchoMatch);
             return packet.Dump();
         }
         
@@ -129,17 +169,17 @@ namespace Chikatto.Utils
         //45: unused
         
         //46
-        public static Packet MatchStart(Match match)
+        public static Packet MatchStart(BanchoMatch banchoMatch)
         {
             using var packet = new WriteablePacket(PacketType.BanchoMatchStart);
-            packet.Writer.WriteBanchoObject(match);
+            packet.Writer.WriteBanchoObject(banchoMatch);
             return packet.Dump();
         }
         
         //48
         public static Packet MatchScoreUpdate( /*ScoreFrame frame*/)
         {
-            throw new NotImplementedException();
+            throw new NotImplementedException(); //TODO: MatchScoreUpdate
         }
         
         //50
@@ -199,7 +239,7 @@ namespace Chikatto.Utils
         //69
         public static Packet BeatmapInfoReply( /*List<Map> maps*/)
         {
-            throw new NotImplementedException();
+            throw new NotImplementedException(); // TODO: BeatmapInfoReply
         }
 
         //71
@@ -233,7 +273,7 @@ namespace Chikatto.Utils
             new Packet(PacketType.BanchoMatchPlayerSkipped, BitConverter.GetBytes(uid));
 
         //83
-        public static Packet UserPresence(UserPresence presence)
+        public static Packet UserPresence(BanchoUserPresence presence)
         {
             using var packet = new WriteablePacket(PacketType.BanchoUserPresence);
             packet.Writer.WriteBanchoObject(presence);
@@ -242,23 +282,12 @@ namespace Chikatto.Utils
         //83 overload
         public static Packet UserPresence(User user)
         {
-            var presence = new UserPresence
-            {
-                Id = user.Id,
-                Name = user.Name,
-                BanchoPrivileges = 1, 
-                CountryCode = 135, 
-                Rank = 1, 
-                Timezone = 27, 
-                X = 0.0,
-                Y = 0.0
-            };
-            return UserPresence(presence);
+            throw new NotImplementedException();
         }
         //83 bot //TODO bot config
         public static Packet BotPresence()
         {
-            var presence = new UserPresence
+            var presence = new BanchoUserPresence
             {
                 Id = 1,
                 Name = "DenBai",

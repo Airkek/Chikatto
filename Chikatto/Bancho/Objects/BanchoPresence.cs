@@ -2,7 +2,7 @@
 
 namespace Chikatto.Bancho.Objects
 {
-    public class Presence : ISerializable
+    public class BanchoPresence : ISerializable
     {
         public byte Action;
         public string Text;

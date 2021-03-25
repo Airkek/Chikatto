@@ -2,7 +2,7 @@
 
 namespace Chikatto.Bancho.Objects
 {
-    public class Match : ISerializable
+    public class BanchoMatch : ISerializable
     {
         public short Id;
         public bool InProgress;

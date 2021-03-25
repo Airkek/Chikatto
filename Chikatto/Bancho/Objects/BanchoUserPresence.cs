@@ -2,7 +2,7 @@
 
 namespace Chikatto.Bancho.Objects
 {
-    public class UserPresence : ISerializable
+    public class BanchoUserPresence : ISerializable
     {
         public int Id;
         public string Name;
