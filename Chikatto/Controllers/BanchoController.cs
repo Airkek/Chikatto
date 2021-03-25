@@ -54,6 +54,6 @@ namespace Chikatto.Controllers
         }
 
         private FileContentResult SendPackets(IEnumerable<Packet> packets) =>
-            File(Packets.Write(packets), "application/octet-stream"); 
+            File(Packets.GetBytes(packets), "application/octet-stream"); 
     }
 }

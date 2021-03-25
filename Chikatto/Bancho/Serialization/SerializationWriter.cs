@@ -9,7 +9,6 @@ namespace Chikatto.Bancho.Serialization
     public class SerializationWriter : BinaryWriter
     {
         public SerializationWriter(Stream output) : base(output) { }
-        public SerializationWriter(Stream output, Encoding encoding) : base(output, encoding) { }
 
         public override void Write(string value)
         {

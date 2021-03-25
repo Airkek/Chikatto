@@ -8,7 +8,7 @@ namespace Chikatto.Bancho.Serialization
 {
     public static class Packets
     {
-        public static byte[] Write(IEnumerable<Packet> packets)
+        public static byte[] GetBytes(IEnumerable<Packet> packets)
         {
             var bytes = new List<byte>();
 
