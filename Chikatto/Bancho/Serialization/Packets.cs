@@ -15,7 +15,7 @@ namespace Chikatto.Bancho.Serialization
 
             foreach (var packet in packets)
             {
-                ((ushort) packet.Type).GetBytes().ToList().ForEach(bytes.Add);
+                ((ushort) packet.Type).GetBytes().ToList().ForEach(bytes.Add); 
                 bytes.Add(0);
                 ((uint) packet.Data.Length).GetBytes().ToList().ForEach(bytes.Add);
                 packet.Data.ToList().ForEach(bytes.Add);

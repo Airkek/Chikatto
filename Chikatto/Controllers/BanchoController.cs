@@ -27,7 +27,14 @@ namespace Chikatto.Controllers
 
             if (string.IsNullOrEmpty(token))
             {
-                packets.Add(new Packet(PacketType.BanchoUserId, (-1).GetBytes()));
+                using var uidPacket = new WriteablePacket(PacketType.BanchoUserId);
+                uidPacket.Writer.Write(3);
+                packets.Add(uidPacket.Dump());
+                
+                using var notifyPacket = new WriteablePacket(PacketType.BanchoNotification);
+                uidPacket.Writer.Write("Test");
+                packets.Add(notifyPacket.Dump());
+                
                 //TODO: auth
                 Response.Headers["cho-token"] = "chikatto-1337";
 
