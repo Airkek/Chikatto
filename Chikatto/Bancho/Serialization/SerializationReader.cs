@@ -72,6 +72,7 @@ namespace Chikatto.Bancho.Serialization
                 TypeBytes.DateTime => ReadDateTime(),
                 TypeBytes.ByteArray => ReadByteArray(),
                 TypeBytes.CharArray => ReadCharArray(),
+                TypeBytes.Serialized => null, //TODO
                 _ => null
             };
         }
