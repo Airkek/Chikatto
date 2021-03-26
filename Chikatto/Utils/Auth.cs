@@ -1,4 +1,5 @@
 ﻿using System;
+using Chikatto.Database.Models;
 using Chikatto.Objects;
 
 namespace Chikatto.Utils
@@ -8,10 +9,10 @@ namespace Chikatto.Utils
         public static User Login(string name, string psMd5)
         {
             var safe = GetSafeName(name);
-            if (!Global.Test.ContainsKey(safe)) // :D
+            if (!Global.IdCache.ContainsKey(safe)) // :D
                 return new User { Id = -1 };
 
-            var id = Global.Test[safe];
+            var id = Global.IdCache[safe];
 
             User user;
             if (Global.UserCache.ContainsKey(id))
@@ -23,8 +24,7 @@ namespace Chikatto.Utils
                     Id = id,
                     Name = name, //TODO: dbName
                     SafeName = safe,
-                    LastPong = 0,
-                    BanchoToken = RandomFabric.GenerateBanchoToken()
+                    LastPong = 0
                 };
             }
 

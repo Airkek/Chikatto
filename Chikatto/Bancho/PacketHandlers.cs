@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
 using Chikatto.Bancho.Enums;
+using Chikatto.Database.Models;
 using Chikatto.Objects;
 using Chikatto.Utils;
 using static Chikatto.Bancho.Enums.PacketType;
@@ -23,7 +25,10 @@ namespace Chikatto.Bancho
             var arg = BitConverter.ToInt32(packet.Data);
             if (arg == 0)
             {
-                Global.TokenCache.Remove(user.BanchoToken);
+                foreach(var item in Global.TokenCache.Where(kvp => kvp.Value == user.Id).ToList())
+                {
+                    Global.TokenCache.Remove(item.Key);
+                }
                 Global.UserCache.Remove(user.Id);
                 Console.WriteLine($"{user} logged out");
             }

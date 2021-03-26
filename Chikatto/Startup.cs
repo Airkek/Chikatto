@@ -1,16 +1,11 @@
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
+using Chikatto.Database;
+using Chikatto.Objects;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using Microsoft.OpenApi.Models;
 
 namespace Chikatto
 {
@@ -19,12 +14,15 @@ namespace Chikatto
         // This method gets called by the runtime. Use this method to add services to the container.
         public static void ConfigureServices(IServiceCollection services)
         {
+            services.AddDbContextPool<GulagDbContext>(optionsBuilder => optionsBuilder.UseMySql(Global.DbConnectionString));
             services.AddControllers();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public static void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public static void Configure(IApplicationBuilder app, IWebHostEnvironment env, GulagDbContext context)
         {
+            context.Database.EnsureCreated();
+            
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -40,6 +38,20 @@ namespace Chikatto
             {
                 endpoints.MapControllers();
             });
+            
+            var users = context.Users.AsNoTracking().AsEnumerable();
+            
+            foreach (var user in users)
+            {
+                if (user.Id == 1)
+                {
+                    Global.Bot = user;
+                    continue;
+                }
+
+                Global.IdCache[user.SafeName] = user.Id;
+                Global.UserCache[user.Id] = user;
+            }
         }
     }
 }

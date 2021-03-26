@@ -1,23 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
+using Chikatto.Database;
+using Chikatto.Database.Models;
 
 namespace Chikatto.Objects
 {
     public static class Global
     {
         public static User Bot = new() {Id = 1, Name = "DenBai"};
-        
-        public static Dictionary<string, int> Test = new() // Test :D <SafeName, Id>
-        {
-            ["cookiezi"] = 3,
-            ["peppy"] = 4,
-            ["firedigger"] = 5,
-        }; 
-        
-        public static Dictionary<int, User> UserCache = new()
-        {
-            [1] = Bot
-        }; //<Id, User>
-        public static Dictionary<string, int> TokenCache = new(); //<Token, Id>
+
+        public static ConfigScheme Config;
+        public static GulagDbContext Database;
+
+        public static string DbConnectionString => $"server={Config.DatabaseHost};database={Config.DatabaseName};" +
+                                                   $"user={Config.DatabaseUser};password={Config.DatabasePassword};";
+
+
+        public static Dictionary<int, User> UserCache = new (); // <Id, User>
+        public static Dictionary<string, int> IdCache = new(); // <SafeName, Id>
+        public static Dictionary<string, int> TokenCache = new (); //<Token, Id>
     }
 }

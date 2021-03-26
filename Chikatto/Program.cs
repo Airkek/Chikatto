@@ -1,11 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using Chikatto.Database;
+using Chikatto.Objects;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 
 namespace Chikatto
 {
@@ -13,6 +9,8 @@ namespace Chikatto
     {
         public static void Main(string[] args)
         {
+            Global.Config = ConfigManager.Read();
+            Global.Database = GulagDbContext.Create();
             CreateHostBuilder(args).Build().Run();
         }
 

@@ -8,6 +8,7 @@ using Chikatto.Bancho;
 using Chikatto.Bancho.Enums;
 using Chikatto.Bancho.Objects;
 using Chikatto.Constants;
+using Chikatto.Database.Models;
 using Chikatto.Objects;
 
 namespace Chikatto.Utils
