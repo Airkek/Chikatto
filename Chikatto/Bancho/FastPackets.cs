@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Data.Common;
 using System.IO;
+using System.Linq;
 using System.Reflection.Metadata.Ecma335;
 using Chikatto.Bancho;
 using Chikatto.Bancho.Enums;
@@ -10,6 +12,8 @@ using Chikatto.Bancho.Objects;
 using Chikatto.Constants;
 using Chikatto.Database.Models;
 using Chikatto.Objects;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 
 namespace Chikatto.Utils
 {
@@ -47,20 +51,23 @@ namespace Chikatto.Utils
         //11 overload
         public static Packet UserStats(User user)
         {
-            //TODO: UserStats from user
+            var userStats = Global.Database.Stats.Find(user.Id);
+
+            //TODO: all-in-one user cache
+            
             var stats = new BanchoUserStats
             {
                 Id = user.Id,
-                Accuracy = 13.37f,
+                Accuracy = userStats.acc_vn_std,
                 Action = BanchoAction.Idle,
-                Text = "asd",
-                Rank = 1337,
+                Text = "",
+                Rank = 1,
                 MapId = 0,
                 MapMd5 = "",
-                PlayCount = 1337,
-                PP = 1337,
-                RankedScore = 1337,
-                TotalScore = 1337,
+                PlayCount = userStats.plays_vn_std,
+                PP = (short)userStats.pp_vn_std,
+                RankedScore = userStats.rscore_vn_std,
+                TotalScore = userStats.tscore_vn_std,
                 Mode = GameMode.Standard,
                 Mods = 0
             };
@@ -71,16 +78,16 @@ namespace Chikatto.Utils
             var stats = new BanchoUserStats
             {
                 Id = 1,
-                Accuracy = 13.37f,
+                Accuracy = 0,
                 Action = BanchoAction.Editing,
                 Text = "Chikatto's source code",
                 Rank = 0,
                 MapId = 0,
                 MapMd5 = "",
-                PlayCount = 1337,
-                PP = 1337,
-                RankedScore = 1337,
-                TotalScore = 1337,
+                PlayCount = 0,
+                PP = 0,
+                RankedScore = 0,
+                TotalScore = 0,
                 Mode = GameMode.Standard,
                 Mods = 0
             };

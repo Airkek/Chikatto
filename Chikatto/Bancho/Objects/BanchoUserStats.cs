@@ -22,8 +22,8 @@ namespace Chikatto.Bancho.Objects
         public void Serialize(SerializationWriter writer)
         {
             writer.Write(Id);
-            writer.Write(Text);
             writer.Write((byte)Action);
+            writer.Write(Text);
             writer.Write(MapMd5);
             writer.Write((uint) Mods);
             writer.Write((byte) Mode);

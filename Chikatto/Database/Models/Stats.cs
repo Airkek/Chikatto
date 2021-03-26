@@ -26,6 +26,7 @@ namespace Chikatto.Database.Models
         [Required] public int rscore_rx_taiko { get; set; }
         [Required] public int rscore_rx_catch { get; set; }
         [Required] public int rscore_ap_std { get; set; }
+        [Required] public int pp_vn_std { get; set; }
         [Required] public int pp_vn_taiko { get; set; }
         [Required] public int pp_vn_catch { get; set; }
         [Required] public int pp_vn_mania { get; set; }

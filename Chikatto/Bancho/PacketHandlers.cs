@@ -22,16 +22,14 @@ namespace Chikatto.Bancho
 
         public async static Task Logout(Packet packet, User user)
         {
-            var arg = BitConverter.ToInt32(packet.Data);
-            if (arg == 0)
-            {
-                foreach(var item in Global.TokenCache.Where(kvp => kvp.Value == user.Id).ToList())
-                {
-                    Global.TokenCache.Remove(item.Key);
-                }
-                Global.UserCache.Remove(user.Id);
-                Console.WriteLine($"{user} logged out");
-            }
+            user.LastPong = 0;
+            
+            foreach(var item in Global.TokenCache.Where(kvp => kvp.Value == user.Id).ToList())
+                Global.TokenCache.Remove(item.Key);
+
+            Global.UserCache.Remove(user.Id);
+            
+            Console.WriteLine($"{user} logged out");
         }
         
         public async static Task UserStatsRequest(Packet packet, User user)
@@ -62,7 +60,10 @@ namespace Chikatto.Bancho
         
         public async static Task Handle(this Packet packet, User user)
         {
-            user.LastPong = new DateTimeOffset(DateTime.Now).ToUnixTimeMilliseconds();
+            if(!Global.UserCache.ContainsKey(user.Id))
+                return;
+            
+            user.LastPong = new DateTimeOffset(DateTime.Now).ToUnixTimeSeconds();
             if (!Handlers.ContainsKey(packet.Type))
             {
 #if DEBUG

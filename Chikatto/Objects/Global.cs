@@ -19,5 +19,6 @@ namespace Chikatto.Objects
         public static Dictionary<int, User> UserCache = new (); // <Id, User>
         public static Dictionary<string, int> IdCache = new(); // <SafeName, Id>
         public static Dictionary<string, int> TokenCache = new (); //<Token, Id>
+        public static Dictionary<string, string> BCryptCache = new(); //<Plain, Hash>
     }
 }
