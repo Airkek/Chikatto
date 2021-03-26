@@ -45,7 +45,7 @@ namespace Chikatto.Controllers
 
                 Response.Headers["cho-token"] = "no-token";
 
-                var u = Auth.Login(req[0], req[1]);
+                var u = await Auth.Login(req[0], req[1]);
 
                 if (u.Id == -1)
                     return SendPackets(new[] { FastPackets.UserId(-1) });
@@ -68,15 +68,15 @@ namespace Chikatto.Controllers
                 packets.Add(FastPackets.UserId(u.Id));
                 packets.Add(FastPackets.MainMenuIcon($"{Global.Config.LogoIngame}|{Global.Config.LogoClickUrl}"));
                 packets.Add(FastPackets.Notification($"Welcome back!\r\nChikatto Build v{Misc.Version}"));
+                packets.Add(await FastPackets.UserStats(u));
                 packets.Add(FastPackets.UserPresence(u));
-                packets.Add(FastPackets.UserStats(u));
                 packets.Add(FastPackets.BotPresence());
                 packets.Add(FastPackets.BotStats());
                 
-                foreach (var us in Global.UserCache)
+                foreach (var (_, value) in Global.UserCache.Where(us => us.Key != u.Id))
                 {
-                    packets.Add(FastPackets.UserPresence(us.Value));
-                    packets.Add(FastPackets.UserStats(us.Value));
+                    packets.Add(FastPackets.UserPresence(value));
+                    packets.Add(await FastPackets.UserStats(value));
                 }
                 
                 Global.TokenCache[token] = u.Id;

@@ -13,7 +13,7 @@ namespace Chikatto.Constants
         Developer = 1 << 4,
         Tournament = 1 << 5,
         
-        DenBai = Normal | Nominator | Developer,
+        Bot = Normal | Nominator | Developer,
         User = Normal | Supporter
     }
 }

@@ -6,6 +6,7 @@ using System.Data.Common;
 using System.IO;
 using System.Linq;
 using System.Reflection.Metadata.Ecma335;
+using System.Threading.Tasks;
 using Chikatto.Bancho;
 using Chikatto.Bancho.Enums;
 using Chikatto.Bancho.Objects;
@@ -49,9 +50,9 @@ namespace Chikatto.Utils
             return packet.Dump();
         }
         //11 overload
-        public static Packet UserStats(User user)
+        public static async Task<Packet> UserStats(User user)
         {
-            var userStats = Global.Database.Stats.Find(user.Id);
+            var userStats = await Global.Database.Stats.FindAsync(user.Id);
 
             //TODO: all-in-one user cache
             
@@ -295,7 +296,7 @@ namespace Chikatto.Utils
                 Id = user.Id,
                 Name = user.Name,
                 BanchoPermissions = BanchoPermissions.User,
-                CountryCode = 222,
+                CountryCode = 185,
                 Rank = 1,
                 Timezone = 27,
                 Longitude = 0.0,
@@ -310,7 +311,7 @@ namespace Chikatto.Utils
             {
                 Id = 1,
                 Name = "DenBai",
-                BanchoPermissions = BanchoPermissions.DenBai,
+                BanchoPermissions = BanchoPermissions.Bot,
                 CountryCode = 222,
                 Rank = 0,
                 Timezone = 26,

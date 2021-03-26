@@ -2,30 +2,35 @@
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using Chikatto.Database.Models;
 using Chikatto.Objects;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 
 namespace Chikatto.Utils
 {
     public class Auth
     {
-        public static User Login(string name, string pwMd5)
+        public static async Task<User> Login(string name, string pwMd5)
         {
             var safe = GetSafeName(name);
+            
+            if(safe == Global.Bot.SafeName)
+                return new User {Id = -1};
+            
             int id;
             User user;
             if (!Global.IdCache.ContainsKey(safe))
             {
-                var users = from u in Global.Database.Users
-                    where u.SafeName == safe
-                    select u;
+                var users = (await Global.Database.Users.AsNoTracking().ToListAsync()).Where(u => u.SafeName == safe).ToList();
 
                 if (users.Count() != 1)
                     return new User {Id = -1};
 
                 user = users.ElementAt(0);
                 id = user.Id;
+
                 Global.IdCache[user.SafeName] = id;
             }
             else
@@ -37,7 +42,7 @@ namespace Chikatto.Utils
                 else
                     user = Global.Database.Users.Find(id);
             }
-            
+
             string bcrypt;
 
             if (Global.BCryptCache.ContainsKey(pwMd5))

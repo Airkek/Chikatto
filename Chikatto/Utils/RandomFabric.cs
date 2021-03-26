@@ -9,7 +9,7 @@ namespace Chikatto.Utils
         
         public static string GenerateBanchoToken()
         {
-            return "chikatto-1337"; //TODO
+            return $"chikatto-{Random.NextDouble()}"; //TODO
         }
     }
 }

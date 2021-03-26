@@ -5,7 +5,7 @@ namespace Chikatto.Bancho
 {
     public class Packet 
     {
-        public PacketType Type;
+        public readonly PacketType Type;
         public byte[] Data = Array.Empty<byte>();
 
         public Packet(PacketType type)

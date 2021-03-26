@@ -17,7 +17,7 @@ namespace Chikatto.Bancho
         {
             [OsuPong] = async (x, y) => { },
             [OsuLogout] = Logout,
-            [OsuUserStatsRequest] = UserStatsRequest
+            [OsuUserStatsRequest] = UserStatsRequest,
         };
 
         public async static Task Logout(Packet packet, User user)
@@ -48,7 +48,7 @@ namespace Chikatto.Bancho
                 }
                 if (Global.UserCache.ContainsKey(i))
                 {
-                    user.WaitingPackets.Add(FastPackets.UserStats(Global.UserCache[i]));
+                    user.WaitingPackets.Add(await FastPackets.UserStats(Global.UserCache[i]));
                     user.WaitingPackets.Add(FastPackets.UserPresence(Global.UserCache[i]));
                 }
                 else
