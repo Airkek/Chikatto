@@ -51,8 +51,8 @@ namespace Chikatto.Utils
             {
                 Id = user.Id,
                 Accuracy = 13.37f,
-                Action = 3,
-                Text = "Chikatto's source code",
+                Action = BanchoAction.Idle,
+                Text = "asd",
                 Rank = 1337,
                 MapId = 0,
                 MapMd5 = "",
@@ -71,9 +71,9 @@ namespace Chikatto.Utils
             {
                 Id = 1,
                 Accuracy = 13.37f,
-                Action = 3,
+                Action = BanchoAction.Editing,
                 Text = "Chikatto's source code",
-                Rank = 1337,
+                Rank = 0,
                 MapId = 0,
                 MapMd5 = "",
                 PlayCount = 1337,

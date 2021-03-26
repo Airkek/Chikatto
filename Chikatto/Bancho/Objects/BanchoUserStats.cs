@@ -6,7 +6,7 @@ namespace Chikatto.Bancho.Objects
     public class BanchoUserStats : ISerializable
     {
         public int Id;
-        public byte Action;
+        public BanchoAction Action;
         public string Text;
         public string MapMd5;
         public Mods Mods;
@@ -15,7 +15,7 @@ namespace Chikatto.Bancho.Objects
         public long RankedScore;
         public float Accuracy;
         public int PlayCount;
-        public ulong TotalScore;
+        public long TotalScore;
         public int Rank;
         public short PP;
         
@@ -23,9 +23,9 @@ namespace Chikatto.Bancho.Objects
         {
             writer.Write(Id);
             writer.Write(Text);
-            writer.Write(Action);
+            writer.Write((byte)Action);
             writer.Write(MapMd5);
-            writer.Write((int) Mods);
+            writer.Write((uint) Mods);
             writer.Write((byte) Mode);
             writer.Write(MapId);
             writer.Write(RankedScore);

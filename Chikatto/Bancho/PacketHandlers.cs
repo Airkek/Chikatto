@@ -1,13 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Threading;
 using System.Threading.Tasks;
 using Chikatto.Bancho.Enums;
-using Chikatto.Bancho.Serialization;
 using Chikatto.Objects;
 using Chikatto.Utils;
-using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using static Chikatto.Bancho.Enums.PacketType;
 
 namespace Chikatto.Bancho
@@ -40,10 +37,20 @@ namespace Chikatto.Bancho
             
             foreach (var i in players)
             {
+                if (i == 1)
+                {
+                    user.WaitingPackets.Add(FastPackets.BotStats());
+                    user.WaitingPackets.Add(FastPackets.BotPresence());
+                    continue;
+                }
                 if (Global.UserCache.ContainsKey(i))
                 {
                     user.WaitingPackets.Add(FastPackets.UserStats(Global.UserCache[i]));
                     user.WaitingPackets.Add(FastPackets.UserPresence(Global.UserCache[i]));
+                }
+                else
+                {
+                    user.WaitingPackets.Add(FastPackets.Logout(i));
                 }
             }
         }
