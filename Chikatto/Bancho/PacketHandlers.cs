@@ -40,8 +40,11 @@ namespace Chikatto.Bancho
             
             foreach (var i in players)
             {
-                if(Global.UserCache.ContainsKey(i))
+                if (Global.UserCache.ContainsKey(i))
+                {
                     user.WaitingPackets.Add(FastPackets.UserStats(Global.UserCache[i]));
+                    user.WaitingPackets.Add(FastPackets.UserPresence(Global.UserCache[i]));
+                }
             }
         }
         

@@ -282,7 +282,18 @@ namespace Chikatto.Utils
         //83 overload
         public static Packet UserPresence(User user)
         {
-            throw new NotImplementedException();
+            var presence = new BanchoUserPresence()
+            {
+                Id = user.Id,
+                Name = user.Name,
+                BanchoPermissions = BanchoPermissions.User,
+                CountryCode = 222,
+                Rank = 1,
+                Timezone = 27,
+                Longitude = 0.0,
+                Latitude = 0.0
+            };
+            return UserPresence(presence);
         }
         //83 bot //TODO bot config
         public static Packet BotPresence()
@@ -291,12 +302,12 @@ namespace Chikatto.Utils
             {
                 Id = 1,
                 Name = "DenBai",
-                BanchoPrivileges = 19,
+                BanchoPermissions = BanchoPermissions.DenBai,
                 CountryCode = 222,
                 Rank = 0,
                 Timezone = 26,
-                X = 0.0,
-                Y = 0.0
+                Longitude = 0.0,
+                Latitude = 0.0
             };
             return UserPresence(presence);
         }

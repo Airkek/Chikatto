@@ -15,7 +15,7 @@ namespace Chikatto.Bancho.Objects
         public long RankedScore;
         public float Accuracy;
         public int PlayCount;
-        public long TotalScore;
+        public ulong TotalScore;
         public int Rank;
         public short PP;
         
@@ -25,7 +25,7 @@ namespace Chikatto.Bancho.Objects
             writer.Write(Text);
             writer.Write(Action);
             writer.Write(MapMd5);
-            writer.Write((uint) Mods);
+            writer.Write((int) Mods);
             writer.Write((byte) Mode);
             writer.Write(MapId);
             writer.Write(RankedScore);

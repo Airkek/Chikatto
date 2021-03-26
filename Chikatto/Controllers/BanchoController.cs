@@ -61,9 +61,18 @@ namespace Chikatto.Controllers
                 var packets = new List<Packet>();
                 
                 packets.Add(FastPackets.UserId(u.Id));
+                packets.Add(FastPackets.ProtocolVersion(19));
+                packets.Add(FastPackets.BanchoPrivileges((byte) BanchoPermissions.User));
+                packets.Add(FastPackets.UserPresence(u));
+                packets.Add(FastPackets.UserStats(u));
+                packets.Add(FastPackets.FriendList(new List<int>()));
+                packets.Add(FastPackets.SilenceEnd(0));
                 packets.Add(FastPackets.MainMenuIcon($"https://osu.shizofrenia.pw/static/images/logo_ingame.png|https://github.com/Airkek/Chikatto"));
                 packets.Add(FastPackets.Notification($"Welcome back!\r\nChikatto Build v{Misc.Version}"));
+                
                 packets.Add(FastPackets.BotPresence());
+                packets.Add(FastPackets.BotStats());
+                
                 Global.TokenCache[u.BanchoToken] = u.Id;
                 Global.UserCache[u.Id] = u;
                 

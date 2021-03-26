@@ -1,5 +1,6 @@
 ﻿using System;
 using Chikatto.Bancho.Serialization;
+using Chikatto.Constants;
 
 namespace Chikatto.Bancho.Objects
 {
@@ -7,14 +8,11 @@ namespace Chikatto.Bancho.Objects
     {
         public int Id;
         public string Name;
-        /// <summary>
-        /// Note: Time zone +24
-        /// </summary>
-        public byte Timezone;
-        public byte CountryCode;
-        public byte BanchoPrivileges;
-        public double X;
-        public double Y;
+        public byte Timezone; // Note: Time zone +24
+        public byte CountryCode; //TODO: CountryCode enum
+        public BanchoPermissions BanchoPermissions;
+        public double Longitude;
+        public double Latitude;
         public int Rank;
             
         public void Serialize(SerializationWriter writer)
@@ -23,9 +21,9 @@ namespace Chikatto.Bancho.Objects
             writer.Write(Name);
             writer.Write(Timezone); 
             writer.Write(CountryCode);
-            writer.Write(BanchoPrivileges);
-            writer.Write(X);
-            writer.Write(Y);
+            writer.Write((byte)BanchoPermissions);
+            writer.Write(Longitude);
+            writer.Write(Latitude);
             writer.Write(Rank);
         }
     }
