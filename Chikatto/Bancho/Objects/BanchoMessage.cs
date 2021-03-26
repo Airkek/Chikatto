@@ -2,7 +2,7 @@
 
 namespace Chikatto.Bancho.Objects
 {
-    public class BanchoMessage : ISerializable
+    public class BanchoMessage : ISerializable, IDeserializable
     {
         public string From;
         public string Body;

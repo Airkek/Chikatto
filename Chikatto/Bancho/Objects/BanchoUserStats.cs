@@ -25,7 +25,7 @@ namespace Chikatto.Bancho.Objects
             writer.Write(Text);
             writer.Write(Action);
             writer.Write(MapMd5);
-            writer.Write((int) Mods);
+            writer.Write((uint) Mods);
             writer.Write((byte) Mode);
             writer.Write(MapId);
             writer.Write(RankedScore);
@@ -34,11 +34,6 @@ namespace Chikatto.Bancho.Objects
             writer.Write(TotalScore);
             writer.Write(Rank);
             writer.Write(PP);
-        }
-
-        public void Deserialize(SerializationReader reader)
-        {
-            throw new System.NotImplementedException();
         }
     }
 }

@@ -70,7 +70,7 @@ namespace Chikatto.Bancho.Serialization
             return list;
         }
 
-        public T ReadBanchoObject<T>() where T : ISerializable, new()
+        public T ReadBanchoObject<T>() where T : IDeserializable, new()
         {
             var t = new T();
             t.Deserialize(this);

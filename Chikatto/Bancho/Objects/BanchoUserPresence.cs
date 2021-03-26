@@ -1,4 +1,5 @@
-﻿using Chikatto.Bancho.Serialization;
+﻿using System;
+using Chikatto.Bancho.Serialization;
 
 namespace Chikatto.Bancho.Objects
 {
@@ -26,18 +27,6 @@ namespace Chikatto.Bancho.Objects
             writer.Write(X);
             writer.Write(Y);
             writer.Write(Rank);
-        }
-
-        public void Deserialize(SerializationReader reader)
-        {
-            Id = reader.ReadInt32();
-            Name = reader.ReadString();
-            Timezone = reader.ReadByte();
-            CountryCode = reader.ReadByte();
-            BanchoPrivileges = reader.ReadByte();
-            X = reader.ReadDouble();
-            Y = reader.ReadDouble();
-            Rank = reader.ReadInt32();
         }
     }
 }
