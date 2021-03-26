@@ -40,7 +40,7 @@ namespace Chikatto.Utils
                 if (Global.UserCache.ContainsKey(id))
                     user = Global.UserCache[id];
                 else
-                    user = Global.Database.Users.Find(id);
+                    user = await Global.Database.Users.FindAsync(id);
             }
 
             string bcrypt;
