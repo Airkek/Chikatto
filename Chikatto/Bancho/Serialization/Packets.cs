@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Chikatto.Bancho.Enums;
+using Newtonsoft.Json.Serialization;
 
 namespace Chikatto.Bancho.Serialization
 {
@@ -9,38 +11,39 @@ namespace Chikatto.Bancho.Serialization
     {
         public static byte[] GetBytes(IEnumerable<Packet> packets)
         {
-            var bytes = new List<byte>();
+            using var stream = new MemoryStream();
+            using var writer = new BinaryWriter(stream);
 
             foreach (var packet in packets)
             {
-                BitConverter.GetBytes((ushort) packet.Type).ToList().ForEach(bytes.Add); 
-                bytes.Add(0);
-                BitConverter.GetBytes((uint) packet.Data.Length).ToList().ForEach(bytes.Add);
-                packet.Data.ToList().ForEach(bytes.Add);
+                writer.Write((ushort) packet.Type);
+                writer.Write((byte) 0);
+                writer.Write((uint) packet.Data.Length);
+                writer.Write(packet.Data);
             }
 
-            return bytes.ToArray();
+            return stream.ToArray();
         }
         
         public static IEnumerable<Packet> GetPackets(byte[] data)
         {
             var packets = new List<Packet>();
-            while (data.Length >= 7)
+            
+            using var stream = new MemoryStream(data);
+            using var reader = new BinaryReader(stream);
+            
+            while (stream.Length - stream.Position >= 7)
             {
-                var packetType = (PacketType)BitConverter.ToUInt16(data.Take(2).ToArray());
-                data = data.Skip(3).ToArray();
+                var packetType = (PacketType) reader.ReadByte();
                 
-                var length = (int)BitConverter.ToUInt32(data.Take(4).ToArray());
-                data = data.Skip(4).ToArray();
-
+                reader.ReadByte(); // pad byte
+                
+                var length = (int) reader.ReadUInt32();
                 var packet = new Packet(packetType);
 
                 if (length != 0)
-                {
-                    packet.Data = data.Take(length).ToArray();
-                    data = data.Skip(length).ToArray();
-                }
-                
+                    packet.Data = reader.ReadBytes(length);
+
                 packets.Add(packet);
             }
 
