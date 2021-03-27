@@ -18,7 +18,7 @@ namespace Chikatto.Bancho.Serialization
             {
                 writer.Write((ushort) packet.Type);
                 writer.Write((byte) 0);
-                writer.Write((uint) packet.Data.Length);
+                writer.Write(packet.Data.Length);
                 writer.Write(packet.Data);
             }
 
@@ -38,7 +38,7 @@ namespace Chikatto.Bancho.Serialization
                 
                 reader.ReadByte(); // pad byte
                 
-                var length = (int) reader.ReadUInt32();
+                var length = reader.ReadInt32();
                 var packet = new Packet(packetType);
 
                 if (length != 0)
