@@ -34,7 +34,7 @@ namespace Chikatto.Bancho.Serialization
             
             while (stream.Length - stream.Position >= 7)
             {
-                var packetType = (PacketType) reader.ReadByte();
+                var packetType = (PacketType) reader.ReadUInt16();
                 
                 reader.ReadByte(); // pad byte
                 
