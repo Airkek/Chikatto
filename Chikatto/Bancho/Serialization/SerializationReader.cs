@@ -90,7 +90,7 @@ namespace Chikatto.Bancho.Serialization
                 TypeBytes.ULong => ReadUInt64(),
                 TypeBytes.SByte => ReadSByte(),
                 TypeBytes.Short => ReadInt16(),
-                TypeBytes.Int => ReadUInt32(),
+                TypeBytes.Int => ReadInt32(),
                 TypeBytes.Long => ReadInt64(),
                 TypeBytes.Char => ReadChar(),
                 TypeBytes.String => base.ReadString(),
@@ -100,7 +100,6 @@ namespace Chikatto.Bancho.Serialization
                 TypeBytes.DateTime => ReadDateTime(),
                 TypeBytes.ByteArray => ReadByteArray(),
                 TypeBytes.CharArray => ReadCharArray(),
-                TypeBytes.Serialized => null, //TODO
                 _ => null
             };
         }
