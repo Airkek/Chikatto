@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Metadata.Ecma335;
 using System.Threading.Tasks;
+using Chikatto.Bancho;
 using Chikatto.Database.Models;
 using Chikatto.Utils;
 
@@ -16,6 +17,14 @@ namespace Chikatto.Objects
         private readonly Dictionary<int, Presence> Users = new(); // <UserId, Presence>
 
         public int Count => OsuTokens.Count;
+
+        public async Task AddPacketToAllUsers(Packet packet)
+        {
+            foreach (var (_, user) in Users)
+            {
+                user.WaitingPackets.Enqueue(packet);
+            }
+        }
 
         public async Task<List<Presence>> GetOnlineUsers() => Users.Select(x => x.Value).ToList();
 

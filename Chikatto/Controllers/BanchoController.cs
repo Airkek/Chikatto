@@ -85,11 +85,11 @@ namespace Chikatto.Controllers
                 
                 foreach (var channel in channels)
                 {
-                    if(channel.Default)
-                        channel.JoinUser(u);
-                    
-                    packets.Add(channel.GetInfoPacket());
+                    packets.Add(FastPackets.ChannelAutoJoin(channel.Name, channel.Topic, channel.Users.Count));
+                    channel.JoinUser(u);
                 }
+
+                packets.Add(FastPackets.ChannelInfoEnd());
 
 #if DEBUG
                 Console.WriteLine($"{u} logged in (login took {sw.Elapsed.TotalMilliseconds}ms)");

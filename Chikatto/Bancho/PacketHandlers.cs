@@ -43,6 +43,8 @@ namespace Chikatto.Bancho
             if (!Global.Channels.ContainsKey(message.To))
                 return;
 
+            message.From = user.Name;
+
             var c = Global.Channels[message.To];
             c.WriteMessage(user, message);
             
@@ -86,9 +88,15 @@ namespace Chikatto.Bancho
 
         public async static Task Logout(Packet packet, Presence user)
         {
+            //TODO: Presence.Logout()
             user.LastPong = 0;
             
+            foreach (var (_, c) in Global.Channels)
+                c.RemoveUser(user);
+
             await Global.OnlineManager.RemoveUserById(user.Id);
+            
+            await Global.OnlineManager.AddPacketToAllUsers(FastPackets.Logout(user.Id));
             
             Console.WriteLine($"{user} logged out");
         }
@@ -112,8 +120,12 @@ namespace Chikatto.Bancho
             using var readable = new ReadablePacket(packet);
             var channel = readable.Reader.ReadString();
             
-            user.WaitingPackets.Enqueue(FastPackets.ChannelKick(channel));
-            user.WaitingPackets.Enqueue(FastPackets.ChannelInfo(channel, "test", Global.OnlineManager.Count - 1));
+            if (!Global.Channels.ContainsKey(channel))
+                return;
+
+            var c = Global.Channels[channel];
+            c.RemoveUser(user);
+            
             Console.WriteLine($"{user} left from {channel}");
 
             //TODO channel leave
