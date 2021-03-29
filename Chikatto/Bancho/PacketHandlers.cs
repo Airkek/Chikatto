@@ -18,21 +18,43 @@ namespace Chikatto.Bancho
             [OsuPong] = async (x, y) => { },
             [OsuLogout] = Logout,
             [OsuUserStatsRequest] = UserStatsRequest,
+            [OsuChannelJoin] = ChannelJoin,
+            [OsuChannelPart] = ChannelLeave
         };
 
-        public async static Task Logout(Packet packet, User user)
+        public async static Task Logout(Packet packet, Presence user)
         {
             user.LastPong = 0;
             
-            foreach(var item in Global.TokenCache.Where(kvp => kvp.Value == user.Id).ToList())
-                Global.TokenCache.Remove(item.Key);
-
-            Global.UserCache.Remove(user.Id);
+            await Global.Manager.RemoveUserById(user.Id);
             
             Console.WriteLine($"{user} logged out");
         }
+
+        public async static Task ChannelJoin(Packet packet, Presence user)
+        {
+            using var readable = new ReadablePacket(packet);
+            var channel = readable.Reader.ReadString();
+            
+            user.WaitingPackets.Enqueue(FastPackets.ChannelJoinSuccess(channel));
+            user.WaitingPackets.Enqueue(FastPackets.ChannelInfo(channel, "test", Global.Manager.Count));
+            
+            Console.WriteLine($"{user} joined {channel}");
+        }
         
-        public async static Task UserStatsRequest(Packet packet, User user)
+        public async static Task ChannelLeave(Packet packet, Presence user)
+        {
+            using var readable = new ReadablePacket(packet);
+            var channel = readable.Reader.ReadString();
+            
+            user.WaitingPackets.Enqueue(FastPackets.ChannelKick(channel));
+            user.WaitingPackets.Enqueue(FastPackets.ChannelInfo(channel, "test", Global.Manager.Count - 1));
+            Console.WriteLine($"{user} left from {channel}");
+
+            //TODO channels
+        }
+        
+        public async static Task UserStatsRequest(Packet packet, Presence user)
         {
             using var p = new ReadablePacket(packet);
 
@@ -42,27 +64,26 @@ namespace Chikatto.Bancho
             {
                 if (i == 1)
                 {
-                    user.WaitingPackets.Add(FastPackets.BotStats());
-                    user.WaitingPackets.Add(FastPackets.BotPresence());
+                    user.WaitingPackets.Enqueue(FastPackets.BotStats());
+                    user.WaitingPackets.Enqueue(FastPackets.BotPresence());
                     continue;
                 }
-                if (Global.UserCache.ContainsKey(i))
+
+                var us = Global.Manager.GetById(i);
+                if (us != null)
                 {
-                    user.WaitingPackets.Add(await FastPackets.UserStats(Global.UserCache[i]));
-                    user.WaitingPackets.Add(FastPackets.UserPresence(Global.UserCache[i]));
+                    user.WaitingPackets.Enqueue(await FastPackets.UserStats(us));
+                    user.WaitingPackets.Enqueue(FastPackets.UserPresence(us));
                 }
                 else
                 {
-                    user.WaitingPackets.Add(FastPackets.Logout(i));
+                    user.WaitingPackets.Enqueue(FastPackets.Logout(i));
                 }
             }
         }
         
-        public async static Task Handle(this Packet packet, User user)
+        public async static Task Handle(this Packet packet, Presence user)
         {
-            if(!Global.UserCache.ContainsKey(user.Id))
-                return;
-            
             user.LastPong = new DateTimeOffset(DateTime.Now).ToUnixTimeSeconds();
             if (!Handlers.ContainsKey(packet.Type))
             {
@@ -84,6 +105,6 @@ namespace Chikatto.Bancho
 #endif
         }
 
-        private delegate Task PacketHandler(Packet packet, User token);
+        private delegate Task PacketHandler(Packet packet, Presence presence);
     }
 }

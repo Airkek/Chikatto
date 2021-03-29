@@ -5,6 +5,7 @@ using System.Data;
 using System.Data.Common;
 using System.IO;
 using System.Linq;
+using System.Net.Http.Headers;
 using System.Reflection.Metadata.Ecma335;
 using System.Threading.Tasks;
 using Chikatto.Bancho;
@@ -50,47 +51,54 @@ namespace Chikatto.Utils
             return packet.Dump();
         }
         //11 overload
-        public static async Task<Packet> UserStats(User user)
+        public static async Task<Packet> UserStats(Presence user)
         {
-            var userStats = await Global.Database.Stats.FindAsync(user.Id);
-
-            //TODO: all-in-one user cache
+            var action = new BanchoUserStatus
+            {
+                Action = BanchoAction.Idle,
+                Text = null,
+                MapMd5 = null,
+                Mods = Mods.NoMod,
+                Mode = GameMode.Standard,
+                MapId = 123
+            };
             
             var stats = new BanchoUserStats
             {
                 Id = user.Id,
-                Accuracy = userStats.acc_vn_std,
-                Action = BanchoAction.Idle,
-                Text = "",
+                Status = action,
+                RankedScore = user.Stats.rscore_vn_std,
+                Accuracy = user.Stats.acc_vn_std,
+                PlayCount = user.Stats.plays_vn_std,
+                TotalScore = user.Stats.tscore_vn_std,
                 Rank = 1,
-                MapId = 0,
-                MapMd5 = "",
-                PlayCount = userStats.plays_vn_std,
-                PP = (short)userStats.pp_vn_std,
-                RankedScore = userStats.rscore_vn_std,
-                TotalScore = userStats.tscore_vn_std,
-                Mode = GameMode.Standard,
-                Mods = 0
+                PP = (short)user.Stats.pp_vn_std
             };
             return UserStats(stats);
         }
+        //11 bot
         public static Packet BotStats()
         {
-            var stats = new BanchoUserStats
+            var action = new BanchoUserStatus
             {
-                Id = 1,
-                Accuracy = 0,
                 Action = BanchoAction.Editing,
                 Text = "Chikatto's source code",
-                Rank = 0,
-                MapId = 0,
-                MapMd5 = "",
-                PlayCount = 0,
-                PP = 0,
-                RankedScore = 0,
-                TotalScore = 0,
+                MapMd5 = null,
+                Mods = Mods.NoMod,
                 Mode = GameMode.Standard,
-                Mods = 0
+                MapId = 0
+            };
+            
+            var stats = new BanchoUserStats
+            {
+                Id = Global.Bot.Id,
+                Status = action,
+                RankedScore = 0,
+                Accuracy = 0,
+                PlayCount = 0,
+                TotalScore = 0,
+                Rank = 0,
+                PP = 0,
             };
             return UserStats(stats);
         }
@@ -289,16 +297,30 @@ namespace Chikatto.Utils
             return packet.Dump();
         }
         //83 overload
-        public static Packet UserPresence(User user)
+        public static Packet UserPresence(Presence user)
         {
-            var presence = new BanchoUserPresence()
+            var privs = BanchoPermissions.User;
+
+            if ((user.User.Privileges & Privileges.Nominator) != 0)
+                privs |= BanchoPermissions.BAT;
+            
+            if ((user.User.Privileges & Privileges.Staff) != 0)
+                privs |= BanchoPermissions.Moderator;
+
+            if ((user.User.Privileges & Privileges.Dangerous) != 0)
+                privs |= BanchoPermissions.Developer;
+
+            if ((user.User.Privileges & Privileges.Tournament) != 0)
+                privs |= BanchoPermissions.Tournament;
+            
+            var presence = new BanchoUserPresence
             {
                 Id = user.Id,
                 Name = user.Name,
-                BanchoPermissions = BanchoPermissions.User,
+                BanchoPermissions = privs,
                 CountryCode = 185,
-                Rank = 1,
-                Timezone = 27,
+                Rank = 0,
+                Timezone = 3,
                 Longitude = 0.0,
                 Latitude = 0.0
             };
@@ -310,11 +332,11 @@ namespace Chikatto.Utils
             var presence = new BanchoUserPresence
             {
                 Id = 1,
-                Name = "DenBai",
+                Name = Global.Bot.Name,
                 BanchoPermissions = BanchoPermissions.Bot,
                 CountryCode = 222,
                 Rank = 0,
-                Timezone = 26,
+                Timezone = 2,
                 Longitude = 0.0,
                 Latitude = 0.0
             };
@@ -325,7 +347,7 @@ namespace Chikatto.Utils
         public static Packet ServerRestart(int ms) => new(PacketType.BanchoServerRestart, BitConverter.GetBytes(ms));
         
         //88
-        public static Packet MatchInvite(User user, string to)
+        public static Packet MatchInvite(Presence user, string to)
         {
             var message = new BanchoMessage
             {

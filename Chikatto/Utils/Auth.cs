@@ -12,36 +12,17 @@ namespace Chikatto.Utils
 {
     public class Auth
     {
-        public static async Task<User> Login(string name, string pwMd5)
+        public static async Task<Presence> Login(string name, string pwMd5)
         {
             var safe = GetSafeName(name);
             
             if(safe == Global.Bot.SafeName)
-                return new User {Id = -1};
+                return null;
             
-            int id;
-            User user;
-            if (!Global.IdCache.ContainsKey(safe))
-            {
-                var users = (await Global.Database.Users.AsNoTracking().ToListAsync()).Where(u => u.SafeName == safe).ToList();
+            var user = await Presence.FromDatabase(GetSafeName(name));
 
-                if (users.Count() != 1)
-                    return new User {Id = -1};
-
-                user = users.ElementAt(0);
-                id = user.Id;
-
-                Global.IdCache[user.SafeName] = id;
-            }
-            else
-            {
-                id = Global.IdCache[safe];
-
-                if (Global.UserCache.ContainsKey(id))
-                    user = Global.UserCache[id];
-                else
-                    user = await Global.Database.Users.FindAsync(id);
-            }
+            if (user == null)
+                return null;
 
             string bcrypt;
 
@@ -49,18 +30,15 @@ namespace Chikatto.Utils
                 bcrypt = Global.BCryptCache[pwMd5];
             else
             {
-                if (BCrypt.Net.BCrypt.Verify(pwMd5, user.Password))
-                    bcrypt = user.Password;
+                if (BCrypt.Net.BCrypt.Verify(pwMd5, user.User.Password))
+                    bcrypt = user.User.Password;
                 else
                     bcrypt = BCrypt.Net.BCrypt.HashPassword(pwMd5);
                 
                 Global.BCryptCache[pwMd5] = bcrypt;
             }
 
-            if (bcrypt != user.Password)
-                return new User {Id = -1};
-
-            return user;
+            return bcrypt == user.User.Password ? user : null;
         }
 
         public static string GetSafeName(string name) => name.ToLower().Replace(" ", "_");

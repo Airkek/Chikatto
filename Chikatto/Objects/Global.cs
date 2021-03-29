@@ -14,10 +14,9 @@ namespace Chikatto.Objects
 
         public static string DbConnectionString => $"server={Config.DatabaseHost};database={Config.DatabaseName};" +
                                                    $"user={Config.DatabaseUser};password={Config.DatabasePassword};";
-        
-        public static Dictionary<int, User> UserCache = new (); // <Id, User>
-        public static Dictionary<string, int> IdCache = new(); // <SafeName, Id>
-        public static Dictionary<string, int> TokenCache = new (); //<Token, Id>
+
+        public static OnlineManager Manager = new();
+
         public static Dictionary<string, string> BCryptCache = new(); //<Plain, Hash>
     }
 }

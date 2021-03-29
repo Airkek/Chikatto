@@ -21,9 +21,5 @@ namespace Chikatto.Database.Models
         [Column("email")] [Required] public string Email { get; set; }
         [Column("priv")] [Required] public Privileges Privileges { get; set; }
         [Column("country")] [Required] public string Country { get; set; }
-
-        public long LastPong = 0;
-        public List<Packet> WaitingPackets = new ();
-        public override string ToString() => $"<{Name} ({Id})>";
     }
 }

@@ -8,7 +8,7 @@ namespace Chikatto.Bancho.Objects
     {
         public int Id;
         public string Name;
-        public byte Timezone; // Note: Time zone +24
+        public sbyte Timezone;
         public byte CountryCode; //TODO: CountryCode dictionary
         public BanchoPermissions BanchoPermissions;
         public double Longitude;
@@ -19,7 +19,7 @@ namespace Chikatto.Bancho.Objects
         {
             writer.Write(Id);
             writer.Write(Name);
-            writer.Write(Timezone); 
+            writer.Write((byte) (Timezone + 24)); 
             writer.Write(CountryCode);
             writer.Write((byte)BanchoPermissions);
             writer.Write(Longitude);

@@ -47,7 +47,7 @@ namespace Chikatto.Controllers
 
                 var u = await Auth.Login(req[0], req[1]);
 
-                if (u.Id == -1)
+                if (u == null)
                     return SendPackets(new[] { FastPackets.UserId(-1) });
                 
                 if (u.LastPong > new DateTimeOffset(DateTime.Now).ToUnixTimeSeconds() - 10)
@@ -58,29 +58,30 @@ namespace Chikatto.Controllers
                         FastPackets.Notification("User already logged in")
                     });
                 }
-                    
                 
                 token = RandomFabric.GenerateBanchoToken();
                 Response.Headers["cho-token"] = token;
 
+                u.Token = token;
+                await Global.Manager.AddUser(u);
+                var users = await Global.Manager.GetOnlineUsers();
+
                 var packets = new List<Packet>();
-                
+
                 packets.Add(FastPackets.UserId(u.Id));
                 packets.Add(FastPackets.MainMenuIcon($"{Global.Config.LogoIngame}|{Global.Config.LogoClickUrl}"));
                 packets.Add(FastPackets.Notification($"Welcome back!\r\nChikatto Build v{Misc.Version}"));
-                packets.Add(await FastPackets.UserStats(u));
-                packets.Add(FastPackets.UserPresence(u));
+                packets.Add(FastPackets.ChannelInfo("#osu", "Main channel", users.Count + 1));
+                packets.Add(FastPackets.ChannelInfo("#russian", "tox", users.Count));
+                packets.Add(FastPackets.ChannelJoinSuccess("#osu"));
                 packets.Add(FastPackets.BotPresence());
                 packets.Add(FastPackets.BotStats());
                 
-                foreach (var (_, value) in Global.UserCache.Where(us => us.Key != u.Id))
+                foreach (var us in users)
                 {
-                    packets.Add(FastPackets.UserPresence(value));
-                    packets.Add(await FastPackets.UserStats(value));
+                    packets.Add(FastPackets.UserPresence(us));
+                    packets.Add(await FastPackets.UserStats(us));
                 }
-                
-                Global.TokenCache[token] = u.Id;
-                Global.UserCache[u.Id] = u;
 #if DEBUG
                 Console.WriteLine($"{u} logged in (login took {sw.Elapsed.TotalMilliseconds}ms)");
 #else
@@ -89,8 +90,10 @@ namespace Chikatto.Controllers
                 
                 return SendPackets(packets);
             }
+            
+            var user = Global.Manager.GetByToken(token);
 
-            if (!Global.TokenCache.ContainsKey(token))
+            if (user == null)
             {
                 var packets = new[]
                 {
@@ -101,24 +104,20 @@ namespace Chikatto.Controllers
                 return SendPackets(packets);
             }
 
-            var userId = Global.TokenCache[token];
-            var user = Global.UserCache[userId];
-            
             var osuPackets = Packets.GetPackets(ms.ToArray());
 
             foreach (var packet in osuPackets)
                 await packet.Handle(user);
 
-            if (Global.UserCache.ContainsKey(user.Id))
+            var res = new List<Packet>();
+
+            while (!user.WaitingPackets.IsEmpty)
             {
-                var res = user.WaitingPackets.ToArray();
-            
-                user.WaitingPackets.Clear();
-                
-                return SendPackets(res);
+                if(user.WaitingPackets.TryDequeue(out var packet))
+                    res.Add(packet);
             }
 
-            return SendPackets(Array.Empty<Packet>());
+            return SendPackets(res);
         }
 
         private FileContentResult SendPackets(IEnumerable<Packet> packets) =>

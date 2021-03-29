@@ -39,17 +39,7 @@ namespace Chikatto
                 endpoints.MapControllers();
             });
 
-            var users = context.Users.AsNoTracking().AsEnumerable();
-            foreach (var user in users)
-            {
-                if (user.Id == 1){
-                    
-                    Global.Bot = user;
-                    continue;
-                }
-
-                Global.IdCache[user.SafeName] = user.Id;
-            }   
+            Global.Bot = context.Users.Find(1);
         }
     }
 }

@@ -6,12 +6,7 @@ namespace Chikatto.Bancho.Objects
     public class BanchoUserStats : ISerializable
     {
         public int Id;
-        public BanchoAction Action;
-        public string Text;
-        public string MapMd5;
-        public Mods Mods;
-        public GameMode Mode;
-        public int MapId;
+        public BanchoUserStatus Status;
         public long RankedScore;
         public float Accuracy;
         public int PlayCount;
@@ -22,12 +17,7 @@ namespace Chikatto.Bancho.Objects
         public void Serialize(SerializationWriter writer)
         {
             writer.Write(Id);
-            writer.Write((byte)Action);
-            writer.Write(Text);
-            writer.Write(MapMd5);
-            writer.Write((uint) Mods);
-            writer.Write((byte) Mode);
-            writer.Write(MapId);
+            Status.Serialize(writer);
             writer.Write(RankedScore);
             writer.Write(Accuracy);
             writer.Write(PlayCount);
