@@ -51,31 +51,8 @@ namespace Chikatto.Utils
             return packet.Dump();
         }
         //11 overload
-        public static Packet UserStats(Presence user)
-        {
-            var action = new BanchoUserStatus
-            {
-                Action = BanchoAction.Idle,
-                Text = null,
-                MapMd5 = null,
-                Mods = Mods.NoMod,
-                Mode = GameMode.Standard,
-                MapId = 0
-            };
-            
-            var stats = new BanchoUserStats
-            {
-                Id = user.Id,
-                Status = action,
-                RankedScore = user.Stats.rscore_vn_std,
-                Accuracy = user.Stats.acc_vn_std,
-                PlayCount = user.Stats.plays_vn_std,
-                TotalScore = user.Stats.tscore_vn_std,
-                Rank = 1,
-                PP = (short)user.Stats.pp_vn_std
-            };
-            return UserStats(stats);
-        }
+        public static Packet UserStats(Presence user) => UserStats(user.GetStats());
+
         //11 bot
         public static Packet BotStats()
         {
@@ -308,7 +285,7 @@ namespace Chikatto.Utils
                 privs |= BanchoPermissions.Moderator;
 
             if ((user.User.Privileges & Privileges.Dangerous) != 0)
-                privs |= BanchoPermissions.Developer;
+                privs |= BanchoPermissions.Peppy;
 
             if ((user.User.Privileges & Privileges.Tournament) != 0)
                 privs |= BanchoPermissions.Tournament;

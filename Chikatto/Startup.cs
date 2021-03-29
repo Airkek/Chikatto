@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using Chikatto.Database;
 using Chikatto.Objects;
 using Microsoft.AspNetCore.Builder;
@@ -40,6 +41,11 @@ namespace Chikatto
             });
 
             Global.Bot = context.Users.Find(1);
+
+            var channels = context.Channels.AsNoTracking().AsEnumerable();
+            
+            foreach (var dbChannel in channels)
+                Global.Channels.Add(dbChannel.Name, new Channel(dbChannel));
         }
     }
 }

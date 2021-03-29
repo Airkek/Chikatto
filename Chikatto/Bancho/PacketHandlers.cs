@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Chikatto.Bancho.Enums;
+using Chikatto.Bancho.Objects;
 using Chikatto.Database.Models;
 using Chikatto.Objects;
 using Chikatto.Utils;
@@ -19,14 +21,74 @@ namespace Chikatto.Bancho
             [OsuLogout] = Logout,
             [OsuUserStatsRequest] = UserStatsRequest,
             [OsuChannelJoin] = ChannelJoin,
-            [OsuChannelPart] = ChannelLeave
+            [OsuChannelPart] = ChannelLeave,
+            [OsuSendPublicMessage] = SendPublicMessage,
+            [OsuSendPrivateMessage] = SendPrivateMessage,
+            [OsuChangeAction] = ActionUpdate,
+            [OsuRequestStatusUpdate] = StatsUpdate
         };
+#if DEBUG
+        private static PacketType[] IgnoreLog =
+        {
+            OsuPong,
+            OsuUserStatsRequest
+        };
+#endif
+
+        public async static Task SendPublicMessage(Packet packet, Presence user)
+        {
+            using var readable = new ReadablePacket(packet);
+            var message = readable.Reader.ReadBanchoObject<BanchoMessage>();
+
+            if (!Global.Channels.ContainsKey(message.To))
+                return;
+
+            var c = Global.Channels[message.To];
+            c.WriteMessage(user, message);
+            
+            Console.WriteLine($"{user} -> {message.To}: {message.Body}");
+        }
+
+        public async static Task SendPrivateMessage(Packet packet, Presence user)
+        {
+            using var readable = new ReadablePacket(packet);
+            var message = readable.Reader.ReadBanchoObject<BanchoMessage>();
+
+            var location = Global.OnlineManager.GetByName(message.To);
+
+            if (location == null)
+            {
+                message.To = message.From;
+                message.From = Global.Bot.Name;
+                message.Body = "Пользователь не в сети, дружище";
+                
+                user.WaitingPackets.Enqueue(FastPackets.SendMessage(message));
+                
+                return;
+            }
+            
+            location.WaitingPackets.Enqueue(FastPackets.SendMessage(message));
+
+            Console.WriteLine($"{user} -> {message.To}: {message.Body}");
+        }
+
+        public static async Task ActionUpdate(Packet packet, Presence user)
+        {
+            using var readable = new ReadablePacket(packet);
+
+            user.Status = readable.Reader.ReadBanchoObject<BanchoUserStatus>();
+        }
+
+        public static async Task StatsUpdate(Packet packet, Presence user)
+        {
+            user.WaitingPackets.Enqueue(FastPackets.UserStats(user));
+        }
 
         public async static Task Logout(Packet packet, Presence user)
         {
             user.LastPong = 0;
             
-            await Global.Manager.RemoveUserById(user.Id);
+            await Global.OnlineManager.RemoveUserById(user.Id);
             
             Console.WriteLine($"{user} logged out");
         }
@@ -36,10 +98,13 @@ namespace Chikatto.Bancho
             using var readable = new ReadablePacket(packet);
             var channel = readable.Reader.ReadString();
             
-            user.WaitingPackets.Enqueue(FastPackets.ChannelJoinSuccess(channel));
-            user.WaitingPackets.Enqueue(FastPackets.ChannelInfo(channel, "test", Global.Manager.Count));
+            if (!Global.Channels.ContainsKey(channel))
+                return;
+
+            var c = Global.Channels[channel];
+            c.JoinUser(user);
             
-            Console.WriteLine($"{user} joined {channel}");
+            Console.WriteLine($"{user} joined {c}");
         }
         
         public async static Task ChannelLeave(Packet packet, Presence user)
@@ -48,10 +113,10 @@ namespace Chikatto.Bancho
             var channel = readable.Reader.ReadString();
             
             user.WaitingPackets.Enqueue(FastPackets.ChannelKick(channel));
-            user.WaitingPackets.Enqueue(FastPackets.ChannelInfo(channel, "test", Global.Manager.Count - 1));
+            user.WaitingPackets.Enqueue(FastPackets.ChannelInfo(channel, "test", Global.OnlineManager.Count - 1));
             Console.WriteLine($"{user} left from {channel}");
 
-            //TODO channels
+            //TODO channel leave
         }
         
         public async static Task UserStatsRequest(Packet packet, Presence user)
@@ -69,7 +134,7 @@ namespace Chikatto.Bancho
                     continue;
                 }
 
-                var us = Global.Manager.GetById(i);
+                var us = Global.OnlineManager.GetById(i);
                 if (us != null)
                 {
                     user.WaitingPackets.Enqueue(FastPackets.UserStats(us));
@@ -101,7 +166,8 @@ namespace Chikatto.Bancho
             
 #if DEBUG
             sw.Stop();
-            Console.WriteLine($"{user}: Handled: {packet} (handle took {sw.Elapsed.TotalMilliseconds}ms)");
+            if(!IgnoreLog.Contains(packet.Type))
+                Console.WriteLine($"{user}: Handled: {packet} (handle took {sw.Elapsed.TotalMilliseconds}ms)");
 #endif
         }
 

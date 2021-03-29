@@ -23,5 +23,6 @@ namespace Chikatto.Database
         public DbSet<RelaxScore> RelaxScores { get; set; }
         public DbSet<PilotScore> PilotScores { get; set; }
         public DbSet<Beatmap> Beatmaps { get; set; }
+        public DbSet<DbChannel> Channels { get; set; }
     }
 }

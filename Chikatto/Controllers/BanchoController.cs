@@ -27,7 +27,7 @@ namespace Chikatto.Controllers
             if (Request.Method == "GET" || userAgent != "osu!")
                 return Ok($"Running Chikatto v{Misc.Version}");
 
-            Response.Headers["cho-protocol"] = "19";
+            Response.Headers["cho-protocol"] = Misc.BanchoProtocolVersion.ToString();
             
             await using var ms = new MemoryStream();
             await Request.Body.CopyToAsync(ms);
@@ -63,18 +63,15 @@ namespace Chikatto.Controllers
                 Response.Headers["cho-token"] = token;
 
                 u.Token = token;
-                await Global.Manager.AddUser(u);
-                var users = await Global.Manager.GetOnlineUsers();
+                await Global.OnlineManager.AddUser(u);
+                var users = await Global.OnlineManager.GetOnlineUsers();
 
                 var packets = new List<Packet>();
 
-                packets.Add(FastPackets.ProtocolVersion(18));
+                packets.Add(FastPackets.ProtocolVersion(Misc.BanchoProtocolVersion));
                 packets.Add(FastPackets.UserId(u.Id));
                 packets.Add(FastPackets.MainMenuIcon($"{Global.Config.LogoIngame}|{Global.Config.LogoClickUrl}"));
                 packets.Add(FastPackets.Notification($"Welcome back!\r\nChikatto Build v{Misc.Version}"));
-                packets.Add(FastPackets.ChannelInfo("#osu", "Main channel", users.Count + 1));
-                packets.Add(FastPackets.ChannelInfo("#russian", "tox", users.Count));
-                packets.Add(FastPackets.ChannelJoinSuccess("#osu"));
                 packets.Add(FastPackets.BotPresence());
                 packets.Add(FastPackets.BotStats());
                 
@@ -83,6 +80,17 @@ namespace Chikatto.Controllers
                     packets.Add(FastPackets.UserPresence(us));
                     packets.Add(FastPackets.UserStats(us));
                 }
+
+                var channels = Global.Channels.Select(x => x.Value).Where(x => (x.Read & u.User.Privileges) == x.Read);
+                
+                foreach (var channel in channels)
+                {
+                    if(channel.Default)
+                        channel.JoinUser(u);
+                    
+                    packets.Add(channel.GetInfoPacket());
+                }
+
 #if DEBUG
                 Console.WriteLine($"{u} logged in (login took {sw.Elapsed.TotalMilliseconds}ms)");
 #else
@@ -92,7 +100,7 @@ namespace Chikatto.Controllers
                 return SendPackets(packets);
             }
             
-            var user = Global.Manager.GetByToken(token);
+            var user = Global.OnlineManager.GetByToken(token);
 
             if (user == null)
             {
