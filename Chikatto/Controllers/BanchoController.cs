@@ -68,6 +68,7 @@ namespace Chikatto.Controllers
 
                 var packets = new List<Packet>();
 
+                packets.Add(FastPackets.ProtocolVersion(18));
                 packets.Add(FastPackets.UserId(u.Id));
                 packets.Add(FastPackets.MainMenuIcon($"{Global.Config.LogoIngame}|{Global.Config.LogoClickUrl}"));
                 packets.Add(FastPackets.Notification($"Welcome back!\r\nChikatto Build v{Misc.Version}"));
@@ -80,7 +81,7 @@ namespace Chikatto.Controllers
                 foreach (var us in users)
                 {
                     packets.Add(FastPackets.UserPresence(us));
-                    packets.Add(await FastPackets.UserStats(us));
+                    packets.Add(FastPackets.UserStats(us));
                 }
 #if DEBUG
                 Console.WriteLine($"{u} logged in (login took {sw.Elapsed.TotalMilliseconds}ms)");

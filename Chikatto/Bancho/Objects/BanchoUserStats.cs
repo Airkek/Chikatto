@@ -19,7 +19,7 @@ namespace Chikatto.Bancho.Objects
             writer.Write(Id);
             Status.Serialize(writer);
             writer.Write(RankedScore);
-            writer.Write(Accuracy);
+            writer.Write(Accuracy / 100f);
             writer.Write(PlayCount);
             writer.Write(TotalScore);
             writer.Write(Rank);

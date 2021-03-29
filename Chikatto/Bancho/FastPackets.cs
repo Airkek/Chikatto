@@ -51,7 +51,7 @@ namespace Chikatto.Utils
             return packet.Dump();
         }
         //11 overload
-        public static async Task<Packet> UserStats(Presence user)
+        public static Packet UserStats(Presence user)
         {
             var action = new BanchoUserStatus
             {
@@ -60,7 +60,7 @@ namespace Chikatto.Utils
                 MapMd5 = null,
                 Mods = Mods.NoMod,
                 Mode = GameMode.Standard,
-                MapId = 123
+                MapId = 0
             };
             
             var stats = new BanchoUserStats
@@ -312,17 +312,17 @@ namespace Chikatto.Utils
 
             if ((user.User.Privileges & Privileges.Tournament) != 0)
                 privs |= BanchoPermissions.Tournament;
-            
+
             var presence = new BanchoUserPresence
             {
                 Id = user.Id,
                 Name = user.Name,
                 BanchoPermissions = privs,
                 CountryCode = 185,
-                Rank = 0,
+                Rank = 1,
                 Timezone = 3,
-                Longitude = 0.0,
-                Latitude = 0.0
+                Longitude = 0.0f,
+                Latitude = 0.0f
             };
             return UserPresence(presence);
         }
@@ -337,8 +337,8 @@ namespace Chikatto.Utils
                 CountryCode = 222,
                 Rank = 0,
                 Timezone = 2,
-                Longitude = 0.0,
-                Latitude = 0.0
+                Longitude = 0.0f,
+                Latitude = 0.0f
             };
             return UserPresence(presence);
         }

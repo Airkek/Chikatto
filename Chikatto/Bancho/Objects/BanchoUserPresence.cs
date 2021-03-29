@@ -11,8 +11,8 @@ namespace Chikatto.Bancho.Objects
         public sbyte Timezone;
         public byte CountryCode; //TODO: CountryCode dictionary
         public BanchoPermissions BanchoPermissions;
-        public double Longitude;
-        public double Latitude;
+        public float Longitude;
+        public float Latitude;
         public int Rank;
             
         public void Serialize(SerializationWriter writer)

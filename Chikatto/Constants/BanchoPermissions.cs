@@ -13,7 +13,7 @@ namespace Chikatto.Constants
         Developer = 1 << 4,
         Tournament = 1 << 5,
         
+        User = Normal | Supporter,
         Bot = Normal | BAT | Developer,
-        User = Normal | Supporter
     }
 }

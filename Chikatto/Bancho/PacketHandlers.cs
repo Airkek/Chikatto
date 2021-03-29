@@ -72,7 +72,7 @@ namespace Chikatto.Bancho
                 var us = Global.Manager.GetById(i);
                 if (us != null)
                 {
-                    user.WaitingPackets.Enqueue(await FastPackets.UserStats(us));
+                    user.WaitingPackets.Enqueue(FastPackets.UserStats(us));
                     user.WaitingPackets.Enqueue(FastPackets.UserPresence(us));
                 }
                 else
