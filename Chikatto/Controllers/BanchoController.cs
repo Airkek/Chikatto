@@ -6,8 +6,6 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Chikatto.Bancho;
-using Chikatto.Bancho.Enums;
-using Chikatto.Bancho.Objects;
 using Chikatto.Bancho.Serialization;
 using Chikatto.Constants;
 using Chikatto.Objects;
@@ -50,7 +48,7 @@ namespace Chikatto.Controllers
                 var u = await Auth.Login(req[0], req[1]);
                 var clientData = req[2].Split(":");
 
-                if (u == null)
+                if (u is null)
                     return SendPackets(new[] { FastPackets.UserId(-1) });
                 
                 if (u.LastPong > new DateTimeOffset(DateTime.Now).ToUnixTimeSeconds() - 10)
@@ -90,8 +88,16 @@ namespace Chikatto.Controllers
                 
                 foreach (var channel in channels)
                 {
-                    packets.Add(FastPackets.ChannelAutoJoin(channel.Name, channel.Topic, channel.Users.Count));
-                    channel.JoinUser(u);
+                    if((channel.Read & u.User.Privileges) != channel.Read)
+                        continue;
+
+                    if (channel.Default)
+                    {
+                        packets.Add(FastPackets.ChannelAutoJoin(channel.Name, channel.Topic, channel.Users.Count));
+                        channel.JoinUser(u);
+                    }
+                    else 
+                        u.WaitingPackets.Enqueue(channel.GetInfoPacket());
                 }
 
                 packets.Add(FastPackets.ChannelInfoEnd());
@@ -110,7 +116,7 @@ namespace Chikatto.Controllers
             
             var user = Global.OnlineManager.GetByToken(token);
 
-            if (user == null)
+            if (user is null)
             {
                 var packets = new[]
                 {

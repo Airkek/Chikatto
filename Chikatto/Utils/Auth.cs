@@ -21,7 +21,7 @@ namespace Chikatto.Utils
             
             var user = await Presence.FromDatabase(GetSafeName(name));
 
-            if (user == null)
+            if (user is null)
                 return null;
 
             string bcrypt;

@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Collections.Concurrent;
 using Chikatto.Bancho;
 using Chikatto.Bancho.Objects;
 using Chikatto.Constants;
 using Chikatto.Database.Models;
+using Chikatto.Extensions;
 using Chikatto.Utils;
 
 namespace Chikatto.Objects
@@ -18,7 +15,7 @@ namespace Chikatto.Objects
         public Privileges Write;
         public Privileges Read;
         public bool Default;
-        public List<int> Users = new ();
+        public ConcurrentDictionary<int, Presence> Users = new ();
 
         public Channel(DbChannel channel)
         {
@@ -31,53 +28,50 @@ namespace Chikatto.Objects
 
         public void JoinUser(Presence user)
         {
-            if(Users.Contains(user.Id))
+            if(Users.ContainsKey(user.Id))
                 return;
             
-            Users.Add(user.Id);
+            if((user.User.Privileges & Read) != Read)
+                return;
+            
+            Users[user.Id] = user;
+            user.JoinedChannels[Name] = this;
             user.WaitingPackets.Enqueue(FastPackets.ChannelJoinSuccess(Name));
-
-            var temp = Users.ToArray();
+            
             var info = GetInfoPacket();
             
-            foreach (var i in temp)
-            {
-                var u = Global.OnlineManager.GetById(i);
+            foreach (var (_, u) in Users)
                 u.WaitingPackets.Enqueue(info);
-            }
         }
 
         public void RemoveUser(Presence user)
         {
-            if(!Users.Contains(user.Id))
+            if(!Users.ContainsKey(user.Id))
                 return;
             
-            user.WaitingPackets.Enqueue(FastPackets.ChannelKick(Name));
-            
-            
-            var temp = Users.ToArray();
             Users.Remove(user.Id);
+            user.JoinedChannels.Remove(Name);
             var info = GetInfoPacket();
             
-            foreach (var i in temp)
-            {
-                var u = Global.OnlineManager.GetById(i);
+            user.WaitingPackets.Enqueue(FastPackets.ChannelKick(Name));
+            user.WaitingPackets.Enqueue(info);
+            
+            foreach (var (_, u) in Users)
                 u.WaitingPackets.Enqueue(info);
-            }
         }
 
         public void WriteMessage(Presence user, BanchoMessage message)
         {
+            if(!Users.ContainsKey(user.Id))
+                return;
+            
             if((user.User.Privileges & Write) != Write)
                 return;
             
-            var temp = Users.ToArray();
             var packet = FastPackets.SendMessage(message);
 
-            foreach (var i in temp)
+            foreach (var (_, u) in Users)
             {
-                var u = Global.OnlineManager.GetById(i);
-                
                 if(u.Name == message.From)
                     continue;
                 

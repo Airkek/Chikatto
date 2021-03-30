@@ -13,7 +13,7 @@ namespace Chikatto.Bancho.Serialization
 
         public override void Write(string value)
         {
-            if (value == null)
+            if (value is null)
             {
                 Write((byte) TypeBytes.Null);
             }
@@ -26,7 +26,7 @@ namespace Chikatto.Bancho.Serialization
 
         public override void Write(byte[] value)
         {
-            if (value == null)
+            if (value is null)
             {
                 Write(-1);
             }
@@ -40,7 +40,7 @@ namespace Chikatto.Bancho.Serialization
 
         public override void Write(char[] value)
         {
-            if (value == null)
+            if (value is null)
             {
                 Write(-1);
             }
@@ -59,7 +59,7 @@ namespace Chikatto.Bancho.Serialization
 
         public void Write<T>(List<T> value)
         {
-            if (value == null)
+            if (value is null)
             {
                 Write(-1);
             }

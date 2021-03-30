@@ -58,7 +58,7 @@ namespace Chikatto.Bancho
 
             var location = Global.OnlineManager.GetByName(message.To);
 
-            if (location == null)
+            if (location is null)
             {
                 message.To = message.From;
                 message.From = Global.Bot.Name;
@@ -94,8 +94,7 @@ namespace Chikatto.Bancho
             foreach (var (_, c) in Global.Channels)
                 c.RemoveUser(user);
 
-            await Global.OnlineManager.RemoveUserById(user.Id);
-            
+            await Global.OnlineManager.Remove(user);
             await Global.OnlineManager.AddPacketToAllUsers(FastPackets.Logout(user.Id));
             
             Console.WriteLine($"{user} logged out");
@@ -127,8 +126,6 @@ namespace Chikatto.Bancho
             c.RemoveUser(user);
             
             Console.WriteLine($"{user} left from {channel}");
-
-            //TODO channel leave
         }
         
         public async static Task UserStatsRequest(Packet packet, Presence user)
