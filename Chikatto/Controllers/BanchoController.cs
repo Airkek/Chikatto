@@ -35,9 +35,8 @@ namespace Chikatto.Controllers
 
             if (string.IsNullOrEmpty(token))
             {
-#if DEBUG
                 var sw = Stopwatch.StartNew();
-#endif
+
                 var req = Encoding.UTF8.GetString(ms.ToArray()).Split(new[] {"\n", "\r\n"}, StringSplitOptions.None);
 
                 if (req.Length != 4)
@@ -101,12 +100,8 @@ namespace Chikatto.Controllers
                 }
 
                 packets.Add(FastPackets.ChannelInfoEnd());
-
-#if DEBUG
+                
                 XConsole.Log($"{u} logged in (login took {sw.Elapsed.TotalMilliseconds}ms)", ConsoleColor.Green);
-#else
-                XConsole.Log($"{u} logged in", ConsoleColor.Green);
-#endif
                 
                 return SendPackets(packets);
             }

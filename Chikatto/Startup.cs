@@ -53,8 +53,6 @@ namespace Chikatto
             
             foreach (var dbChannel in channels)
                 Global.Channels.TryAdd(dbChannel.Name, new Channel(dbChannel));
-            
-            app.UseHttpsRedirection();
 
             app.UseRouting();
 
