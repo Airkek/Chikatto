@@ -2,21 +2,18 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection.Metadata.Ecma335;
 using System.Threading.Tasks;
 using Chikatto.Bancho;
-using Chikatto.Database.Models;
+using Chikatto.Extensions;
 using Chikatto.Utils;
 
 namespace Chikatto.Objects
 {
     public class OnlineManager
     {
-        private readonly Dictionary<string, int> OsuTokens = new(); // <Token, UserId>
-        private readonly Dictionary<string, int> SafeNames = new(); // <SafeName, UserId>
-        private readonly Dictionary<int, Presence> Users = new(); // <UserId, Presence>
-
-        public int Count => OsuTokens.Count;
+        private readonly ConcurrentDictionary<string, int> OsuTokens = new(); // <Token, UserId>
+        private readonly ConcurrentDictionary<string, int> SafeNames = new(); // <SafeName, UserId>
+        private readonly ConcurrentDictionary<int, Presence> Users = new(); // <UserId, Presence>
 
         public async Task AddPacketToAllUsers(Packet packet)
         {
@@ -43,31 +40,37 @@ namespace Chikatto.Objects
             await AddUser(presence);
         }
 
-        public async Task RemoveUserById(int id)
+        public async Task Remove(Presence user)
         {
-            var user = GetById(id);
-            if(user == null)
+            if(user is null)
                 return;
+            
+            user.LastPong = 0;
+            
+            foreach (var (_, c) in user.JoinedChannels)
+                c.RemoveUser(user);
 
             OsuTokens.Remove(user.Token);
             SafeNames.Remove(user.User.SafeName);
-            Users.Remove(id);
+            Users.Remove(user.Id);
+        }
+
+        public async Task RemoveUserById(int id)
+        {
+            var user = GetById(id);
+
+            await Remove(user);
         }
 
         public async Task RemoveUserByToken(string token)
         {
             var user = GetByToken(token);
-            if(user == null)
-                return;
-
-            OsuTokens.Remove(user.Token);
-            SafeNames.Remove(user.User.SafeName);
-            Users.Remove(user.User.Id);
+            await Remove(user);
         }
 
         public async Task ClearTrash()
         {
-            foreach (var presence in Users.Cast<Presence>().Where(presence => presence.LastPong < new DateTimeOffset(DateTime.Now).ToUnixTimeSeconds() - 300))
+            foreach (var presence in Users.Select(x => x.Value).Where(presence => presence.LastPong < new DateTimeOffset(DateTime.Now).ToUnixTimeSeconds() - 300))
             {
                 OsuTokens.Remove(presence.Token);
                 SafeNames.Remove(presence.User.SafeName);

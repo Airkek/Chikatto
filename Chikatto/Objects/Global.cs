@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Concurrent;
 using Chikatto.Database;
 using Chikatto.Database.Models;
 
@@ -17,8 +16,8 @@ namespace Chikatto.Objects
                                                    $"user={Config.DatabaseUser};password={Config.DatabasePassword};";
 
         public static OnlineManager OnlineManager = new ();
-        public static Dictionary<string, Channel> Channels = new (); // <ChannelName, Channel>
+        public static ConcurrentDictionary<string, Channel> Channels = new (); // <ChannelName, Channel>
 
-        public static Dictionary<string, string> BCryptCache = new (); //<Plain, Hash>
+        public static ConcurrentDictionary<string, string> BCryptCache = new (); //<Plain, Hash>
     }
 }

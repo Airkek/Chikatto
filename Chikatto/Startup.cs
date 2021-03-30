@@ -51,7 +51,7 @@ namespace Chikatto
             var channels = context.Channels.AsNoTracking().AsEnumerable();
             
             foreach (var dbChannel in channels)
-                Global.Channels.Add(dbChannel.Name, new Channel(dbChannel));
+                Global.Channels.TryAdd(dbChannel.Name, new Channel(dbChannel));
             
             app.UseHttpsRedirection();
 

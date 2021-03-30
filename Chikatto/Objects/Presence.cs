@@ -1,12 +1,11 @@
 ﻿using System.Collections.Concurrent;
-using System.Net.WebSockets;
 using System.Threading.Tasks;
 using Chikatto.Bancho;
 using Chikatto.Bancho.Objects;
 using Chikatto.Constants;
-using Chikatto.Database;
 using Chikatto.Database.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Internal;
 
 namespace Chikatto.Objects
 {
@@ -25,7 +24,9 @@ namespace Chikatto.Objects
         public string Token;
         
         public long LastPong = 0;
-        public ConcurrentQueue<Packet> WaitingPackets = new ();
+        public ConcurrentQueue<Packet> WaitingPackets = new();
+        
+        public ConcurrentDictionary<string, Channel> JoinedChannels = new();
 
         public BanchoUserStatus Status = new ()
         {
@@ -102,7 +103,7 @@ namespace Chikatto.Objects
         {
             var user = await Global.Database.Users.FindAsync(id);
             
-            if (user == null)
+            if (user is null)
                 return null;
 
             return await FromUser(user);
@@ -130,7 +131,7 @@ namespace Chikatto.Objects
                 Stats = await Global.Database.Stats.FindAsync(user.Id)
             };
         }
-        
+
         public override string ToString() => $"<{Name} ({Id})>";
     }
 }
