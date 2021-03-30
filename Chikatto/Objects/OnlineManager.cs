@@ -72,9 +72,8 @@ namespace Chikatto.Objects
         {
             foreach (var presence in Users.Select(x => x.Value).Where(presence => presence.LastPong < new DateTimeOffset(DateTime.Now).ToUnixTimeSeconds() - 300))
             {
-                OsuTokens.Remove(presence.Token);
-                SafeNames.Remove(presence.User.SafeName);
-                Users.Remove(presence.User.Id);
+                await Remove(presence);
+                Console.WriteLine($"{presence} has been removed from online users due to inactivity");
             }
         }
 
