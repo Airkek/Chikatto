@@ -69,19 +69,21 @@ namespace Chikatto.Controllers
                 await Global.OnlineManager.AddUser(u);
                 var users = await Global.OnlineManager.GetOnlineUsers();
 
-                var packets = new List<Packet>();
+                var packets = new List<Packet>
+                {
+                    FastPackets.ProtocolVersion(Misc.BanchoProtocolVersion),
+                    FastPackets.UserId(u.Id),
+                    FastPackets.MainMenuIcon($"{Global.Config.LogoIngame}|{Global.Config.LogoClickUrl}"),
+                    FastPackets.Notification($"Welcome back!\r\nChikatto Build v{Misc.Version}"),
+                    FastPackets.BotPresence(),
+                    FastPackets.BotStats()
+                };
 
-                packets.Add(FastPackets.ProtocolVersion(Misc.BanchoProtocolVersion));
-                packets.Add(FastPackets.UserId(u.Id));
-                packets.Add(FastPackets.MainMenuIcon($"{Global.Config.LogoIngame}|{Global.Config.LogoClickUrl}"));
-                packets.Add(FastPackets.Notification($"Welcome back!\r\nChikatto Build v{Misc.Version}"));
-                packets.Add(FastPackets.BotPresence());
-                packets.Add(FastPackets.BotStats());
-                
+
                 foreach (var us in users)
                 {
-                    packets.Add(FastPackets.UserPresence(us));
-                    packets.Add(FastPackets.UserStats(us));
+                    packets.Add(await FastPackets.UserPresence(us));
+                    packets.Add(await FastPackets.UserStats(us));
                 }
 
                 var channels = Global.Channels.Select(x => x.Value).Where(x => (x.Read & u.User.Privileges) == x.Read);

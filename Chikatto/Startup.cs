@@ -1,6 +1,8 @@
 using System;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
+using System.Threading.Tasks;
+using Chikatto.Constants;
 using Chikatto.Database;
 using Chikatto.Objects;
 using Microsoft.AspNetCore.Builder;
@@ -31,7 +33,11 @@ namespace Chikatto
                 app.UseDeveloperExceptionPage();
             }
 
-            Global.Bot = context.Users.Find(1);
+            Global.Bot = context.Users.Find(Global.Config.BotId);
+
+            Global.BotCountry = Misc.CountryCodes.ContainsKey(Global.Bot.Country.ToUpper())
+                ? Misc.CountryCodes[Global.Bot.Country.ToUpper()]
+                : (byte) 245; // satellite provider
 
             var channels = context.Channels.AsNoTracking().AsEnumerable();
             

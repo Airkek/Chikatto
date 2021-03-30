@@ -51,7 +51,7 @@ namespace Chikatto.Utils
             return packet.Dump();
         }
         //11 overload
-        public static Packet UserStats(Presence user) => UserStats(user.GetStats());
+        public static async Task<Packet> UserStats(Presence user) => UserStats(await user.GetStats());
 
         //11 bot
         public static Packet BotStats()
@@ -274,49 +274,22 @@ namespace Chikatto.Utils
             return packet.Dump();
         }
         //83 overload
-        public static Packet UserPresence(Presence user)
-        {
-            var privs = BanchoPermissions.User;
-
-            if ((user.User.Privileges & Privileges.Nominator) != 0)
-                privs |= BanchoPermissions.BAT;
-            
-            if ((user.User.Privileges & Privileges.Staff) != 0)
-                privs |= BanchoPermissions.Moderator;
-
-            if ((user.User.Privileges & Privileges.Dangerous) != 0)
-                privs |= BanchoPermissions.Peppy;
-
-            if ((user.User.Privileges & Privileges.Tournament) != 0)
-                privs |= BanchoPermissions.Tournament;
-
-            var presence = new BanchoUserPresence
-            {
-                Id = user.Id,
-                Name = user.Name,
-                BanchoPermissions = privs,
-                CountryCode = 185,
-                Rank = 1,
-                Timezone = 3,
-                Longitude = 0.0f,
-                Latitude = 0.0f
-            };
-            return UserPresence(presence);
-        }
+        public static async Task<Packet> UserPresence(Presence user) => UserPresence(await user.GetUserPresence());
         //83 bot //TODO bot config
         public static Packet BotPresence()
         {
             var presence = new BanchoUserPresence
             {
-                Id = 1,
+                Id = Global.Bot.Id,
                 Name = Global.Bot.Name,
                 BanchoPermissions = BanchoPermissions.Bot,
-                CountryCode = 222,
+                CountryCode = Global.BotCountry,
                 Rank = 0,
                 Timezone = 2,
                 Longitude = 0.0f,
                 Latitude = 0.0f
             };
+
             return UserPresence(presence);
         }
 

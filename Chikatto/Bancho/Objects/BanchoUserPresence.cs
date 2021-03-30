@@ -9,7 +9,7 @@ namespace Chikatto.Bancho.Objects
         public int Id;
         public string Name;
         public sbyte Timezone;
-        public byte CountryCode; //TODO: CountryCode dictionary
+        public byte CountryCode;
         public BanchoPermissions BanchoPermissions;
         public float Longitude;
         public float Latitude;

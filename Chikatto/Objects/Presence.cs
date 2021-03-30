@@ -1,8 +1,7 @@
 ﻿using System.Collections.Concurrent;
-using System.Linq;
+using System.Net.WebSockets;
 using System.Threading.Tasks;
 using Chikatto.Bancho;
-using Chikatto.Bancho.Enums;
 using Chikatto.Bancho.Objects;
 using Chikatto.Constants;
 using Chikatto.Database;
@@ -18,6 +17,10 @@ namespace Chikatto.Objects
 
         public int Id;
         public string Name;
+
+        public byte CountryCode;
+
+        public BanchoPermissions Permissions;
         
         public string Token;
         
@@ -34,7 +37,12 @@ namespace Chikatto.Objects
             MapId = 0
         };
 
-        public BanchoUserStats GetStats()
+        public async Task<int> GetRank()
+        {
+            return await Global.Database.Stats.CountAsync(x => x.pp_vn_std > Stats.pp_vn_std) + 1;
+        }
+
+        public async Task<BanchoUserStats> GetStats()
         {
             return new()
             {
@@ -44,9 +52,50 @@ namespace Chikatto.Objects
                 Accuracy = Stats.acc_vn_std,
                 PlayCount = Stats.plays_vn_std,
                 TotalScore = Stats.tscore_vn_std,
-                Rank = 1,
+                Rank = await GetRank(),
                 PP = (short) Stats.pp_vn_std
             };
+        }
+
+        public async Task<BanchoUserPresence> GetUserPresence()
+        {
+            var presence = new BanchoUserPresence
+            {
+                Id = Id,
+                Name = Name,
+                BanchoPermissions = await GetBanchoPermissions(),
+                CountryCode = CountryCode,
+                Rank = await GetRank(),
+                Timezone = 3,
+                Longitude = 0.0f,
+                Latitude = 0.0f
+            };
+            
+            return presence;
+        }
+
+        public async Task<BanchoPermissions> GetBanchoPermissions()
+        {
+            return await GetBanchoPermissions(User);
+        }
+
+        public static async Task<BanchoPermissions> GetBanchoPermissions(User user)
+        {
+            var privs = BanchoPermissions.User;
+
+            if ((user.Privileges & Privileges.Nominator) != 0)
+                privs |= BanchoPermissions.BAT;
+            
+            if ((user.Privileges & Privileges.Staff) != 0)
+                privs |= BanchoPermissions.Moderator;
+
+            if ((user.Privileges & Privileges.Dangerous) != 0)
+                privs |= BanchoPermissions.Peppy;
+
+            if ((user.Privileges & Privileges.Tournament) != 0)
+                privs |= BanchoPermissions.Tournament;
+
+            return privs;
         }
 
         public static async Task<Presence> FromDatabase(int id)
@@ -75,7 +124,9 @@ namespace Chikatto.Objects
             {
                 Id = user.Id,
                 Name = user.Name,
-                User = user, 
+                User = user,
+                Permissions = await GetBanchoPermissions(user),
+                CountryCode = Misc.CountryCodes.ContainsKey(user.Country.ToUpper()) ? Misc.CountryCodes[user.Country.ToUpper()] : (byte) 0,
                 Stats = await Global.Database.Stats.FindAsync(user.Id)
             };
         }

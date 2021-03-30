@@ -10,6 +10,8 @@ namespace Chikatto.Objects
         [JsonProperty("db_user")] public string DatabaseUser = "keijia";
         [JsonProperty("db_password")] public string DatabasePassword = "changemelol";
         
+        [JsonProperty("bot_id")] public int BotId = 1;
+        
         [JsonProperty("osu_direct_mirror")] public string DirectMirror = "chimu.moe";
 
         [JsonProperty("osu_logo_ingame")] public string LogoIngame = "https://osu.shizofrenia.pw/static/images/logo_ingame.png";

@@ -8,6 +8,7 @@ namespace Chikatto.Objects
     public static class Global
     {
         public static User Bot;
+        public static byte BotCountry;
 
         public static ConfigScheme Config;
         public static GulagDbContext Database;

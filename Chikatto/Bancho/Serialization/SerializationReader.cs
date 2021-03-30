@@ -2,10 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using System.Threading.Tasks;
 using Chikatto.Bancho.Enums;
 using Chikatto.Bancho.Objects;
-using Microsoft.AspNetCore.Components.Web;
 
 namespace Chikatto.Bancho.Serialization
 {
@@ -18,35 +16,45 @@ namespace Chikatto.Bancho.Serialization
         public byte[] ReadByteArray()
         {
             var len = ReadInt32();
-            if (len > 0) return ReadBytes(len);
-            if (len < 0) return null;
-            return Array.Empty<byte>();
+            return len switch
+            {
+                > 0 => ReadBytes(len),
+                < 0 => null,
+                _ => Array.Empty<byte>()
+            };
         }
         
         public IEnumerable<int> ReadInt32Array()
         {
             var len = ReadInt16();
-            if (len > 0)
+            switch (len)
             {
-                var arr = new int[len];
-                for (var i = 0; i < arr.Length; i++)
+                case > 0:
                 {
-                    arr[i] = ReadInt32();
-                }
+                    var arr = new int[len];
+                    for (var i = 0; i < arr.Length; i++)
+                    {
+                        arr[i] = ReadInt32();
+                    }
 
-                return arr;
+                    return arr;
+                }
+                case < 0:
+                    return null;
+                default:
+                    return Array.Empty<int>();
             }
-                
-            if (len < 0) return null;
-            return Array.Empty<int>();
         }
 
         public char[] ReadCharArray()
         {
             var len = ReadInt32();
-            if (len > 0) return ReadChars(len);
-            if (len < 0) return null;
-            return Array.Empty<char>();
+            return len switch
+            {
+                > 0 => ReadChars(len),
+                < 0 => null,
+                _ => Array.Empty<char>()
+            };
         }
 
         public DateTime ReadDateTime()

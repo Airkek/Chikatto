@@ -20,7 +20,7 @@ namespace Chikatto.Bancho
             Stream = new MemoryStream(data);
         }
 
-        public Packet Dump() => new(Type) { Data = Data };
+        public Packet Dump() => new(Type, Data);
 
         public void Dispose()
         {

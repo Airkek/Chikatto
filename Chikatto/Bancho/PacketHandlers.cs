@@ -83,7 +83,7 @@ namespace Chikatto.Bancho
 
         public static async Task StatsUpdate(Packet packet, Presence user)
         {
-            user.WaitingPackets.Enqueue(FastPackets.UserStats(user));
+            user.WaitingPackets.Enqueue(await FastPackets.UserStats(user));
         }
 
         public async static Task Logout(Packet packet, Presence user)
@@ -149,8 +149,8 @@ namespace Chikatto.Bancho
                 var us = Global.OnlineManager.GetById(i);
                 if (us != null)
                 {
-                    user.WaitingPackets.Enqueue(FastPackets.UserStats(us));
-                    user.WaitingPackets.Enqueue(FastPackets.UserPresence(us));
+                    user.WaitingPackets.Enqueue(await FastPackets.UserStats(us));
+                    user.WaitingPackets.Enqueue(await FastPackets.UserPresence(us));
                 }
                 else
                 {
