@@ -1,9 +1,11 @@
+using System;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using Chikatto.Database;
 using Chikatto.Objects;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -29,6 +31,13 @@ namespace Chikatto
                 app.UseDeveloperExceptionPage();
             }
 
+            Global.Bot = context.Users.Find(1);
+
+            var channels = context.Channels.AsNoTracking().AsEnumerable();
+            
+            foreach (var dbChannel in channels)
+                Global.Channels.Add(dbChannel.Name, new Channel(dbChannel));
+            
             app.UseHttpsRedirection();
 
             app.UseRouting();
@@ -39,13 +48,6 @@ namespace Chikatto
             {
                 endpoints.MapControllers();
             });
-
-            Global.Bot = context.Users.Find(1);
-
-            var channels = context.Channels.AsNoTracking().AsEnumerable();
-            
-            foreach (var dbChannel in channels)
-                Global.Channels.Add(dbChannel.Name, new Channel(dbChannel));
         }
     }
 }
