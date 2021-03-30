@@ -48,7 +48,7 @@ namespace Chikatto.Bancho
             var c = Global.Channels[message.To];
             c.WriteMessage(user, message);
             
-            Console.WriteLine($"{user} -> {message.To}: {message.Body}");
+            XConsole.Log($"{user} -> {message.To}: {message.Body}");
         }
 
         public async static Task SendPrivateMessage(Packet packet, Presence user)
@@ -71,7 +71,7 @@ namespace Chikatto.Bancho
             
             location.WaitingPackets.Enqueue(FastPackets.SendMessage(message));
 
-            Console.WriteLine($"{user} -> {message.To}: {message.Body}");
+            XConsole.Log($"{user} -> {message.To}: {message.Body}");
         }
 
         public static async Task ActionUpdate(Packet packet, Presence user)
@@ -97,7 +97,7 @@ namespace Chikatto.Bancho
             await Global.OnlineManager.Remove(user);
             await Global.OnlineManager.AddPacketToAllUsers(FastPackets.Logout(user.Id));
             
-            Console.WriteLine($"{user} logged out");
+            XConsole.Log($"{user} logged out", ConsoleColor.Green);
         }
 
         public async static Task ChannelJoin(Packet packet, Presence user)
@@ -111,7 +111,7 @@ namespace Chikatto.Bancho
             var c = Global.Channels[channel];
             c.JoinUser(user);
             
-            Console.WriteLine($"{user} joined {c}");
+            XConsole.Log($"{user} joined {c}", ConsoleColor.Cyan);
         }
         
         public async static Task ChannelLeave(Packet packet, Presence user)
@@ -124,8 +124,8 @@ namespace Chikatto.Bancho
 
             var c = Global.Channels[channel];
             c.RemoveUser(user);
-            
-            Console.WriteLine($"{user} left from {channel}");
+
+            XConsole.Log($"{user} left from {channel}", ConsoleColor.Cyan);
         }
         
         public async static Task UserStatsRequest(Packet packet, Presence user)
@@ -162,7 +162,7 @@ namespace Chikatto.Bancho
             if (!Handlers.ContainsKey(packet.Type))
             {
 #if DEBUG
-                Console.WriteLine($"{user}: NotImplementedPacket: {packet}");
+                XConsole.Log($"{user}: NotImplementedPacket: {packet}", back: ConsoleColor.Red);
 #endif
                 
                 return;
@@ -176,7 +176,7 @@ namespace Chikatto.Bancho
 #if DEBUG
             sw.Stop();
             if(!IgnoreLog.Contains(packet.Type))
-                Console.WriteLine($"{user}: Handled: {packet} (handle took {sw.Elapsed.TotalMilliseconds}ms)");
+                XConsole.Log($"{user}: Handled: {packet} (handle took {sw.Elapsed.TotalMilliseconds}ms)", back: ConsoleColor.Green);
 #endif
         }
 

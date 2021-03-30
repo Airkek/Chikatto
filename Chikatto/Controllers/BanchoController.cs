@@ -103,9 +103,9 @@ namespace Chikatto.Controllers
                 packets.Add(FastPackets.ChannelInfoEnd());
 
 #if DEBUG
-                Console.WriteLine($"{u} logged in (login took {sw.Elapsed.TotalMilliseconds}ms)");
+                XConsole.Log($"{u} logged in (login took {sw.Elapsed.TotalMilliseconds}ms)", ConsoleColor.Green);
 #else
-                Console.WriteLine($"{u} logged in");
+                XConsole.Log($"{u} logged in", ConsoleColor.Green);
 #endif
                 
                 return SendPackets(packets);
