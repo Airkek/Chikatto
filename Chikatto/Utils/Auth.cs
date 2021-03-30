@@ -43,11 +43,12 @@ namespace Chikatto.Utils
 
         public static string CreateBanchoToken(int userId, string[] clientData)
         {
+            var mac = clientData[1].ToLower().Split(".")[0];
             return string.Concat(
                 "chikatto:",
                 userId,
                 ":c",
-                clientData[1].ToLower().Split(".")[0].Substring(0, 5), // first part of MacAddress (limit by 5 chars)
+                mac.Substring(0, Math.Min(mac.Length, 5)), // first part of MacAddress (limit by 5 chars)
                 "o",
                 clientData[0].Substring(0, 3), // first 3 chars of md5(osu!.exe)
                 "f",
