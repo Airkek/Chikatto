@@ -41,6 +41,24 @@ namespace Chikatto.Utils
             return bcrypt == user.User.Password ? user : null;
         }
 
+        public static string CreateBanchoToken(int userId, string[] clientData)
+        {
+            return string.Concat(
+                "chikatto:",
+                userId,
+                ":c",
+                clientData[1].ToLower().Split(".")[0].Substring(0, 5), // first part of MacAddress (limit by 5 chars)
+                "o",
+                clientData[0].Substring(0, 3), // first 3 chars of md5(osu!.exe)
+                "f",
+                clientData[2].Substring(0, 5), // first 5 chars of Adapters
+                "f",
+                clientData[3].Substring(0, 5), // first 5 chars of UninstallId
+                "e",
+                clientData[4].Substring(0, 5) // first 5 chars of DiskSig
+            );
+        }
+
         public static string GetSafeName(string name) => name.ToLower().Replace(" ", "_");
     }
 }

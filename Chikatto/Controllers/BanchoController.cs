@@ -18,6 +18,8 @@ namespace Chikatto.Controllers
 {
     public class BanchoController : Controller
     {
+        public OkObjectResult Default() => Ok($"Running Chikatto v{Misc.Version}");
+        
         [Route("/")]
         public async Task<IActionResult> Bancho(
             [FromHeader(Name = "osu-token")] string token,
@@ -25,7 +27,7 @@ namespace Chikatto.Controllers
         )
         {
             if (Request.Method == "GET" || userAgent != "osu!")
-                return Ok($"Running Chikatto v{Misc.Version}");
+                return Default();
 
             Response.Headers["cho-protocol"] = Misc.BanchoProtocolVersion.ToString();
             
@@ -43,9 +45,10 @@ namespace Chikatto.Controllers
                 if (req.Length != 4)
                     return NotFound();
 
-                Response.Headers["cho-token"] = "no-token";
+                Response.Headers["cho-token"] = "chikatto::no-token";
 
                 var u = await Auth.Login(req[0], req[1]);
+                var clientData = req[2].Split(":");
 
                 if (u == null)
                     return SendPackets(new[] { FastPackets.UserId(-1) });
@@ -59,7 +62,7 @@ namespace Chikatto.Controllers
                     });
                 }
                 
-                token = RandomFabric.GenerateBanchoToken();
+                token = Auth.CreateBanchoToken(u.Id, clientData);
                 Response.Headers["cho-token"] = token;
 
                 u.Token = token;
@@ -99,6 +102,9 @@ namespace Chikatto.Controllers
                 
                 return SendPackets(packets);
             }
+
+            if (!token.StartsWith("chikatto:"))
+                return Default();
             
             var user = Global.OnlineManager.GetByToken(token);
 
