@@ -48,14 +48,14 @@ namespace Chikatto.Controllers
                 var clientData = req[2].Split(":");
 
                 if (u is null)
-                    return SendPackets(new[] { FastPackets.UserId(-1) });
+                    return SendPackets(new[] { await FastPackets.UserId(-1) });
                 
                 if (u.LastPong > new DateTimeOffset(DateTime.Now).ToUnixTimeSeconds() - 10)
                 {
                     return SendPackets(new[]
                     {
-                        FastPackets.UserId(-1),
-                        FastPackets.Notification("User already logged in")
+                        await FastPackets.UserId(-1),
+                        await FastPackets.Notification("User already logged in")
                     });
                 }
                 
@@ -68,12 +68,12 @@ namespace Chikatto.Controllers
 
                 var packets = new List<Packet>
                 {
-                    FastPackets.ProtocolVersion(Misc.BanchoProtocolVersion),
-                    FastPackets.UserId(u.Id),
-                    FastPackets.MainMenuIcon($"{Global.Config.LogoIngame}|{Global.Config.LogoClickUrl}"),
-                    FastPackets.Notification($"Welcome back!\r\nChikatto Build v{Misc.Version}"),
-                    FastPackets.BotPresence(),
-                    FastPackets.BotStats()
+                    await FastPackets.ProtocolVersion(),
+                    await FastPackets.UserId(u.Id),
+                    await FastPackets.MainMenuIcon(Global.Config.LogoIngame, Global.Config.LogoClickUrl),
+                    await FastPackets.Notification($"Welcome back!\r\nChikatto Build v{Misc.Version}"),
+                    await FastPackets.BotPresence(),
+                    await FastPackets.BotStats()
                 };
 
 
@@ -92,14 +92,14 @@ namespace Chikatto.Controllers
 
                     if (channel.Default)
                     {
-                        packets.Add(FastPackets.ChannelAutoJoin(channel.Name, channel.Topic, channel.Users.Count));
-                        channel.JoinUser(u);
+                        packets.Add(await FastPackets.ChannelAutoJoin(channel));
+                        await channel.JoinUser(u);
                     }
                     else 
-                        u.WaitingPackets.Enqueue(channel.GetInfoPacket());
+                        u.WaitingPackets.Enqueue(await channel.GetInfoPacket());
                 }
 
-                packets.Add(FastPackets.ChannelInfoEnd());
+                packets.Add(FastPackets.ChannelInfoEnd);
                 
                 XConsole.Log($"{u} logged in (login took {sw.Elapsed.TotalMilliseconds}ms)", ConsoleColor.Green);
                 
@@ -115,12 +115,14 @@ namespace Chikatto.Controllers
             {
                 var packets = new[]
                 {
-                    FastPackets.Notification("Server has restarted"), 
-                    FastPackets.ServerRestart(0)
+                    await FastPackets.Notification("Server has restarted"), 
+                    await FastPackets.ServerRestart(0)
                 };
                 
                 return SendPackets(packets);
             }
+            
+            user.LastPong = new DateTimeOffset(DateTime.Now).ToUnixTimeSeconds();
 
             var osuPackets = Packets.GetPackets(ms.ToArray());
 

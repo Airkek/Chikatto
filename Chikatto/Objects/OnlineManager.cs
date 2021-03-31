@@ -48,7 +48,7 @@ namespace Chikatto.Objects
             user.LastPong = 0;
             
             foreach (var (_, c) in user.JoinedChannels)
-                c.RemoveUser(user);
+                await c.RemoveUser(user);
 
             OsuTokens.Remove(user.Token);
             SafeNames.Remove(user.User.SafeName);

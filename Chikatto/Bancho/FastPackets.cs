@@ -1,60 +1,40 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Data.Common;
-using System.IO;
-using System.Linq;
-using System.Net.Http.Headers;
-using System.Reflection.Metadata.Ecma335;
 using System.Threading.Tasks;
-using Chikatto.Bancho;
 using Chikatto.Bancho.Enums;
 using Chikatto.Bancho.Objects;
 using Chikatto.Constants;
-using Chikatto.Database.Models;
 using Chikatto.Objects;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 
-namespace Chikatto.Utils
+namespace Chikatto.Bancho
 {
     public static class FastPackets
     {
         //5
-        public static Packet UserId(int id) => new (PacketType.BanchoUserId, BitConverter.GetBytes(id));
+        public static Task<Packet> UserId(int id) => 
+            GetPacket (PacketType.BanchoUserId, id);
         
         //7
-        public static Packet SendMessage(BanchoMessage message)
-        {
-            using var packet = new WriteablePacket(PacketType.BanchoSendMessage);
-            packet.Writer.WriteBanchoObject(message);
-            return packet.Dump();
-        }
-        
+        public static Task<Packet> SendMessage(BanchoMessage message) =>
+            GetPacket(PacketType.BanchoSendMessage, message);
+
         //8
-        public static Packet Ping() => new Packet(PacketType.BanchoPing);
+        public static readonly Packet Ping = new(PacketType.BanchoPing);
         
         //9
-        public static Packet ChangeUsername(string oldName, string newName)
-        {
-            using var packet = new WriteablePacket(PacketType.BanchoIrcChangeUsername);
-            packet.Writer.Write($"{oldName}>>>>{newName}");
-            return packet.Dump();
-        }
-        
+        public static Task<Packet> ChangeUsername(string oldName, string newName) =>
+            GetPacket(PacketType.BanchoIrcChangeUsername, $"{oldName}>>>>{newName}");
+
         //11
-        public static Packet UserStats(BanchoUserStats stats)
-        {
-            using var packet = new WriteablePacket(PacketType.BanchoUserStats);
-            packet.Writer.WriteBanchoObject(stats);
-            return packet.Dump();
-        }
+        public static Task<Packet> UserStats(BanchoUserStats stats) =>
+            GetPacket(PacketType.BanchoUserStats, stats);
+
         //11 overload
-        public static async Task<Packet> UserStats(Presence user) => UserStats(await user.GetStats());
+        public static async Task<Packet> UserStats(Presence user) => 
+            await UserStats(await user.GetStats());
 
         //11 bot
-        public static Packet BotStats()
+        public static Task<Packet> BotStats()
         {
             var action = new BanchoUserStatus
             {
@@ -77,206 +57,170 @@ namespace Chikatto.Utils
                 Rank = 0,
                 PP = 0,
             };
+            
             return UserStats(stats);
         }
         
         //12
-        public static Packet Logout(int uid) 
+        public static async Task<Packet> Logout(int uid) 
         {
-            using var packet = new WriteablePacket(PacketType.BanchoUserLogout);
+            await using var packet = new WriteablePacket(PacketType.BanchoUserLogout);
             packet.Writer.Write(uid);
             packet.Writer.Write((byte) 0);
             return packet.Dump();
         }
         
         //14
-        public static Packet SpectatorJoined(int id) =>
-            new Packet(PacketType.BanchoSpectatorJoined, BitConverter.GetBytes(id));
+        public static Task<Packet> SpectatorJoined(int id) =>
+            GetPacket(PacketType.BanchoSpectatorJoined, id);
         
         //14
-        public static Packet SpectatorLeft(int id) =>
-            new Packet(PacketType.BanchoSpectatorLeft, BitConverter.GetBytes(id));
+        public static Task<Packet> SpectatorLeft(int id) =>
+            GetPacket(PacketType.BanchoSpectatorLeft, id);
         
         //15
-        public static Packet SpectateFrames(byte[] frames) => new Packet(PacketType.BanchoSpectateFrames, frames);
+        public static async Task<Packet> SpectateFrames(byte[] frames) => 
+            new(PacketType.BanchoSpectateFrames, frames);
         
         //19
-        public static Packet VersionUpdate() => new Packet(PacketType.BanchoVersionUpdate); 
+        public static Packet VersionUpdate = new(PacketType.BanchoVersionUpdate); 
         
         //22
-        public static Packet CantSpectate(int id) => 
-            new Packet(PacketType.BanchoCantSpectate, BitConverter.GetBytes(id));
+        public static Task<Packet> CantSpectate(int id) => 
+            GetPacket(PacketType.BanchoCantSpectate, id);
         
         //23
-        public static Packet GetAttention() => new Packet(PacketType.BanchoGetAttention);
+        public static readonly Packet GetAttention = new(PacketType.BanchoGetAttention);
 
         //24
-        public static Packet Notification(string text)
-        {
-            using var packet = new WriteablePacket(PacketType.BanchoNotification);
-            packet.Writer.Write(text);
-            return packet.Dump();
-        }
-        
+        public static Task<Packet> Notification(string text) => 
+            GetPacket(PacketType.BanchoNotification, text);
+
         //24
-        public static Packet NewMatch(BanchoMatch banchoMatch)
-        {
-            using var packet = new WriteablePacket(PacketType.BanchoNewMatch);
-            packet.Writer.WriteBanchoObject(banchoMatch);
-            return packet.Dump();
-        }
-        
+        public static Task<Packet> NewMatch(BanchoMatch banchoMatch) =>
+            GetPacket(PacketType.BanchoNewMatch, banchoMatch);
+
         //26
-        public static Packet UpdateMatch(BanchoMatch banchoMatch, bool sendPassword = true)
-        {
-            using var packet = new WriteablePacket(PacketType.BanchoUpdateMatch);
-            packet.Writer.WriteBanchoObject(banchoMatch);
-            return packet.Dump();
-        }
-        
+        public static Task<Packet> UpdateMatch(BanchoMatch banchoMatch) =>
+            GetPacket(PacketType.BanchoUpdateMatch, banchoMatch);
+
         //28
-        public static Packet DisposeMatch(int id) =>
-            new Packet(PacketType.BanchoDisposeMatch, BitConverter.GetBytes(id));
+        public static Task<Packet> DisposeMatch(int id) =>
+            GetPacket(PacketType.BanchoDisposeMatch, id);
         
         //34
-        public static Packet ToggleBlockNonFriendPm() => new Packet(PacketType.BanchoToggleBlockNonFriendPm);
+        public static readonly Packet ToggleBlockNonFriendPm = new(PacketType.BanchoToggleBlockNonFriendPm);
         
         //36
-        public static Packet MatchJoinSuccess(BanchoMatch banchoMatch)
-        {
-            using var packet = new WriteablePacket(PacketType.BanchoMatchJoinSuccess);
-            packet.Writer.WriteBanchoObject(banchoMatch);
-            return packet.Dump();
-        }
-        
+        public static Task<Packet> MatchJoinSuccess(BanchoMatch banchoMatch) =>
+            GetPacket(PacketType.BanchoMatchJoinSuccess, banchoMatch);
+
         //37
-        public static Packet MatchJoinFail() => new Packet(PacketType.BanchoMatchJoinFail);
+        public static readonly Packet MatchJoinFail = new(PacketType.BanchoMatchJoinFail);
         
         //42
-        public static Packet FellowSpectatorJoined(int id) =>
-            new Packet(PacketType.BanchoFellowSpectatorJoined, BitConverter.GetBytes(id));
+        public static Task<Packet> FellowSpectatorJoined(int id) =>
+            GetPacket(PacketType.BanchoFellowSpectatorJoined, id);
         
         //43
-        public static Packet FellowSpectatorLeft(int id) =>
-            new Packet(PacketType.BanchoFellowSpectatorLeft, BitConverter.GetBytes(id));
-        
-        //45: unused
-        
+        public static Task<Packet> FellowSpectatorLeft(int id) =>
+            GetPacket(PacketType.BanchoFellowSpectatorLeft, id);
+
         //46
-        public static Packet MatchStart(BanchoMatch banchoMatch)
-        {
-            using var packet = new WriteablePacket(PacketType.BanchoMatchStart);
-            packet.Writer.WriteBanchoObject(banchoMatch);
-            return packet.Dump();
-        }
-        
+        public static Task<Packet> MatchStart(BanchoMatch banchoMatch) =>
+            GetPacket(PacketType.BanchoMatchStart, banchoMatch);
+
         //48
-        public static Packet MatchScoreUpdate( /*ScoreFrame frame*/)
+        public static Task<Packet> MatchScoreUpdate( /*ScoreFrame frame*/)
         {
             throw new NotImplementedException(); //TODO: MatchScoreUpdate
         }
         
         //50
-        public static Packet MatchTransferHost() => new Packet(PacketType.BanchoMatchTransferHost);
+        public static readonly Packet MatchTransferHost = new(PacketType.BanchoMatchTransferHost);
         
         //53
-        public static Packet MatchAllPlayersLoaded() => new Packet(PacketType.BanchoMatchAllPlayersLoaded);
+        public static readonly Packet MatchAllPlayersLoaded = new(PacketType.BanchoMatchAllPlayersLoaded);
         
         //57
-        public static Packet MatchPlayerFailed(int slotId) =>
-            new Packet(PacketType.BanchoMatchPlayerFailed, BitConverter.GetBytes(slotId));
-        
+        public static Task<Packet> MatchPlayerFailed(int slotId) =>
+            GetPacket(PacketType.BanchoMatchPlayerFailed, slotId);
+
         //58
-        public static Packet MatchComplete() => new Packet(PacketType.BanchoMatchComplete);
+        public static readonly Packet MatchComplete = new(PacketType.BanchoMatchComplete);
         
         //61
-        public static Packet MatchSkip() => new Packet(PacketType.BanchoMatchSkip);
-        
-        //62: unused
-        
+        public static readonly Packet MatchSkip = new(PacketType.BanchoMatchSkip);
+
         //64
-        public static Packet ChannelJoinSuccess(string channelName)
-        {
-            using var packet = new WriteablePacket(PacketType.BanchoChannelJoinSuccess);
-            packet.Writer.Write(channelName);
-            return packet.Dump();
-        }
+        public static Task<Packet> ChannelJoinSuccess(string channelName) =>
+            GetPacket(PacketType.BanchoChannelJoinSuccess, channelName);
 
         //65
-        public static Packet ChannelInfo(string channelName, string topic, int playerCount)
+        public static async Task<Packet> ChannelInfo(Channel c)
         {
-            using var packet = new WriteablePacket(PacketType.BanchoChannelInfo);
-            packet.Writer.Write(channelName);
-            packet.Writer.Write(topic);
-            packet.Writer.Write(playerCount);
+            await using var packet = new WriteablePacket(PacketType.BanchoChannelInfo);
+            packet.Writer.Write(c.Name);
+            packet.Writer.Write(c.Topic);
+            packet.Writer.Write(c.Users.Count);
             return packet.Dump();
         }
         
         //66
-        public static Packet ChannelKick(string channelName)
-        {
-            using var packet = new WriteablePacket(PacketType.BanchoChannelKick);
-            packet.Writer.Write(channelName);
-            return packet.Dump();
-        }
-        
+        public static Task<Packet> ChannelKick(string channelName) =>
+            GetPacket(PacketType.BanchoChannelKick, channelName);
+
         //67
-        public static Packet ChannelAutoJoin(string channelName, string topic, int playerCount)
+        public static async Task<Packet> ChannelAutoJoin(Channel c)
         {
-            using var packet = new WriteablePacket(PacketType.BanchoChannelAutoJoin);
-            packet.Writer.Write(channelName);
-            packet.Writer.Write(topic);
-            packet.Writer.Write(playerCount);
+            await using var packet = new WriteablePacket(PacketType.BanchoChannelAutoJoin);
+            packet.Writer.Write(c.Name);
+            packet.Writer.Write(c.Topic);
+            packet.Writer.Write(c.Users.Count);
             return packet.Dump();
         }
         
         //69
-        public static Packet BeatmapInfoReply( /*List<Map> maps*/)
+        public static Task<Packet> BeatmapInfoReply( /*List<Map> maps*/)
         {
             throw new NotImplementedException(); // TODO: BeatmapInfoReply
         }
 
         //71
-        public static Packet BanchoPrivileges(int privileges) =>
-            new Packet(PacketType.BanchoPrivileges, BitConverter.GetBytes(privileges));
+        public static Task<Packet> BanchoPrivileges(int privileges) =>
+            GetPacket(PacketType.BanchoPrivileges, privileges);
         
         //72
-        public static Packet FriendList(List<int> friends)
+        public static async Task<Packet> FriendList(List<int> friends)
         {
-            using var packet = new WriteablePacket(PacketType.BanchoFriendList);
+            await using var packet = new WriteablePacket(PacketType.BanchoFriendList);
             packet.Writer.Write(friends);
             return packet.Dump();
         }
         
         //75
-        public static Packet ProtocolVersion(int version) =>
-            new Packet(PacketType.BanchoProtocolVersion, BitConverter.GetBytes(version));
+        public static Task<Packet> ProtocolVersion(int version = Misc.BanchoProtocolVersion) =>
+            GetPacket(PacketType.BanchoProtocolVersion, version);
         
         //76 TODO: overload and MainMenuIcon class (for config)
-        public static Packet MainMenuIcon(string icon) //should be $"{iconUrl}|{websiteUrl}"; 
-        {
-            using var packet = new WriteablePacket(PacketType.BanchoMainMenuIcon);
-            packet.Writer.Write(icon);
-            return packet.Dump();
-        }
-        
-        //80: unused
-        
+        public static Task<Packet> MainMenuIcon(string icon, string websiteUrl) =>
+            GetPacket(PacketType.BanchoMainMenuIcon, $"{icon}|{websiteUrl}");
+
         //81
-        public static Packet MatchPlayerSkipped(int uid) =>
-            new Packet(PacketType.BanchoMatchPlayerSkipped, BitConverter.GetBytes(uid));
+        public static Task<Packet> MatchPlayerSkipped(int uid) => 
+            GetPacket(PacketType.BanchoMatchPlayerSkipped, uid);
+
 
         //83
-        public static Packet UserPresence(BanchoUserPresence presence)
-        {
-            using var packet = new WriteablePacket(PacketType.BanchoUserPresence);
-            packet.Writer.WriteBanchoObject(presence);
-            return packet.Dump();
-        }
+        public static Task<Packet> UserPresence(BanchoUserPresence presence) =>
+            GetPacket(PacketType.BanchoUserPresence, presence);
+        
         //83 overload
-        public static async Task<Packet> UserPresence(Presence user) => UserPresence(await user.GetUserPresence());
-        //83 bot //TODO bot config
-        public static Packet BotPresence()
+        public static async Task<Packet> UserPresence(Presence user) => 
+            await UserPresence(await user.GetUserPresence());
+        
+        //83 bot
+        public static Task<Packet> BotPresence()
         {
             var presence = new BanchoUserPresence
             {
@@ -294,10 +238,11 @@ namespace Chikatto.Utils
         }
 
         //86
-        public static Packet ServerRestart(int ms) => new(PacketType.BanchoServerRestart, BitConverter.GetBytes(ms));
-        
+        public static Task<Packet> ServerRestart(int ms) => 
+            GetPacket(PacketType.BanchoServerRestart, ms);
+
         //88
-        public static Packet MatchInvite(Presence user, string to)
+        public static Task<Packet> MatchInvite(Presence user, string to)
         {
             var message = new BanchoMessage
             {
@@ -306,44 +251,27 @@ namespace Chikatto.Utils
                 Body = $"Hey! Let's play together!: ", //TODO: match embed
                 ClientId = user.Id
             };
-            using var packet = new WriteablePacket(PacketType.BanchoMatchInvite);
-            packet.Writer.WriteBanchoObject(message);
-            return packet.Dump();
+
+            return GetPacket(PacketType.BanchoMatchInvite, message);
         }
         
         //89
-        public static Packet ChannelInfoEnd() => new Packet(PacketType.BanchoChannelInfoEnd);
+        public static readonly Packet ChannelInfoEnd = new(PacketType.BanchoChannelInfoEnd);
         
         //91
-        public static Packet MatchChangePassword(string newPassword)
-        {
-            using var packet = new WriteablePacket(PacketType.BanchoMatchChangePassword);
-            packet.Writer.Write(newPassword);
-            return packet.Dump();
-        }
+        public static Task<Packet> MatchChangePassword(string newPassword) => 
+            GetPacket(PacketType.BanchoMatchChangePassword, newPassword);
 
         //92
-        public static Packet SilenceEnd(int time) =>
-            new Packet(PacketType.BanchoSilenceEnd, BitConverter.GetBytes(time));
-        
-        //94
-        public static Packet UserSilenced(int uid) => 
-            new Packet(PacketType.BanchoUserSilenced, BitConverter.GetBytes(uid));
-        
-        //95
-        public static Packet UserPresenceSingle(int uid) => 
-            new Packet(PacketType.BanchoUserPresenceSingle, BitConverter.GetBytes(uid));
+        public static Task<Packet> SilenceEnd(int time) => 
+            GetPacket(PacketType.BanchoSilenceEnd, time);
 
-        //96
-        public static Packet UserPresenceBundle(List<int> uids) 
-        {
-            using var packet = new WriteablePacket(PacketType.BanchoUserPresenceBundle);
-            packet.Writer.Write(uids);
-            return packet.Dump();
-        }
-        
+        //94
+        public static Task<Packet> UserSilenced(int uid) => 
+            GetPacket(PacketType.BanchoUserSilenced, uid);
+
         //100
-        public static Packet UserPmBlocked(string target)
+        public static Task<Packet> UserPmBlocked(string target)
         {
             var message = new BanchoMessage
             {
@@ -352,13 +280,12 @@ namespace Chikatto.Utils
                 Body = "",
                 ClientId = 0
             };
-            using var packet = new WriteablePacket(PacketType.BanchoUserPmBlocked);
-            packet.Writer.WriteBanchoObject(message);
-            return packet.Dump();
+            
+            return GetPacket(PacketType.BanchoUserPmBlocked, message);
         }
 
         //101
-        public static Packet TargetSilenced(string target)
+        public static Task<Packet> TargetSilenced(string target)
         {
             var message = new BanchoMessage
             {
@@ -367,28 +294,41 @@ namespace Chikatto.Utils
                 Body = "",
                 ClientId = 0
             };
-            using var packet = new WriteablePacket(PacketType.BanchoTargetIsSilenced);
-            packet.Writer.WriteBanchoObject(message);
-            return packet.Dump();
+
+            return GetPacket(PacketType.BanchoTargetIsSilenced, message);
         }
 
         //103
-        public static Packet SwitchServer(int num) =>
-            new Packet(PacketType.BanchoSwitchServer, BitConverter.GetBytes(num));
-        
+        public static Task<Packet> SwitchServer(int num) => GetPacket(PacketType.BanchoSwitchServer, num);
+
         //104 
-        public static Packet AccountRestricted() => new Packet(PacketType.BanchoAccountRestricted);
-        
-        //105 unused
-        
+        public static readonly Packet AccountRestricted = new(PacketType.BanchoAccountRestricted);
+
         //106
-        public static Packet MatchAbort() => new Packet(PacketType.BanchoMatchAbort);
+        public static readonly Packet MatchAbort = new(PacketType.BanchoMatchAbort);
         
         //107
-        public static Packet SwitchTournamentServer(string ip)
+        public static Task<Packet> SwitchTournamentServer(string ip) =>
+            GetPacket(PacketType.BanchoSwitchTournamentServer, ip);
+
+        private static async Task<Packet> GetPacket(PacketType type, int num)
         {
-            using var packet = new WriteablePacket(PacketType.BanchoSwitchTournamentServer);
-            packet.Writer.Write(ip);
+            await using var packet = new WriteablePacket(type);
+            packet.Writer.Write(num);
+            return packet.Dump();
+        }
+        
+        private static async Task<Packet> GetPacket(PacketType type, string str)
+        {
+            await using var packet = new WriteablePacket(type);
+            packet.Writer.Write(str);
+            return packet.Dump();
+        }
+        
+        private static async Task<Packet> GetPacket(PacketType type, ISerializable obj)
+        {
+            await using var packet = new WriteablePacket(type);
+            packet.Writer.WriteBanchoObject(obj);
             return packet.Dump();
         }
     }

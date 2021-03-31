@@ -1,21 +1,21 @@
 ﻿using System.Collections.Concurrent;
+using System.Threading.Tasks;
 using Chikatto.Bancho;
 using Chikatto.Bancho.Objects;
 using Chikatto.Constants;
 using Chikatto.Database.Models;
 using Chikatto.Extensions;
-using Chikatto.Utils;
 
 namespace Chikatto.Objects
 {
     public class Channel
     {
-        public string Name;
-        public string Topic;
-        public Privileges Write;
-        public Privileges Read;
-        public bool Default;
-        public ConcurrentDictionary<int, Presence> Users = new ();
+        public readonly string Name;
+        public readonly string Topic;
+        public readonly Privileges Write;
+        public readonly Privileges Read;
+        public readonly bool Default;
+        public readonly ConcurrentDictionary<int, Presence> Users = new ();
 
         public Channel(DbChannel channel)
         {
@@ -26,7 +26,7 @@ namespace Chikatto.Objects
             Default = channel.AutoJoin;
         }
 
-        public void JoinUser(Presence user)
+        public async Task JoinUser(Presence user)
         {
             if(Users.ContainsKey(user.Id))
                 return;
@@ -36,31 +36,31 @@ namespace Chikatto.Objects
             
             Users[user.Id] = user;
             user.JoinedChannels[Name] = this;
-            user.WaitingPackets.Enqueue(FastPackets.ChannelJoinSuccess(Name));
+            user.WaitingPackets.Enqueue(await FastPackets.ChannelJoinSuccess(Name));
             
-            var info = GetInfoPacket();
+            var info = await GetInfoPacket();
             
             foreach (var (_, u) in Users)
                 u.WaitingPackets.Enqueue(info);
         }
 
-        public void RemoveUser(Presence user)
+        public async Task RemoveUser(Presence user)
         {
             if(!Users.ContainsKey(user.Id))
                 return;
             
             Users.Remove(user.Id);
             user.JoinedChannels.Remove(Name);
-            var info = GetInfoPacket();
+            var info = await GetInfoPacket();
             
-            user.WaitingPackets.Enqueue(FastPackets.ChannelKick(Name));
+            user.WaitingPackets.Enqueue(await FastPackets.ChannelKick(Name));
             user.WaitingPackets.Enqueue(info);
             
             foreach (var (_, u) in Users)
                 u.WaitingPackets.Enqueue(info);
         }
 
-        public void WriteMessage(Presence user, BanchoMessage message)
+        public async Task WriteMessage(Presence user, BanchoMessage message)
         {
             if(!Users.ContainsKey(user.Id))
                 return;
@@ -68,7 +68,7 @@ namespace Chikatto.Objects
             if((user.User.Privileges & Write) != Write)
                 return;
             
-            var packet = FastPackets.SendMessage(message);
+            var packet = await FastPackets.SendMessage(message);
 
             foreach (var (_, u) in Users)
             {
@@ -79,7 +79,7 @@ namespace Chikatto.Objects
             }
         }
 
-        public Packet GetInfoPacket() => FastPackets.ChannelInfo(Name, Topic, Users.Count);
+        public Task<Packet> GetInfoPacket() => FastPackets.ChannelInfo(this);
 
         public override string ToString() => $"<{Name}>";
     }
