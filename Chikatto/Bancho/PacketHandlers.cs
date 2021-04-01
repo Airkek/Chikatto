@@ -22,7 +22,7 @@ namespace Chikatto.Bancho
             [OsuChannelPart] = ChannelLeave,
             [OsuSendPublicMessage] = SendPublicMessage,
             [OsuSendPrivateMessage] = SendPrivateMessage,
-            [OsuChangeAction] = ActionUpdate,
+            [OsuChangeAction] = UpdateAction,
             [OsuRequestStatusUpdate] = StatsUpdate
         };
 #if DEBUG
@@ -33,9 +33,12 @@ namespace Chikatto.Bancho
         };
 #endif
 
-        private static async Task SendPublicMessage(Packet packet, Presence user)
+        public static async Task UpdateAction(PacketReader reader, Presence user)
         {
-            await using var reader = PacketReader.Create(packet);
+            user.Status = reader.ReadBanchoObject<BanchoUserStatus>();
+        }
+        private static async Task SendPublicMessage(PacketReader reader, Presence user)
+        {
             var message = reader.ReadBanchoObject<BanchoMessage>();
 
             if (!user.JoinedChannels.ContainsKey(message.To))
@@ -51,9 +54,8 @@ namespace Chikatto.Bancho
             XConsole.Log($"{user} -> {message.To}: {message.Body}");
         }
 
-        private static async Task SendPrivateMessage(Packet packet, Presence user)
+        private static async Task SendPrivateMessage(PacketReader reader, Presence user)
         {
-            await using var reader = PacketReader.Create(packet);
             var message = reader.ReadBanchoObject<BanchoMessage>();
 
             var location = Global.OnlineManager.GetByName(message.To);
@@ -69,19 +71,12 @@ namespace Chikatto.Bancho
             XConsole.Log($"{user} -> {location}: {message.Body}");
         }
 
-        private static async Task ActionUpdate(Packet packet, Presence user)
-        {
-            await using var reader = PacketReader.Create(packet);
-
-            user.Status = reader.ReadBanchoObject<BanchoUserStatus>();
-        }
-
-        private static async Task StatsUpdate(Packet packet, Presence user)
+        private static async Task StatsUpdate(PacketReader reader, Presence user)
         {
             user.WaitingPackets.Enqueue(await FastPackets.UserStats(user));
         }
 
-        private static async Task Logout(Packet packet, Presence user)
+        private static async Task Logout(PacketReader reader, Presence user)
         {
             user.LastPong = 0;
             
@@ -94,9 +89,8 @@ namespace Chikatto.Bancho
             XConsole.Log($"{user} logged out", ConsoleColor.Green);
         }
 
-        private static async Task ChannelJoin(Packet packet, Presence user)
+        private static async Task ChannelJoin(PacketReader reader, Presence user)
         {
-            await using var reader = PacketReader.Create(packet);
             var channel = reader.ReadString();
             
             if (!Global.Channels.ContainsKey(channel))
@@ -108,9 +102,8 @@ namespace Chikatto.Bancho
             XConsole.Log($"{user} joined {c}", ConsoleColor.Cyan);
         }
 
-        private static async Task ChannelLeave(Packet packet, Presence user)
+        private static async Task ChannelLeave(PacketReader reader, Presence user)
         {
-            await using var reader = PacketReader.Create(packet);
             var channel = reader.ReadString();
             
             if (!Global.Channels.ContainsKey(channel))
@@ -122,10 +115,8 @@ namespace Chikatto.Bancho
             XConsole.Log($"{user} left from {channel}", ConsoleColor.Cyan);
         }
 
-        private static async Task UserStatsRequest(Packet packet, Presence user)
+        private static async Task UserStatsRequest(PacketReader reader, Presence user)
         {
-            await using var reader = PacketReader.Create(packet);
-
             var players = reader.ReadInt32Array();
             
             foreach (var i in players)
@@ -154,18 +145,19 @@ namespace Chikatto.Bancho
         {
             if (!Handlers.ContainsKey(packet.Type))
             {
-#if DEBUG
-                XConsole.Log($"{user}: NotImplementedPacket: {packet}", back: ConsoleColor.Red);
-#endif
-                
+                XConsole.Log($"{user}: Unhandled packet: {packet}");
                 return;
             }
+            
 #if DEBUG
             var sw = Stopwatch.StartNew();
 #endif
+            
             try
             {
-                await Handlers[packet.Type].Invoke(packet, user);
+                await using var reader = PacketReader.Create(packet);
+                await Handlers[packet.Type].Invoke(reader, user);
+                
 #if DEBUG
                 if(!IgnoreLog.Contains(packet.Type))
                     XConsole.Log($"{user}: Handled: {packet} (handle took {sw.Elapsed.TotalMilliseconds}ms)", back: ConsoleColor.Green);
@@ -177,6 +169,6 @@ namespace Chikatto.Bancho
             }
         }
 
-        private delegate Task PacketHandler(Packet packet, Presence presence);
+        private delegate Task PacketHandler(PacketReader packet, Presence presence);
     }
 }
