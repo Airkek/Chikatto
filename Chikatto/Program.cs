@@ -10,7 +10,6 @@ namespace Chikatto
         public static void Main(string[] args)
         {
             Global.Config = ConfigManager.Read();
-            Global.Database = GulagDbContext.Create();
             CreateHostBuilder(args).Build().Run();
         }
 

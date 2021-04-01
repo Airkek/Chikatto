@@ -37,6 +37,7 @@ namespace Chikatto.Bancho
         {
             user.Status = reader.ReadBanchoObject<BanchoUserStatus>();
         }
+        
         private static async Task SendPublicMessage(PacketReader reader, Presence user)
         {
             var message = reader.ReadBanchoObject<BanchoMessage>();
@@ -121,7 +122,7 @@ namespace Chikatto.Bancho
             
             foreach (var i in players)
             {
-                if (i == 1)
+                if (i == Global.Bot.Id)
                 {
                     user.WaitingPackets.Enqueue(await FastPackets.BotStats());
                     user.WaitingPackets.Enqueue(await FastPackets.BotPresence());
@@ -163,8 +164,9 @@ namespace Chikatto.Bancho
                     XConsole.Log($"{user}: Handled: {packet} (handle took {sw.Elapsed.TotalMilliseconds}ms)", back: ConsoleColor.Green);
 #endif
             }
-            catch
+            catch (Exception e)
             {
+                Console.WriteLine(e);
                 XConsole.Log($"{user}: Handle failed: {packet}", back: ConsoleColor.Red);
             }
         }

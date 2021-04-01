@@ -1,8 +1,10 @@
 ﻿using System.Collections.Concurrent;
+using System.Linq;
 using System.Threading.Tasks;
 using Chikatto.Bancho;
 using Chikatto.Bancho.Objects;
 using Chikatto.Constants;
+using Chikatto.Database;
 using Chikatto.Database.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Internal;
@@ -38,7 +40,7 @@ namespace Chikatto.Objects
 
         public async Task<int> GetRank()
         {
-            return await Global.Database.Stats.CountAsync(x => x.pp_vn_std > Stats.pp_vn_std) + 1;
+            return (await DatabaseHelper.FetchAll<Stats>("SELECT * FROM stats")).Count(x => x.pp_vn_std > Stats.pp_vn_std) + 1;
         }
 
         public async Task SendMessage(string body, string sender, int senderId)
@@ -120,7 +122,7 @@ namespace Chikatto.Objects
 
         public static async Task<Presence> FromDatabase(int id)
         {
-            var user = await Global.Database.Users.FindAsync(id);
+            var user = await DatabaseHelper.FetchOne<User>("SELECT * FROM users WHERE id = @uid", new { uid = id });
             
             if (user is null)
                 return null;
@@ -130,10 +132,9 @@ namespace Chikatto.Objects
 
         public static async Task<Presence> FromDatabase(string safename)
         {
-            if (!await Global.Database.Users.AnyAsync(x => x.SafeName == safename))
+            var user = await DatabaseHelper.FetchOne<User>("SELECT * FROM users WHERE safe_name = @safe",new {safe = safename});
+            if (user is null)
                 return null;
-            
-            var user = await Global.Database.Users.FirstAsync(x => x.SafeName == safename);
 
             return await FromUser(user);
         }
@@ -146,7 +147,7 @@ namespace Chikatto.Objects
                 Name = user.Name,
                 User = user,
                 CountryCode = Misc.CountryCodes.ContainsKey(user.Country.ToUpper()) ? Misc.CountryCodes[user.Country.ToUpper()] : (byte) 0,
-                Stats = await Global.Database.Stats.FindAsync(user.Id)
+                Stats = await DatabaseHelper.FetchOne<Stats>("SELECT * FROM stats WHERE id = @uid", new { uid = user.Id })
             };
         }
 

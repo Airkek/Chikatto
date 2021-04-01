@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Chikatto.Database.Models
 {
-    public class ScoreModel
+    public class Score
     {
         [Required]
         [Column("id")]
@@ -13,7 +13,7 @@ namespace Chikatto.Database.Models
         
         [Required] [Column("map_md5")] public string BeatmapChecksum { get; set; }
         [Required] [Column("userid")] public int UserId { get; set; }
-        [Required] [Column("score")] public int Score { get; set; }
+        [Required] [Column("score")] public int GameScore { get; set; }
         [Required] [Column("status")] public int Completed { get; set; }
         [Required] [Column("max_combo")] public int MaxCombo { get; set; }
         [Required] [Column("mods")] public int Mods { get; set; }
@@ -28,13 +28,4 @@ namespace Chikatto.Database.Models
         [Required] [Column("acc")] public double Accuracy { get; set; }
         [Required] [Column("pp")] public float Performance { get; set; }
     }
-    
-    [Table("scores_vn")]
-    public class VanillaScore : ScoreModel { }
-    
-    [Table("scores_rx")]
-    public class RelaxScore : ScoreModel { }
-    
-    [Table("scores_ap")]
-    public class PilotScore : ScoreModel { }
 }
