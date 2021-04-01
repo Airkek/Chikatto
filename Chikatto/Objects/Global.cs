@@ -1,5 +1,4 @@
 ﻿using System.Collections.Concurrent;
-using Chikatto.Database;
 using Chikatto.Database.Models;
 
 namespace Chikatto.Objects

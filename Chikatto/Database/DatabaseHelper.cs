@@ -7,8 +7,6 @@ using System.Threading.Tasks;
 using Chikatto.Database.Models;
 using Chikatto.Objects;
 using Dapper;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.VisualBasic;
 using MySql.Data.MySqlClient;
 using User = Chikatto.Database.Models.User;
 

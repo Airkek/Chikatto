@@ -1,7 +1,4 @@
-﻿using System;
-using System.IO;
-using System.Reflection.Metadata.Ecma335;
-using System.Threading.Tasks;
+﻿using System.IO;
 using Chikatto.Bancho.Enums;
 
 namespace Chikatto.Bancho

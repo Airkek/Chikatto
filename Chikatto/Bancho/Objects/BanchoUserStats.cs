@@ -1,5 +1,4 @@
 ﻿using Chikatto.Bancho.Serialization;
-using Chikatto.Constants;
 
 namespace Chikatto.Bancho.Objects
 {

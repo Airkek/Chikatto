@@ -1,5 +1,4 @@
 ﻿using System.Collections.Concurrent;
-using System.Linq;
 using System.Threading.Tasks;
 using Chikatto.Bancho;
 using Chikatto.Bancho.Objects;

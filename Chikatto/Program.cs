@@ -1,4 +1,3 @@
-using Chikatto.Database;
 using Chikatto.Objects;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;

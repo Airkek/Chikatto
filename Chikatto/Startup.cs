@@ -1,8 +1,4 @@
-using System;
-using System.ComponentModel.DataAnnotations.Schema;
 using System.IO;
-using System.Linq;
-using System.Reflection;
 using System.Threading;
 using Chikatto.Constants;
 using Chikatto.Database;
@@ -10,11 +6,8 @@ using Chikatto.Database.Models;
 using Chikatto.Objects;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Dapper;
-using MySql.Data.MySqlClient;
 
 namespace Chikatto
 {

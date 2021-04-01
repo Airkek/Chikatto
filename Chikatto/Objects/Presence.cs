@@ -6,8 +6,6 @@ using Chikatto.Bancho.Objects;
 using Chikatto.Constants;
 using Chikatto.Database;
 using Chikatto.Database.Models;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Internal;
 
 namespace Chikatto.Objects
 {

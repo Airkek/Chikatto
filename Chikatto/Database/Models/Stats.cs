@@ -1,7 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-
-namespace Chikatto.Database.Models
+﻿namespace Chikatto.Database.Models
 {
     public class Stats
     {
