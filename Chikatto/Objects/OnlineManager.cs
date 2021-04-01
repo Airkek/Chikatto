@@ -15,6 +15,8 @@ namespace Chikatto.Objects
         private readonly ConcurrentDictionary<string, int> SafeNames = new(); // <SafeName, UserId>
         private readonly ConcurrentDictionary<int, Presence> Users = new(); // <UserId, Presence>
 
+        public int Online => OsuTokens.Count;
+
         public async Task AddPacketToAllUsers(Packet packet)
         {
             foreach (var (_, user) in Users)
@@ -30,6 +32,8 @@ namespace Chikatto.Objects
             OsuTokens[presence.Token] = presence.Id;
             SafeNames[presence.User.SafeName] = presence.Id;
             Users[presence.Id] = presence;
+            
+            await AddPacketToAllUsers(await FastPackets.UserPresence(presence));
         }
 
         public async Task AddUser(int id, string token)

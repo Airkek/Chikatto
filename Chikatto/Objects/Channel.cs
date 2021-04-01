@@ -17,6 +17,8 @@ namespace Chikatto.Objects
         public readonly bool Default;
         public readonly ConcurrentDictionary<int, Presence> Users = new ();
 
+        public readonly bool IsLobby = false;
+
         public Channel(DbChannel channel)
         {
             Name = channel.Name;
@@ -24,6 +26,9 @@ namespace Chikatto.Objects
             Write = channel.WritePrivileges;
             Read = channel.ReadPrivileges;
             Default = channel.AutoJoin;
+
+            if (Name == "#lobby")
+                IsLobby = true;
         }
 
         public async Task JoinUser(Presence user)

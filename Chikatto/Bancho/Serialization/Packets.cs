@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.IO;
-using Chikatto.Bancho.Enums;
 
 namespace Chikatto.Bancho.Serialization
 {
@@ -12,12 +11,7 @@ namespace Chikatto.Bancho.Serialization
             using var writer = new BinaryWriter(stream);
 
             foreach (var packet in packets)
-            {
-                writer.Write((ushort) packet.Type);
-                writer.Write((byte) 0);
-                writer.Write(packet.Data.Length);
-                writer.Write(packet.Data);
-            }
+                packet.WriteToStream(writer);
 
             return stream.ToArray();
         }
@@ -30,19 +24,7 @@ namespace Chikatto.Bancho.Serialization
             using var reader = new BinaryReader(stream);
             
             while (stream.Length - stream.Position >= 7)
-            {
-                var packetType = (PacketType) reader.ReadUInt16();
-                
-                reader.ReadByte(); // pad byte
-                
-                var length = reader.ReadInt32();
-                var packet = new Packet(packetType);
-
-                if (length != 0)
-                    packet.Data = reader.ReadBytes(length);
-
-                packets.Add(packet);
-            }
+                packets.Add(Packet.FromStream(reader));
 
             return packets;
         }

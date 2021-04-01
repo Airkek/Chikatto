@@ -58,6 +58,8 @@ namespace Chikatto.Controllers
                         await FastPackets.Notification("User already logged in")
                     });
                 }
+
+                u.LastPong = new DateTimeOffset(DateTime.Now).ToUnixTimeSeconds();
                 
                 token = Auth.CreateBanchoToken(u.Id, clientData);
                 Response.Headers["cho-token"] = token;
@@ -72,19 +74,16 @@ namespace Chikatto.Controllers
                     await FastPackets.UserId(u.Id),
                     await FastPackets.MainMenuIcon(Global.Config.LogoIngame, Global.Config.LogoClickUrl),
                     await FastPackets.Notification($"Welcome back!\r\nChikatto Build v{Misc.Version}"),
+                    await FastPackets.BanchoPrivileges(await u.GetBanchoPermissions()),
+                    await FastPackets.FriendList(u.Friends.Select(x => x.Key).ToList()),
                     await FastPackets.BotPresence(),
-                    await FastPackets.BotStats()
                 };
 
-
                 foreach (var us in users)
-                {
                     packets.Add(await FastPackets.UserPresence(us));
-                    packets.Add(await FastPackets.UserStats(us));
-                }
 
                 var channels = Global.Channels.Select(x => x.Value).Where(x => (x.Read & u.User.Privileges) == x.Read);
-                
+
                 foreach (var channel in channels)
                 {
                     if((channel.Read & u.User.Privileges) != channel.Read)
@@ -100,7 +99,7 @@ namespace Chikatto.Controllers
                 }
 
                 packets.Add(FastPackets.ChannelInfoEnd);
-                
+
                 XConsole.Log($"{u} logged in (login took {sw.Elapsed.TotalMilliseconds}ms)", ConsoleColor.Green);
                 
                 return SendPackets(packets);

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Chikatto.Bancho.Enums;
@@ -23,7 +24,11 @@ namespace Chikatto.Bancho
             [OsuSendPublicMessage] = SendPublicMessage,
             [OsuSendPrivateMessage] = SendPrivateMessage,
             [OsuChangeAction] = UpdateAction,
-            [OsuRequestStatusUpdate] = StatsUpdate
+            [OsuRequestStatusUpdate] = StatsUpdate,
+            [OsuJoinLobby] = LobbyJoin,
+            [OsuPartLobby] = LobbyPart,
+            [OsuFriendAdd] = AddFriend,
+            [OsuFriendRemove] = RemoveFriend
         };
 #if DEBUG
         private static readonly PacketType[] IgnoreLog =
@@ -98,6 +103,10 @@ namespace Chikatto.Bancho
                 return;
 
             var c = Global.Channels[channel];
+
+            if (c.IsLobby && !user.InLobby)
+                return;
+            
             await c.JoinUser(user);
             
             XConsole.Log($"{user} joined {c}", ConsoleColor.Cyan);
@@ -111,9 +120,33 @@ namespace Chikatto.Bancho
                 return;
 
             var c = Global.Channels[channel];
+
             await c.RemoveUser(user);
 
             XConsole.Log($"{user} left from {channel}", ConsoleColor.Cyan);
+        }
+
+        private static async Task LobbyJoin(PacketReader reader, Presence user)
+        {
+            //TODO: send available multiplayer rooms
+            user.InLobby = true;
+        }
+
+        private static async Task LobbyPart(PacketReader reader, Presence user)
+        {
+            user.InLobby = false;
+        }
+
+        private static Task AddFriend(PacketReader reader, Presence user)
+        {
+            var id = reader.ReadInt32();
+            return user.AddFriend(id);
+        }
+        
+        private static Task RemoveFriend(PacketReader reader, Presence user)
+        {
+            var id = reader.ReadInt32();
+            return user.RemoveFriend(id);
         }
 
         private static async Task UserStatsRequest(PacketReader reader, Presence user)
@@ -125,20 +158,14 @@ namespace Chikatto.Bancho
                 if (i == Global.Bot.Id)
                 {
                     user.WaitingPackets.Enqueue(await FastPackets.BotStats());
-                    user.WaitingPackets.Enqueue(await FastPackets.BotPresence());
                     continue;
                 }
 
                 var us = Global.OnlineManager.GetById(i);
                 if (us is not null)
-                {
                     user.WaitingPackets.Enqueue(await FastPackets.UserStats(us));
-                    user.WaitingPackets.Enqueue(await FastPackets.UserPresence(us));
-                }
                 else
-                {
                     user.WaitingPackets.Enqueue(await FastPackets.Logout(i));
-                }
             }
         }
         
@@ -146,7 +173,7 @@ namespace Chikatto.Bancho
         {
             if (!Handlers.ContainsKey(packet.Type))
             {
-                XConsole.Log($"{user}: Unhandled packet: {packet}");
+                XConsole.Log($"{user}: Unhandled packet: {packet}", ConsoleColor.Yellow);
                 return;
             }
             

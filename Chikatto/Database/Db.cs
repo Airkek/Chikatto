@@ -8,14 +8,13 @@ using Chikatto.Database.Models;
 using Chikatto.Objects;
 using Dapper;
 using MySql.Data.MySqlClient;
-using User = Chikatto.Database.Models.User;
 
 namespace Chikatto.Database
 {
-    public static class DatabaseHelper
+    public static class Db
     {
         private static string ConnectionString => $"server={Global.Config.DatabaseHost};database={Global.Config.DatabaseName};" +
-                                                 $"user={Global.Config.DatabaseUser};password={Global.Config.DatabasePassword};";
+                                                  $"user={Global.Config.DatabaseUser};password={Global.Config.DatabasePassword};";
 
         public static void Init()
         {
@@ -23,16 +22,17 @@ namespace Chikatto.Database
             Map(typeof(Score));
             Map(typeof(DbChannel));
             Map(typeof(Beatmap));
+            Map(typeof(Friendships));
         }
 
         private static void Map(Type type)
         {
-            var map = new CustomPropertyTypeMap(typeof(User), 
+            var map = new CustomPropertyTypeMap(type, 
                 (t, columnName) => 
                     t.GetProperties().FirstOrDefault(prop => 
                         GetColumnFromAttribute(prop) == columnName));
             
-            SqlMapper.SetTypeMap(typeof(User), map);
+            SqlMapper.SetTypeMap(type, map);
         }
         
         public static async Task<IEnumerable<T>> FetchAll<T>(string query, object param = null)

@@ -57,7 +57,7 @@ namespace Chikatto.Bancho.Serialization
             Write(value.ToUniversalTime().Ticks);
         }
 
-        public void Write<T>(List<T> value)
+        public void Write(List<int> value)
         {
             if (value is null)
             {
@@ -65,8 +65,8 @@ namespace Chikatto.Bancho.Serialization
             }
             else
             {
-                Write(value.Count);
-                value.ForEach(t => WriteObject(t));
+                Write((short) value.Count);
+                value.ForEach(Write);
             }
         }
 

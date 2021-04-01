@@ -65,15 +65,15 @@ namespace Chikatto.Bancho.Serialization
             return new DateTime(ticks, DateTimeKind.Utc);
         }
 
-        public List<T> ReadList<T>()
+        public List<int> ReadListInt()
         {
-            var count = ReadInt32();
+            var count = ReadInt16();
             if (count < 0) return null;
             
-            var list = new List<T>(count);
+            var list = new List<int>(count);
             
             for (var i = 0; i < count; i++) 
-                list.Add((T)ReadObject());
+                list.Add(ReadInt32());
             
             return list;
         }

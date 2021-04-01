@@ -5,7 +5,7 @@ namespace Chikatto.Bancho
 {
     public class PacketStream : MemoryStream
     {
-        public PacketType Type;
+        public readonly PacketType Type;
         
         public PacketStream(PacketType type)
         {

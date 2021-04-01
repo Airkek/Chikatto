@@ -17,7 +17,7 @@ namespace Chikatto
         public static void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
-            DatabaseHelper.Init();
+            Db.Init();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -34,13 +34,13 @@ namespace Chikatto
                 app.UseDeveloperExceptionPage();
             }
 
-            Global.Bot = DatabaseHelper.FetchOne<User>("SELECT * FROM users WHERE id = @id", new{ id = Global.Config.BotId }).GetAwaiter().GetResult();
+            Global.Bot = Db.FetchOne<User>("SELECT * FROM users WHERE id = @id", new{ id = Global.Config.BotId }).GetAwaiter().GetResult();
 
             Global.BotCountry = Misc.CountryCodes.ContainsKey(Global.Bot.Country.ToUpper())
                 ? Misc.CountryCodes[Global.Bot.Country.ToUpper()]
                 : (byte) 245; // satellite provider
 
-            var channels = DatabaseHelper.FetchAll<DbChannel>("SELECT * FROM channels").GetAwaiter().GetResult();
+            var channels = Db.FetchAll<DbChannel>("SELECT * FROM channels").GetAwaiter().GetResult();
             
             foreach (var dbChannel in channels)
                 Global.Channels.TryAdd(dbChannel.Name, new Channel(dbChannel));

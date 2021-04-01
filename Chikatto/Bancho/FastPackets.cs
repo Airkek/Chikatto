@@ -183,8 +183,8 @@ namespace Chikatto.Bancho
         //69 unused
 
         //71
-        public static Task<Packet> BanchoPrivileges(int privileges) =>
-            GetPacket(PacketType.BanchoPrivileges, privileges);
+        public static Task<Packet> BanchoPrivileges(BanchoPermissions privileges) =>
+            GetPacket(PacketType.BanchoPrivileges, (int) privileges);
         
         //72
         public static async Task<Packet> FriendList(List<int> friends)

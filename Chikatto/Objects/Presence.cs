@@ -6,6 +6,7 @@ using Chikatto.Bancho.Objects;
 using Chikatto.Constants;
 using Chikatto.Database;
 using Chikatto.Database.Models;
+using Chikatto.Extensions;
 
 namespace Chikatto.Objects
 {
@@ -23,6 +24,10 @@ namespace Chikatto.Objects
         
         public long LastPong = 0;
         public readonly ConcurrentQueue<Packet> WaitingPackets = new();
+
+        public bool InLobby = false;
+
+        public ConcurrentDictionary<int, int> Friends;
         
         public readonly ConcurrentDictionary<string, Channel> JoinedChannels = new();
 
@@ -38,7 +43,7 @@ namespace Chikatto.Objects
 
         public async Task<int> GetRank()
         {
-            return (await DatabaseHelper.FetchAll<Stats>("SELECT * FROM stats")).Count(x => x.pp_vn_std > Stats.pp_vn_std) + 1;
+            return (await Db.FetchAll<Stats>("SELECT * FROM stats")).Count(x => x.pp_vn_std > Stats.pp_vn_std) + 1;
         }
 
         public async Task SendMessage(string body, string sender, int senderId)
@@ -120,7 +125,7 @@ namespace Chikatto.Objects
 
         public static async Task<Presence> FromDatabase(int id)
         {
-            var user = await DatabaseHelper.FetchOne<User>("SELECT * FROM users WHERE id = @uid", new { uid = id });
+            var user = await Db.FetchOne<User>("SELECT * FROM users WHERE id = @uid", new { uid = id });
             
             if (user is null)
                 return null;
@@ -130,7 +135,7 @@ namespace Chikatto.Objects
 
         public static async Task<Presence> FromDatabase(string safename)
         {
-            var user = await DatabaseHelper.FetchOne<User>("SELECT * FROM users WHERE safe_name = @safe",new {safe = safename});
+            var user = await Db.FetchOne<User>("SELECT * FROM users WHERE safe_name = @safe",new {safe = safename});
             if (user is null)
                 return null;
 
@@ -139,14 +144,41 @@ namespace Chikatto.Objects
 
         public static async Task<Presence> FromUser(User user)
         {
+            
+            var friendsDict = new ConcurrentDictionary<int, int>();
+            var x = await Db.FetchAll<Friendships>("SELECT * FROM friendships WHERE user1 = @uid", new {uid = user.Id});
+            x
+                .Select(x => x.FriendId).ToList().ForEach(x => friendsDict[x] = x);
+
+            friendsDict[Global.Bot.Id] = Global.Bot.Id;
+
             return new()
             {
                 Id = user.Id,
                 Name = user.Name,
                 User = user,
                 CountryCode = Misc.CountryCodes.ContainsKey(user.Country.ToUpper()) ? Misc.CountryCodes[user.Country.ToUpper()] : (byte) 0,
-                Stats = await DatabaseHelper.FetchOne<Stats>("SELECT * FROM stats WHERE id = @uid", new { uid = user.Id })
+                Stats = await Db.FetchOne<Stats>("SELECT * FROM stats WHERE id = @uid", new { uid = user.Id }),
+                Friends = friendsDict
             };
+        }
+
+        public async Task AddFriend(int id)
+        {
+            if(id == Global.Bot.Id || Friends.ContainsKey(id))
+                return;
+
+            Friends[id] = id;
+            await Db.Execute("INSERT INTO friendships VALUE (@uid, @fid)", new { uid = Id, fid = id });
+        }
+        
+        public async Task RemoveFriend(int id)
+        {
+            if(id == Global.Bot.Id || !Friends.ContainsKey(id))
+                return;
+
+            Friends.Remove(id);
+            await Db.Execute("DELETE FROM friendships WHERE user1 = @uid AND user2 = @fid", new { uid = Id, fid = id });
         }
 
         public override string ToString() => $"<{Name} ({Id})>";
