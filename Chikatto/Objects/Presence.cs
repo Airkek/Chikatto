@@ -19,14 +19,12 @@ namespace Chikatto.Objects
 
         public byte CountryCode;
 
-        public BanchoPermissions Permissions;
-        
         public string Token;
         
         public long LastPong = 0;
-        public ConcurrentQueue<Packet> WaitingPackets = new();
+        public readonly ConcurrentQueue<Packet> WaitingPackets = new();
         
-        public ConcurrentDictionary<string, Channel> JoinedChannels = new();
+        public readonly ConcurrentDictionary<string, Channel> JoinedChannels = new();
 
         public BanchoUserStatus Status = new ()
         {
@@ -41,6 +39,27 @@ namespace Chikatto.Objects
         public async Task<int> GetRank()
         {
             return await Global.Database.Stats.CountAsync(x => x.pp_vn_std > Stats.pp_vn_std) + 1;
+        }
+
+        public async Task SendMessage(string body, string sender, int senderId)
+        {
+            var message = new BanchoMessage
+            {
+                Body = body,
+                From = sender,
+                ClientId = senderId,
+                To = Name
+            };
+            
+            WaitingPackets.Enqueue(await FastPackets.SendMessage(message));
+        }
+
+        public Task SendMessage(string body, Presence user) => SendMessage(body, user.Name, user.Id);
+        public Task SendMessage(string body, User user) => SendMessage(body, user.Name, user.Id);
+
+        public async Task Notify(string message)
+        {
+            WaitingPackets.Enqueue(await FastPackets.Notification(message));
         }
 
         public async Task<BanchoUserStats> GetStats()
@@ -126,7 +145,6 @@ namespace Chikatto.Objects
                 Id = user.Id,
                 Name = user.Name,
                 User = user,
-                Permissions = await GetBanchoPermissions(user),
                 CountryCode = Misc.CountryCodes.ContainsKey(user.Country.ToUpper()) ? Misc.CountryCodes[user.Country.ToUpper()] : (byte) 0,
                 Stats = await Global.Database.Stats.FindAsync(user.Id)
             };

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using System.Linq;
 using System.Threading.Tasks;
 using Chikatto.Bancho;
 using Chikatto.Bancho.Objects;
@@ -60,24 +61,42 @@ namespace Chikatto.Objects
                 u.WaitingPackets.Enqueue(info);
         }
 
-        public async Task WriteMessage(Presence user, BanchoMessage message)
+        public async Task WriteMessage(string body, string sender, int senderId)
         {
-            if(!Users.ContainsKey(user.Id))
-                return;
-            
-            if((user.User.Privileges & Write) != Write)
-                return;
-            
+            var message = new BanchoMessage
+            {
+                From = sender,
+                ClientId = senderId,
+                Body = body,
+                To = Name
+            };
+
             var packet = await FastPackets.SendMessage(message);
 
             foreach (var (_, u) in Users)
             {
-                if(u.Name == message.From)
+                if(u.Name == sender)
                     continue;
                 
                 u.WaitingPackets.Enqueue(packet);
             }
         }
+
+        public async Task WriteMessage(string body, User user)
+        {
+            if (user.Id != Global.Bot.Id)
+            {
+                if(!Users.ContainsKey(user.Id))
+                    return;
+            
+                if((user.Privileges & Write) != Write)
+                    return;
+            }
+            
+            await WriteMessage(body, user.Name, user.Id);
+        }
+
+        public Task WriteMessage(string body, Presence user) => WriteMessage(body, user.User);
 
         public Task<Packet> GetInfoPacket() => FastPackets.ChannelInfo(this);
 

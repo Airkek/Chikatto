@@ -6,11 +6,12 @@ namespace Chikatto.Bancho
     public class Packet 
     {
         public readonly PacketType Type;
-        public byte[] Data = Array.Empty<byte>();
+        public byte[] Data;
 
         public Packet(PacketType type)
         {
             Type = type;
+            Data = Array.Empty<byte>();
         }
         
         public Packet(PacketType type, byte[] data)

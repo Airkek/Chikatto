@@ -38,13 +38,15 @@ namespace Chikatto.Bancho
             await using var reader = PacketReader.Create(packet);
             var message = reader.ReadBanchoObject<BanchoMessage>();
 
-            if (!Global.Channels.ContainsKey(message.To))
+            if (!user.JoinedChannels.ContainsKey(message.To))
+            {
+                await user.Notify("Вы не находитесь в данном канале!");
                 return;
+            }
 
-            message.From = user.Name;
+            var channel = user.JoinedChannels[message.To];
 
-            var c = Global.Channels[message.To];
-            await c.WriteMessage(user, message);
+            await channel.WriteMessage(message.Body, user);
             
             XConsole.Log($"{user} -> {message.To}: {message.Body}");
         }
@@ -58,18 +60,13 @@ namespace Chikatto.Bancho
 
             if (location is null)
             {
-                message.To = message.From;
-                message.From = Global.Bot.Name;
-                message.Body = "Пользователь не в сети, дружище";
-                
-                user.WaitingPackets.Enqueue(await FastPackets.SendMessage(message));
-                
+                await user.Notify("Пользователь не в сети.");
                 return;
             }
-            
-            location.WaitingPackets.Enqueue(await FastPackets.SendMessage(message));
 
-            XConsole.Log($"{user} -> {message.To}: {message.Body}");
+            await location.SendMessage(message.Body, user);
+
+            XConsole.Log($"{user} -> {location}: {message.Body}");
         }
 
         private static async Task ActionUpdate(Packet packet, Presence user)
