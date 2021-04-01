@@ -15,7 +15,7 @@ namespace Chikatto.Bancho
     {
         private static readonly Dictionary<PacketType, PacketHandler> Handlers = new()
         {
-            [OsuPong] = async (x, y) => { },
+            [OsuPong] = async (_, _) => { },
             [OsuLogout] = Logout,
             [OsuUserStatsRequest] = UserStatsRequest,
             [OsuChannelJoin] = ChannelJoin,
@@ -35,8 +35,8 @@ namespace Chikatto.Bancho
 
         private static async Task SendPublicMessage(Packet packet, Presence user)
         {
-            await using var readable = new ReadablePacket(packet);
-            var message = readable.Reader.ReadBanchoObject<BanchoMessage>();
+            await using var reader = PacketReader.Create(packet);
+            var message = reader.ReadBanchoObject<BanchoMessage>();
 
             if (!Global.Channels.ContainsKey(message.To))
                 return;
@@ -51,8 +51,8 @@ namespace Chikatto.Bancho
 
         private static async Task SendPrivateMessage(Packet packet, Presence user)
         {
-            await using var readable = new ReadablePacket(packet);
-            var message = readable.Reader.ReadBanchoObject<BanchoMessage>();
+            await using var reader = PacketReader.Create(packet);
+            var message = reader.ReadBanchoObject<BanchoMessage>();
 
             var location = Global.OnlineManager.GetByName(message.To);
 
@@ -74,9 +74,9 @@ namespace Chikatto.Bancho
 
         private static async Task ActionUpdate(Packet packet, Presence user)
         {
-            await using var readable = new ReadablePacket(packet);
+            await using var reader = PacketReader.Create(packet);
 
-            user.Status = readable.Reader.ReadBanchoObject<BanchoUserStatus>();
+            user.Status = reader.ReadBanchoObject<BanchoUserStatus>();
         }
 
         private static async Task StatsUpdate(Packet packet, Presence user)
@@ -86,7 +86,6 @@ namespace Chikatto.Bancho
 
         private static async Task Logout(Packet packet, Presence user)
         {
-            //TODO: Presence.Logout()
             user.LastPong = 0;
             
             foreach (var (_, c) in Global.Channels)
@@ -100,8 +99,8 @@ namespace Chikatto.Bancho
 
         private static async Task ChannelJoin(Packet packet, Presence user)
         {
-            await using var readable = new ReadablePacket(packet);
-            var channel = readable.Reader.ReadString();
+            await using var reader = PacketReader.Create(packet);
+            var channel = reader.ReadString();
             
             if (!Global.Channels.ContainsKey(channel))
                 return;
@@ -114,8 +113,8 @@ namespace Chikatto.Bancho
 
         private static async Task ChannelLeave(Packet packet, Presence user)
         {
-            await using var readable = new ReadablePacket(packet);
-            var channel = readable.Reader.ReadString();
+            await using var reader = PacketReader.Create(packet);
+            var channel = reader.ReadString();
             
             if (!Global.Channels.ContainsKey(channel))
                 return;
@@ -128,9 +127,9 @@ namespace Chikatto.Bancho
 
         private static async Task UserStatsRequest(Packet packet, Presence user)
         {
-            await using var p = new ReadablePacket(packet);
+            await using var reader = PacketReader.Create(packet);
 
-            var players = p.Reader.ReadInt32Array();
+            var players = reader.ReadInt32Array();
             
             foreach (var i in players)
             {

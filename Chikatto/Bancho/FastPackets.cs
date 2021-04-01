@@ -64,9 +64,9 @@ namespace Chikatto.Bancho
         //12
         public static async Task<Packet> Logout(int uid) 
         {
-            await using var packet = new WriteablePacket(PacketType.BanchoUserLogout);
-            packet.Writer.Write(uid);
-            packet.Writer.Write((byte) 0);
+            await using var packet = PacketWriter.Create(PacketType.BanchoUserLogout);
+            packet.Write(uid);
+            packet.Write((byte) 0);
             return packet.Dump();
         }
         
@@ -159,10 +159,10 @@ namespace Chikatto.Bancho
         //65
         public static async Task<Packet> ChannelInfo(Channel c)
         {
-            await using var packet = new WriteablePacket(PacketType.BanchoChannelInfo);
-            packet.Writer.Write(c.Name);
-            packet.Writer.Write(c.Topic);
-            packet.Writer.Write(c.Users.Count);
+            await using var packet = PacketWriter.Create(PacketType.BanchoChannelInfo);
+            packet.Write(c.Name);
+            packet.Write(c.Topic);
+            packet.Write(c.Users.Count);
             return packet.Dump();
         }
         
@@ -173,18 +173,14 @@ namespace Chikatto.Bancho
         //67
         public static async Task<Packet> ChannelAutoJoin(Channel c)
         {
-            await using var packet = new WriteablePacket(PacketType.BanchoChannelAutoJoin);
-            packet.Writer.Write(c.Name);
-            packet.Writer.Write(c.Topic);
-            packet.Writer.Write(c.Users.Count);
+            await using var packet = PacketWriter.Create(PacketType.BanchoChannelInfo);
+            packet.Write(c.Name);
+            packet.Write(c.Topic);
+            packet.Write(c.Users.Count);
             return packet.Dump();
         }
         
-        //69
-        public static Task<Packet> BeatmapInfoReply( /*List<Map> maps*/)
-        {
-            throw new NotImplementedException(); // TODO: BeatmapInfoReply
-        }
+        //69 unused
 
         //71
         public static Task<Packet> BanchoPrivileges(int privileges) =>
@@ -193,8 +189,8 @@ namespace Chikatto.Bancho
         //72
         public static async Task<Packet> FriendList(List<int> friends)
         {
-            await using var packet = new WriteablePacket(PacketType.BanchoFriendList);
-            packet.Writer.Write(friends);
+            await using var packet = PacketWriter.Create(PacketType.BanchoFriendList);
+            packet.Write(friends);
             return packet.Dump();
         }
         
@@ -313,22 +309,22 @@ namespace Chikatto.Bancho
 
         private static async Task<Packet> GetPacket(PacketType type, int num)
         {
-            await using var packet = new WriteablePacket(type);
-            packet.Writer.Write(num);
+            await using var packet = PacketWriter.Create(type);
+            packet.Write(num);
             return packet.Dump();
         }
         
         private static async Task<Packet> GetPacket(PacketType type, string str)
         {
-            await using var packet = new WriteablePacket(type);
-            packet.Writer.Write(str);
+            await using var packet = PacketWriter.Create(type);
+            packet.Write(str);
             return packet.Dump();
         }
         
         private static async Task<Packet> GetPacket(PacketType type, ISerializable obj)
         {
-            await using var packet = new WriteablePacket(type);
-            packet.Writer.WriteBanchoObject(obj);
+            await using var packet = PacketWriter.Create(type);
+            packet.WriteBanchoObject(obj);
             return packet.Dump();
         }
     }
