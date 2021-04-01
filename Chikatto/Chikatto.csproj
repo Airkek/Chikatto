@@ -15,4 +15,21 @@
       <PackageReference Include="System.Data.SqlClient" Version="4.3.1" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Compile Remove="data\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Remove="data\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="data\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Content Remove="data\**" />
+      <Content Remove="config.json" />
+    </ItemGroup>
+
 </Project>
