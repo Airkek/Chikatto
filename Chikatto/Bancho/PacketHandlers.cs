@@ -1,10 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
-using System.Linq.Expressions;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Chikatto.Bancho.Enums;
 using Chikatto.Bancho.Objects;
@@ -12,7 +9,6 @@ using Chikatto.Constants;
 using Chikatto.Multiplayer;
 using Chikatto.Objects;
 using Chikatto.Utils;
-using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using static Chikatto.Bancho.Enums.PacketType;
 
 namespace Chikatto.Bancho
@@ -37,6 +33,7 @@ namespace Chikatto.Bancho
             [OsuCreateMatch] = CreateMatch,
             [OsuMatchChangeSettings] = UpdateMatch,
             [OsuPartMatch] = PartMatch,
+            [OsuJoinMatch] = JoinMatch,
             
         };
 #if DEBUG
@@ -68,6 +65,18 @@ namespace Chikatto.Bancho
             XConsole.Log($"{user} created multiplayer room {match}", ConsoleColor.Green);
         }
 
+        public static async Task JoinMatch(PacketReader reader, Presence user)
+        {
+            var id = reader.ReadInt32();
+            if (!Global.Rooms.ContainsKey(id))
+                user.WaitingPackets.Enqueue(FastPackets.MatchJoinFail);
+
+            var password = reader.ReadString();
+            var match = Global.Rooms[id];
+            
+            await match.Join(user, password);
+        }
+
         public static async Task PartMatch(PacketReader reader, Presence user)
         {
             var match = user.Match;
@@ -75,7 +84,7 @@ namespace Chikatto.Bancho
                 return;
 
             await match.Leave(user);
-            
+
             XConsole.Log($"{user} left from multiplayer room {match}", ConsoleColor.Cyan);
         }
 

@@ -35,7 +35,9 @@ namespace Chikatto.Multiplayer
             slot.User = user;
             user.Match = this;
             user.WaitingPackets.Enqueue(await FastPackets.MatchJoinSuccess(this));
+
             await Channel.JoinUser(user);
+            await Update();
         }
 
         public async Task Leave(Presence user)
@@ -65,6 +67,8 @@ namespace Chikatto.Multiplayer
                 slot.Mods = Mods.NoMod;
                 slot.Team = MatchTeam.Neutral;
                 slot.Status = SlotStatus.Open;
+
+                await Update();
             }
         }
 
