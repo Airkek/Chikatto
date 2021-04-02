@@ -202,14 +202,13 @@ namespace Chikatto.Bancho
         public static Task<Packet> ProtocolVersion(int version = Misc.BanchoProtocolVersion) =>
             GetPacket(PacketType.BanchoProtocolVersion, version);
         
-        //76 TODO: overload and MainMenuIcon class (for config)
+        //76 
         public static Task<Packet> MainMenuIcon(string icon, string websiteUrl) =>
             GetPacket(PacketType.BanchoMainMenuIcon, $"{icon}|{websiteUrl}");
 
         //81
         public static Task<Packet> MatchPlayerSkipped(int uid) => 
             GetPacket(PacketType.BanchoMatchPlayerSkipped, uid);
-
 
         //83
         public static Task<Packet> UserPresence(BanchoUserPresence presence) =>
@@ -248,7 +247,7 @@ namespace Chikatto.Bancho
             {
                 From = user.Name,
                 To = to,
-                Body = $"Hey! Let's play together!: ", //TODO: match embed
+                Body = $"Hey! Let's play together!: {user.Match}",
                 ClientId = user.Id
             };
 

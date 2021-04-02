@@ -36,6 +36,12 @@ namespace Chikatto.Constants
         Key3 = 1 << 27,
         Key2 = 1 << 28,
         ScoreV2 = 1 << 29,
-        Mirror = 1 << 30
+        Mirror = 1 << 30,
+        
+        KeyMod = Key1 | Key2 | Key3 | Key4 | Key5 | Key6 | Key7 | Key8 | Key9 | KeyCoop,
+        
+        FreeModAllowed = Hidden | HardRock | DoubleTime | FlashLight | FadeIn | Easy | Relax | AutoPilot | SpunOut | NoFail | HalfTime | AutoPlay | KeyMod | Mirror,
+        ScoreIncreaseMods = Hidden | HardRock | DoubleTime | FlashLight | FadeIn | Easy | Relax | AutoPilot | SpunOut | NoFail | HalfTime | AutoPlay | SuddenDeath | Perfect | KeyMod | Target | Random | NightCore | ScoreV2,
+        SpeedAltering = DoubleTime | NightCore | HalfTime
     }
 }

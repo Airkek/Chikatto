@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Security.Cryptography.Xml;
 using System.Threading.Tasks;
 using Chikatto.Bancho.Enums;
 using Chikatto.Bancho.Objects;
 using Chikatto.Constants;
+using Chikatto.Database.Models;
 using Chikatto.Multiplayer;
 using Chikatto.Objects;
 using Chikatto.Utils;
@@ -34,8 +36,21 @@ namespace Chikatto.Bancho
             [OsuMatchChangeSettings] = UpdateMatch,
             [OsuPartMatch] = PartMatch,
             [OsuJoinMatch] = JoinMatch,
-            
+            [OsuMatchNotReady] = MatchNotReady,
+            [OsuMatchHasBeatmap] = MatchNotReady,
+            [OsuMatchReady] = MatchReady,
+            [OsuMatchNoBeatmap] = MatchNoBeatmap,
+            [OsuMatchSlotLock] = MatchSlotLock,
+            [OsuMatchChangeSlot] = MatchChangeSlot,
+            [OsuMatchTransferHost] = MatchTransferHost,
+            [OsuMatchChangeTeam] = MatchChangeTeam,
+            [OsuMatchChangeMods] = MatchChangeMods,
+            [OsuMatchChangePassword] = MatchChangePassword,
+            [OsuMatchSkipRequest] = MatchSkipRequest,
+            [OsuMatchStart] = MatchStart,
+            [OsuMatchLoadComplete] = MatchLoadComplete,
         };
+        
 #if DEBUG
         private static readonly PacketType[] IgnoreLog =
         {
@@ -68,8 +83,11 @@ namespace Chikatto.Bancho
         public static async Task JoinMatch(PacketReader reader, Presence user)
         {
             var id = reader.ReadInt32();
-            if (!Global.Rooms.ContainsKey(id))
+            if (user.Match is not null || !Global.Rooms.ContainsKey(id))
+            {
                 user.WaitingPackets.Enqueue(FastPackets.MatchJoinFail);
+                return;
+            }
 
             var password = reader.ReadString();
             var match = Global.Rooms[id];
@@ -90,6 +108,9 @@ namespace Chikatto.Bancho
 
         public static async Task UpdateMatch(PacketReader reader, Presence user)
         {
+            if (user.Match is null)
+                return;
+
             var match = user.Match;
             var newMatch = reader.ReadBanchoObject<BanchoMatch>();
 
@@ -138,6 +159,183 @@ namespace Chikatto.Bancho
             }
 
             await match.Update();
+        }
+
+        public static async Task MatchSlotLock(PacketReader reader, Presence user)
+        {
+            if(user.Match is null || user.Match.InProgress || user.Match.HostId != user.Id)
+                return;
+
+            var index = reader.ReadInt32();
+            
+            if(index < 0 || index > 15)
+                return;
+
+            var slot = user.Match.Slots.ElementAt(index);
+
+            await slot.Toggle();
+            await user.Match.Update();
+        }
+
+        public static async Task MatchChangePassword(PacketReader reader, Presence user)
+        {
+            if (user.Match is null || user.Match.HostId != user.Id)
+                return;
+
+            user.Match.Password = reader.ReadString();
+            await user.Match.Update();
+        }
+
+        public static async Task MatchChangeMods(PacketReader reader, Presence user)
+        {
+            if(user.Match is null || user.Match.InProgress)
+                return;
+
+            var mods = (Mods) reader.ReadInt32();
+
+            var match = user.Match;
+            if (match.FreeMod)
+            {
+                if (match.HostId == user.Id)
+                    match.Mods = mods & Mods.SpeedAltering;
+
+                var slot = match.GetSlot(user.Id);
+                slot.Mods = mods & ~Mods.SpeedAltering;
+            }
+            else if (match.HostId == user.Id)
+            {
+                match.Mods = mods;
+            }
+            else
+                return;
+
+            await match.Update();
+        }
+        
+        public static async Task MatchChangeTeam(PacketReader reader, Presence user)
+        {
+            if(user.Match is null || user.Match.InProgress || 
+               user.Match.TeamType != MatchTeamType.TagTeamVS && user.Match.TeamType != MatchTeamType.TeamVS)
+                return;
+
+            var slot = user.Match.GetSlot(user.Id);
+            slot.Team = slot.Team == MatchTeam.Blue ? MatchTeam.Red : MatchTeam.Blue;
+            await user.Match.Update();
+        }
+
+        public static async Task MatchStart(PacketReader reader, Presence user)
+        {
+            if(user.Match is null || user.Id != user.Match.HostId)
+                return;
+
+            await user.Match.Start();
+            await user.Match.Update();
+        }
+        
+        public static async Task MatchLoadComplete(PacketReader reader, Presence user)
+        {
+            if(user.Match is null)
+                return;
+
+            var match = user.Match;
+            var slot = match.GetSlot(user.Id);
+            
+            if(slot.Status != SlotStatus.Playing)
+                return;
+
+            if (--match.NeedLoad <= 0)
+            {
+                await match.AddPacketsToAllPlayers(FastPackets.MatchAllPlayersLoaded);
+                match.NeedLoad = 0;
+            }
+        }
+
+        public static async Task MatchTransferHost(PacketReader reader, Presence user)
+        {
+            if(user.Match is null || user.Match.InProgress || user.Match.HostId != user.Id)
+                return;
+
+            var index = reader.ReadInt32();
+            
+            if(index < 0 || index > 15)
+                return;
+
+            var slot = user.Match.Slots.ElementAt(index);
+            
+            if((slot.Status & SlotStatus.HasPlayer) == 0)
+                return;
+
+            user.Match.Host = slot.User;
+            user.WaitingPackets.Enqueue(FastPackets.MatchTransferHost);
+            await user.Match.Update();
+        }
+
+        public static async Task MatchSkipRequest(PacketReader reader, Presence user)
+        {
+            if(user.Match is null)
+                return;
+
+            var match = user.Match;
+
+            var uSlot = match.GetSlot(user.Id);
+            uSlot.Skipped = true;
+            
+            if (match.Slots.All(slot => slot.Status == SlotStatus.Playing && slot.Skipped))
+                await match.AddPacketsToAllPlayers(FastPackets.MatchSkip);
+        }
+        
+        public static async Task MatchChangeSlot(PacketReader reader, Presence user)
+        {
+            if(user.Match is null || user.Match.InProgress)
+                return;
+
+            var index = reader.ReadInt32();
+            
+            if(index < 0 || index > 15)
+                return;
+
+            var slot = user.Match.Slots.ElementAt(index);
+            
+            if(slot.Status == SlotStatus.Locked || (slot.Status & SlotStatus.HasPlayer) != 0)
+                return;
+            
+            var uSlot = user.Match.GetSlot(user.Id);
+
+            slot.Status = uSlot.Status;
+            slot.Mods = uSlot.Mods;
+            slot.User = uSlot.User;
+            slot.Team = uSlot.Team;
+            
+            uSlot.User = null;
+            uSlot.Mods = Mods.NoMod;
+            uSlot.Team = MatchTeam.Neutral;
+            uSlot.Status = SlotStatus.Open;
+            
+            await user.Match.Update();
+        }
+
+        public static async Task MatchReady(PacketReader reader, Presence user)
+        {
+            if(user.Match is null)
+                return;
+            
+            await user.Match.UpdateUserStatus(user, SlotStatus.Ready);
+        }
+        
+        public static async Task MatchNotReady(PacketReader reader, Presence user)
+        {
+            if(user.Match is null)
+                return;
+            
+            await user.Match.UpdateUserStatus(user, SlotStatus.NotReady);
+        }
+        
+        public static async Task MatchNoBeatmap(PacketReader reader, Presence user)
+        {
+            if(user.Match is null)
+                return;
+            
+            await user.Match.UpdateUserStatus(user, SlotStatus.NoMap);
         }
 
         public static async Task UpdateAction(PacketReader reader, Presence user)

@@ -22,7 +22,6 @@ namespace Chikatto.Bancho.Objects
             writer.Write(MapId);
         }
 
-
         public void Deserialize(SerializationReader reader)
         {
             Action = (BanchoAction) reader.ReadByte();

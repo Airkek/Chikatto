@@ -16,6 +16,10 @@ namespace Chikatto.Objects
 
         [JsonProperty("osu_logo_ingame")] public string LogoIngame = "https://osu.shizofrenia.pw/static/images/logo_ingame.png";
         [JsonProperty("osu_logo_click_url")] public string LogoClickUrl = "https://github.com/Airkek/Chikatto";
+
+        [JsonProperty("osu_seasonal_bgs")] public string[] SeasonalBgs = { "https://akatsuki.pw/static/flower.png" };
+
+        [JsonIgnore] public string SeasonalBgsJson;
     }
     
     public static class ConfigManager
@@ -37,6 +41,8 @@ namespace Chikatto.Objects
                 cfg = JsonConvert.DeserializeObject<ConfigScheme>(file);
                 File.WriteAllText(FileName, JsonConvert.SerializeObject(cfg, Formatting.Indented)); //update config file to latest scheme
             }
+
+            cfg.SeasonalBgsJson = JsonConvert.SerializeObject(cfg.SeasonalBgs);
 
             return cfg;
         }

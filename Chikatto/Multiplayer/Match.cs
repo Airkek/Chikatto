@@ -18,10 +18,48 @@ namespace Chikatto.Multiplayer
         public Presence Host;
         public Channel Channel;
 
+        public int NeedLoad = 0;
+
         public bool InProgress;
+
+        public string Url => $"osump://{Id}/{Password}";
+        public string Embed => $"[{Url} {Name}";
 
         public Slot AvailableSlot => Slots.FirstOrDefault(x => x.Status == SlotStatus.Open);
 
+        public Slot GetSlot(int id) => Slots.FirstOrDefault(x => x.UserId == id);
+
+        public async Task UpdateUserStatus(Presence user, SlotStatus status)
+        {
+            var slot = user.Match.GetSlot(user.Id);
+            
+            if(slot is null)
+                return;
+
+            slot.Status = status;
+            await Update();
+        }
+
+        public async Task Start()
+        {
+            var ready = Slots.Where(x => (x.Status & SlotStatus.HasPlayer) != 0 && x.Status != SlotStatus.NoMap);
+            
+            foreach (var slot in ready)
+            {
+                NeedLoad++;
+                slot.Status = SlotStatus.Playing;
+                slot.Skipped = false;
+                slot.Failed = false;
+                slot.Completed = true;
+                slot.Score = 0;
+            }
+            
+            var packet = await FastPackets.MatchStart(this);
+
+            foreach (var slot in ready)
+                slot.User.WaitingPackets.Enqueue(packet);
+        }
+        
         public async Task Join(Presence user, string password)
         {
             var slot = AvailableSlot;
@@ -55,10 +93,7 @@ namespace Chikatto.Multiplayer
             }
             else
             {
-                if (user.Id == HostId)
-                    Host = Slots.First(x => (x.Status & SlotStatus.HasPlayer) != 0).User;
-                
-                var slot = Slots.FirstOrDefault(x => x.UserId == user.Id);
+                var slot = GetSlot(user.Id);
             
                 if(slot is null)
                     return;
@@ -67,9 +102,18 @@ namespace Chikatto.Multiplayer
                 slot.Mods = Mods.NoMod;
                 slot.Team = MatchTeam.Neutral;
                 slot.Status = SlotStatus.Open;
+                
+                if (user.Id == HostId)
+                    Host = Slots.First(x => (x.Status & SlotStatus.HasPlayer) != 0).User;
 
                 await Update();
             }
+        }
+
+        public async Task AddPacketsToAllPlayers(Packet packet)
+        {
+            foreach (var (_, user) in Channel.Users)
+                user.WaitingPackets.Enqueue(packet);
         }
 
         public async Task Unready()
@@ -86,9 +130,7 @@ namespace Chikatto.Multiplayer
             var packet = await FastPackets.UpdateMatch(this);
             var foreignPacket = await FastPackets.UpdateMatch(Foreign());
 
-            foreach (var (_, user) in Channel.Users)
-                user.WaitingPackets.Enqueue(packet);
-
+            await AddPacketsToAllPlayers(packet);
             await Global.OnlineManager.AddPacketToAllUsers(foreignPacket);
         }
 

@@ -1,5 +1,7 @@
 ﻿using System.Threading.Tasks;
+using Chikatto.Objects;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 
 namespace Chikatto.Controllers
 {
@@ -13,7 +15,7 @@ namespace Chikatto.Controllers
         public async Task<IActionResult> OsuSession() => NotFound("NotImplemented"); // TODO: osu-session
 
         [Route("osu-getseasonal.php")]
-        public async Task<IActionResult> GetSeasonalBgs() => Ok("[\"https://akatsuki.pw/static/flower.png\"]"); // TODO: seasonal bgs in config
+        public async Task<IActionResult> GetSeasonalBgs() => Ok(Global.Config.SeasonalBgsJson);
 
         [Route("bancho_connect.php")]
         public async Task<IActionResult> BanchoConnect() => Ok("Chikatto");

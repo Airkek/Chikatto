@@ -21,7 +21,7 @@
         OsuPartMatch = 33,
         OsuMatchChangeSlot = 38,
         OsuMatchReady = 39,
-        OsuMatchLock = 40,
+        OsuMatchSlotLock = 40,
         OsuMatchChangeSettings = 41,
         OsuMatchStart = 44,
         OsuMatchScoreUpdate = 47,

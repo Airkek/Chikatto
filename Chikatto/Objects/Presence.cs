@@ -146,7 +146,6 @@ namespace Chikatto.Objects
 
         public static async Task<Presence> FromUser(User user)
         {
-            
             var friendsDict = new ConcurrentDictionary<int, int>();
             var x = await Db.FetchAll<Friendships>("SELECT * FROM friendships WHERE user1 = @uid", new {uid = user.Id});
             x
