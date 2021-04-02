@@ -7,6 +7,7 @@ using Chikatto.Constants;
 using Chikatto.Database;
 using Chikatto.Database.Models;
 using Chikatto.Extensions;
+using Chikatto.Multiplayer;
 
 namespace Chikatto.Objects
 {
@@ -30,6 +31,7 @@ namespace Chikatto.Objects
         public ConcurrentDictionary<int, int> Friends;
         
         public readonly ConcurrentDictionary<string, Channel> JoinedChannels = new();
+        public Match Match = null;
 
         public BanchoUserStatus Status = new ()
         {

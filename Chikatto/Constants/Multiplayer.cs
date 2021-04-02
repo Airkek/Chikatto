@@ -1,4 +1,6 @@
-﻿namespace Chikatto.Constants
+﻿using System;
+
+namespace Chikatto.Constants
 {
     public enum MatchType : byte
     {
@@ -6,7 +8,7 @@
         Powerplay
     }
 
-    public enum MatchScoringTypes : byte
+    public enum MatchScoringType : byte
     {
         Score,
         Accuracy,
@@ -14,7 +16,7 @@
         ScoreV2
     }
 
-    public enum MatchTeamTypes : byte
+    public enum MatchTeamType : byte
     {
         HeadToHead,
         TagCoop,
@@ -22,10 +24,25 @@
         TagTeamVS
     }
 
-    public enum MatchSpecialModes : byte
+    public enum MatchTeam : byte
     {
-        Empty,
-        FreeMod
+        Neutral,
+        Blue,
+        Red
     }
 
+    [Flags]
+    public enum SlotStatus : byte
+    {
+        Open = 1 << 0,
+        Locked = 1 << 1,
+        NotReady = 1 << 2,
+        Ready = 1 << 3,
+        NoMap = 1 << 4,
+        Playing = 1 << 5,
+        Complete = 1 << 6,
+        Quit = 1 << 7,
+        
+        HasPlayer = NotReady | Ready | NoMap | Playing | Complete
+    }
 }

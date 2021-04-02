@@ -18,9 +18,9 @@ namespace Chikatto.Objects
         [JsonProperty("osu_logo_click_url")] public string LogoClickUrl = "https://github.com/Airkek/Chikatto";
     }
     
-    public class ConfigManager
+    public static class ConfigManager
     {
-        public const string FileName = "config.json";
+        private const string FileName = "config.json";
 
         public static ConfigScheme Read()
         {

@@ -10,25 +10,47 @@ namespace Chikatto.Objects
 {
     public class Channel
     {
-        public readonly string Name;
+        public readonly string TrueName;
+
+        public string Name
+        {
+            get
+            {
+                if (TrueName.StartsWith("#multi_"))
+                    return "#multiplayer";
+                if (TrueName.StartsWith("#spectator_"))
+                    return "#spectator";
+
+                return TrueName;
+            }
+        }
+        
         public readonly string Topic;
         public readonly Privileges Write;
         public readonly Privileges Read;
         public readonly bool Default;
         public readonly ConcurrentDictionary<int, Presence> Users = new ();
 
-        public readonly bool IsLobby = false;
+        public readonly bool IsLobby;
+        public readonly bool IsTemp;
 
+        public Channel(string name, string topic)
+        {
+            TrueName = name;
+            Topic = topic;
+            Write = Privileges.Normal;
+            Read = Privileges.Normal;
+            IsTemp = true;
+        }
         public Channel(DbChannel channel)
         {
-            Name = channel.Name;
+            TrueName = channel.Name;
             Topic = channel.Topic;
             Write = channel.WritePrivileges;
             Read = channel.ReadPrivileges;
             Default = channel.AutoJoin;
-
-            if (Name == "#lobby")
-                IsLobby = true;
+            IsLobby = Name == "#lobby";
+            IsTemp = false;
         }
 
         public async Task JoinUser(Presence user)

@@ -3,11 +3,16 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Linq.Expressions;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Chikatto.Bancho.Enums;
 using Chikatto.Bancho.Objects;
+using Chikatto.Constants;
+using Chikatto.Multiplayer;
 using Chikatto.Objects;
 using Chikatto.Utils;
+using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 using static Chikatto.Bancho.Enums.PacketType;
 
 namespace Chikatto.Bancho
@@ -24,11 +29,15 @@ namespace Chikatto.Bancho
             [OsuSendPublicMessage] = SendPublicMessage,
             [OsuSendPrivateMessage] = SendPrivateMessage,
             [OsuChangeAction] = UpdateAction,
-            [OsuRequestStatusUpdate] = StatsUpdate,
+            [OsuRequestStatusUpdate] = StatusUpdate,
             [OsuJoinLobby] = LobbyJoin,
             [OsuPartLobby] = LobbyPart,
             [OsuFriendAdd] = AddFriend,
-            [OsuFriendRemove] = RemoveFriend
+            [OsuFriendRemove] = RemoveFriend,
+            [OsuCreateMatch] = CreateMatch,
+            [OsuMatchChangeSettings] = UpdateMatch,
+            [OsuPartMatch] = PartMatch,
+            
         };
 #if DEBUG
         private static readonly PacketType[] IgnoreLog =
@@ -37,6 +46,90 @@ namespace Chikatto.Bancho
             OsuUserStatsRequest
         };
 #endif
+
+        public static async Task CreateMatch(PacketReader reader, Presence user)
+        {
+            if (user.Match is not null)
+            {
+                user.WaitingPackets.Enqueue(FastPackets.MatchJoinFail);
+                return;
+            }
+            
+            var match = reader.ReadBanchoObject<Match>();
+            match.Id = ++Global.MatchId;
+
+            Global.Rooms[match.Id] = match;
+
+            await match.Join(user, match.Password);
+            await match.Update();
+
+            await Global.OnlineManager.AddPacketToAllUsers(await FastPackets.NewMatch(match.Foreign()));
+
+            XConsole.Log($"{user} created multiplayer room {match}", ConsoleColor.Green);
+        }
+
+        public static async Task PartMatch(PacketReader reader, Presence user)
+        {
+            var match = user.Match;
+            if(match is null)
+                return;
+
+            await match.Leave(user);
+            
+            XConsole.Log($"{user} left from multiplayer room {match}", ConsoleColor.Cyan);
+        }
+
+        public static async Task UpdateMatch(PacketReader reader, Presence user)
+        {
+            var match = user.Match;
+            var newMatch = reader.ReadBanchoObject<BanchoMatch>();
+
+            if (match.BeatmapHash != newMatch.BeatmapHash ||
+                match.Mode != newMatch.Mode ||
+                match.Type != newMatch.Type ||
+                match.ScoringType != newMatch.ScoringType ||
+                match.TeamType != newMatch.TeamType)
+            {
+                await match.Unready();
+            }
+
+            match.Beatmap = newMatch.Beatmap;
+            match.BeatmapId = newMatch.BeatmapId;
+            match.BeatmapHash = newMatch.BeatmapHash;
+            match.Name = newMatch.Name.Length > 0 ? newMatch.Name : $"{match.Host.Name}'s game";
+            match.TeamType = newMatch.TeamType;
+            match.ScoringType = newMatch.ScoringType;
+            match.Type = newMatch.Type;
+            match.Mode = newMatch.Mode;
+            match.Seed = newMatch.Seed;
+            match.FreeMod = newMatch.FreeMod;
+
+            if (match.TeamType != newMatch.TeamType)
+            {
+                switch (newMatch.TeamType)
+                {
+                    case MatchTeamType.TagTeamVS:
+                    case MatchTeamType.TeamVS:
+                    {
+                        for (var i = 0; i < match.Slots.Count; i++)
+                        {
+                            var slot = match.Slots.ElementAt(i);
+                            slot.Team = i % 2 == 0 ? MatchTeam.Red : MatchTeam.Blue;
+                        }
+                        break;
+                    }
+
+                    default:
+                    {
+                        foreach (var slot in match.Slots)
+                            slot.Team = MatchTeam.Neutral;
+                        break;
+                    }
+                }
+            }
+
+            await match.Update();
+        }
 
         public static async Task UpdateAction(PacketReader reader, Presence user)
         {
@@ -77,7 +170,7 @@ namespace Chikatto.Bancho
             XConsole.Log($"{user} -> {location}: {message.Body}");
         }
 
-        private static async Task StatsUpdate(PacketReader reader, Presence user)
+        private static async Task StatusUpdate(PacketReader reader, Presence user)
         {
             user.WaitingPackets.Enqueue(await FastPackets.UserStats(user));
         }
@@ -99,7 +192,7 @@ namespace Chikatto.Bancho
         {
             var channel = reader.ReadString();
             
-            if (!Global.Channels.ContainsKey(channel))
+            if (!Global.Channels.ContainsKey(channel) || channel == "#lobby")
                 return;
 
             var c = Global.Channels[channel];
@@ -115,8 +208,8 @@ namespace Chikatto.Bancho
         private static async Task ChannelLeave(PacketReader reader, Presence user)
         {
             var channel = reader.ReadString();
-            
-            if (!Global.Channels.ContainsKey(channel))
+
+            if (!Global.Channels.ContainsKey(channel) || channel == "#lobby")
                 return;
 
             var c = Global.Channels[channel];
@@ -128,13 +221,21 @@ namespace Chikatto.Bancho
 
         private static async Task LobbyJoin(PacketReader reader, Presence user)
         {
-            //TODO: send available multiplayer rooms
             user.InLobby = true;
+            await Global.Channels["#lobby"].JoinUser(user);
+            
+            foreach (var (_, match) in Global.Rooms)
+                user.WaitingPackets.Enqueue(await FastPackets.NewMatch(match.Foreign()));
+
+            XConsole.Log($"{user} joined to lobby", ConsoleColor.Cyan);
         }
 
         private static async Task LobbyPart(PacketReader reader, Presence user)
         {
             user.InLobby = false;
+            await Global.Channels["#lobby"].RemoveUser(user);
+            
+            XConsole.Log($"{user} left from lobby", ConsoleColor.Cyan);
         }
 
         private static Task AddFriend(PacketReader reader, Presence user)
@@ -173,7 +274,7 @@ namespace Chikatto.Bancho
         {
             if (!Handlers.ContainsKey(packet.Type))
             {
-                XConsole.Log($"{user}: Unhandled packet: {packet}", ConsoleColor.Yellow);
+                XConsole.Log($"{user}: Not implemented packet: {packet}", back: ConsoleColor.Yellow);
                 return;
             }
             

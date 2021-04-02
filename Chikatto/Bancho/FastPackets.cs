@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Chikatto.Bancho.Enums;
 using Chikatto.Bancho.Objects;
 using Chikatto.Constants;
+using Chikatto.Multiplayer;
 using Chikatto.Objects;
 
 namespace Chikatto.Bancho
@@ -103,6 +104,9 @@ namespace Chikatto.Bancho
         //26
         public static Task<Packet> UpdateMatch(BanchoMatch banchoMatch) =>
             GetPacket(PacketType.BanchoUpdateMatch, banchoMatch);
+        //26 overload
+        public static Task<Packet> UpdateMatch(Match banchoMatch) =>
+            GetPacket(PacketType.BanchoUpdateMatch, banchoMatch);
 
         //28
         public static Task<Packet> DisposeMatch(int id) =>
@@ -173,7 +177,7 @@ namespace Chikatto.Bancho
         //67
         public static async Task<Packet> ChannelAutoJoin(Channel c)
         {
-            await using var packet = PacketWriter.Create(PacketType.BanchoChannelInfo);
+            await using var packet = PacketWriter.Create(PacketType.BanchoChannelAutoJoin);
             packet.Write(c.Name);
             packet.Write(c.Topic);
             packet.Write(c.Users.Count);

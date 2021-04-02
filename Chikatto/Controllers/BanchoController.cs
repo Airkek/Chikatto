@@ -86,14 +86,11 @@ namespace Chikatto.Controllers
 
                 foreach (var channel in channels)
                 {
-                    if((channel.Read & u.User.Privileges) != channel.Read)
+                    if((channel.Read & u.User.Privileges) != channel.Read || channel.IsTemp || channel.IsLobby)
                         continue;
-
+                    
                     if (channel.Default)
-                    {
-                        packets.Add(await FastPackets.ChannelAutoJoin(channel));
                         await channel.JoinUser(u);
-                    }
                     else 
                         u.WaitingPackets.Enqueue(await channel.GetInfoPacket());
                 }

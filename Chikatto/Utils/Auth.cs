@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
 
 namespace Chikatto.Utils
 {
-    public class Auth
+    public static class Auth
     {
         public static async Task<Presence> Login(string name, string pwMd5)
         {
