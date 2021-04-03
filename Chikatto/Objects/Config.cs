@@ -11,6 +11,7 @@ namespace Chikatto.Objects
         [JsonProperty("db_password")] public string DatabasePassword = "changemelol";
         
         [JsonProperty("bot_id")] public int BotId = 1;
+        [JsonProperty("commands_prefix")] public string CommandPrefix = "!";
         
         [JsonProperty("osu_direct_mirror")] public string DirectMirror = "chimu.moe";
 

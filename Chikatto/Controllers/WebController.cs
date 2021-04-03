@@ -1,7 +1,6 @@
 ﻿using System.Threading.Tasks;
 using Chikatto.Objects;
 using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
 
 namespace Chikatto.Controllers
 {
@@ -12,7 +11,7 @@ namespace Chikatto.Controllers
         public async Task<IActionResult> CheckUpdates() => Redirect("https://old.ppy.sh/web/check-updates.php" + Request.QueryString);
 
         [HttpPost("osu-session.php")]
-        public async Task<IActionResult> OsuSession() => NotFound("NotImplemented"); // TODO: osu-session
+        public async Task<IActionResult> OsuSession() => NotFound("NotImplemented");
 
         [Route("osu-getseasonal.php")]
         public async Task<IActionResult> GetSeasonalBgs() => Ok(Global.Config.SeasonalBgsJson);

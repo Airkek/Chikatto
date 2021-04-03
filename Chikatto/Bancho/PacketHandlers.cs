@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Chikatto.Bancho.Enums;
 using Chikatto.Bancho.Objects;
+using Chikatto.ChatCommands;
 using Chikatto.Constants;
 using Chikatto.Database.Models;
 using Chikatto.Multiplayer;
@@ -22,6 +23,7 @@ namespace Chikatto.Bancho
         private static readonly Dictionary<PacketType, PacketHandler> Handlers = new()
         {
             [OsuPong] = async (_, _) => { },
+            [OsuReceiveUpdates] = async (_, _) => { }, //idk for what this filter is needed but TODO: add presence filter
             [OsuLogout] = Logout,
             [OsuUserStatsRequest] = UserStatsRequest,
             [OsuChannelJoin] = ChannelJoin,
@@ -460,6 +462,9 @@ namespace Chikatto.Bancho
 
             await channel.WriteMessage(message.Body, user);
             
+            if (message.Body.StartsWith(Global.Config.CommandPrefix))
+                await CommandHandler.Process(message.Body.Substring(Global.Config.CommandPrefix.Length), user, channel);
+            
             XConsole.Log($"{user} -> {message.To}: {message.Body}");
         }
 
@@ -477,6 +482,9 @@ namespace Chikatto.Bancho
 
             await location.SendMessage(message.Body, user);
 
+            if (message.Body.StartsWith(Global.Config.CommandPrefix))
+                await CommandHandler.Process(message.Body.Substring(Global.Config.CommandPrefix.Length), user);
+            
             XConsole.Log($"{user} -> {location}: {message.Body}");
         }
 
