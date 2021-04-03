@@ -51,6 +51,9 @@ namespace Chikatto.Objects
             
             user.LastPong = 0;
             
+            if (user.Match is not null)
+                await user.Match.Leave(user);
+            
             foreach (var (_, c) in user.JoinedChannels)
                 await c.RemoveUser(user);
 
