@@ -126,6 +126,6 @@ namespace Chikatto.Objects
 
         public Task<Packet> GetInfoPacket() => FastPackets.ChannelInfo(this);
 
-        public override string ToString() => $"<{Name}>";
+        public override string ToString() => $"<{TrueName}>";
     }
 }

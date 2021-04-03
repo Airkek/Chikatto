@@ -135,10 +135,9 @@ namespace Chikatto.Bancho
             GetPacket(PacketType.BanchoMatchStart, banchoMatch);
 
         //48
-        public static Task<Packet> MatchScoreUpdate( /*ScoreFrame frame*/)
-        {
-            throw new NotImplementedException(); //TODO: MatchScoreUpdate
-        }
+        public static async Task<Packet> MatchScoreUpdate(byte[] ScoreFrame) =>
+            new(PacketType.BanchoMatchScoreUpdate, ScoreFrame);
+        
         
         //50
         public static readonly Packet MatchTransferHost = new(PacketType.BanchoMatchTransferHost);

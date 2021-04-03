@@ -49,10 +49,9 @@ namespace Chikatto.Multiplayer
                 NeedLoad++;
                 slot.Status = SlotStatus.Playing;
                 slot.Skipped = false;
-                slot.Failed = false;
-                slot.Completed = true;
-                slot.Score = 0;
             }
+
+            InProgress = true;
             
             var packet = await FastPackets.MatchStart(this);
 
@@ -115,12 +114,18 @@ namespace Chikatto.Multiplayer
             foreach (var (_, user) in Channel.Users)
                 user.WaitingPackets.Enqueue(packet);
         }
+        
+        public async Task AddPacketsToSpecificPlayers(Packet packet, SlotStatus status = SlotStatus.Playing)
+        {
+            foreach (var slot in Slots.Where(x => x.Status == status))
+                slot.User.WaitingPackets.Enqueue(packet);
+        }
 
-        public async Task Unready()
+        public async Task Unready(SlotStatus status = SlotStatus.Ready)
         {
             foreach (var slot in Slots)
             {
-                if(slot.Status == SlotStatus.Ready)
+                if (slot.Status == status)
                     slot.Status = SlotStatus.NotReady;
             }
         }
@@ -157,7 +162,7 @@ namespace Chikatto.Multiplayer
             };
         }
 
-        public override string ToString() => $"<{Name} ({Id})>";
+        public override string ToString() => Channel.ToString();
 
         public override void Serialize(SerializationWriter writer)
         {

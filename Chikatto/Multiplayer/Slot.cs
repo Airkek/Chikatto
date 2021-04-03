@@ -13,10 +13,7 @@ namespace Chikatto.Multiplayer
         public int UserId => User.Id;
 
         public bool Skipped = false;
-        public bool Failed = false;
-        public bool Completed = true;
-        public int Score = 0;
-        
+
         public async Task Toggle()
         {
             if (Status == SlotStatus.Locked)

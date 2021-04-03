@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Security.Cryptography.Xml;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Chikatto.Bancho.Enums;
 using Chikatto.Bancho.Objects;
@@ -11,6 +11,8 @@ using Chikatto.Database.Models;
 using Chikatto.Multiplayer;
 using Chikatto.Objects;
 using Chikatto.Utils;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using Microsoft.EntityFrameworkCore.Internal;
 using static Chikatto.Bancho.Enums.PacketType;
 
 namespace Chikatto.Bancho
@@ -35,7 +37,7 @@ namespace Chikatto.Bancho
             [OsuCreateMatch] = CreateMatch,
             [OsuMatchChangeSettings] = UpdateMatch,
             [OsuPartMatch] = PartMatch,
-            [OsuJoinMatch] = JoinMatch,
+            [OsuJoinMatch] = MatchJoin,
             [OsuMatchNotReady] = MatchNotReady,
             [OsuMatchHasBeatmap] = MatchNotReady,
             [OsuMatchReady] = MatchReady,
@@ -49,6 +51,9 @@ namespace Chikatto.Bancho
             [OsuMatchSkipRequest] = MatchSkipRequest,
             [OsuMatchStart] = MatchStart,
             [OsuMatchLoadComplete] = MatchLoadComplete,
+            [OsuMatchFailed] = MatchPlayerFail,
+            [OsuMatchComplete] = MatchCompleted,
+            [OsuMatchScoreUpdate] = MatchScoreUpdate
         };
         
 #if DEBUG
@@ -80,7 +85,7 @@ namespace Chikatto.Bancho
             XConsole.Log($"{user} created multiplayer room {match}", ConsoleColor.Green);
         }
 
-        public static async Task JoinMatch(PacketReader reader, Presence user)
+        public static async Task MatchJoin(PacketReader reader, Presence user)
         {
             var id = reader.ReadInt32();
             if (user.Match is not null || !Global.Rooms.ContainsKey(id))
@@ -91,8 +96,10 @@ namespace Chikatto.Bancho
 
             var password = reader.ReadString();
             var match = Global.Rooms[id];
-            
+
             await match.Join(user, password);
+            
+            XConsole.Log($"{user} joined to multiplayer room {match}", ConsoleColor.Cyan);
         }
 
         public static async Task PartMatch(PacketReader reader, Presence user)
@@ -184,6 +191,50 @@ namespace Chikatto.Bancho
 
             user.Match.Password = reader.ReadString();
             await user.Match.Update();
+        }
+        
+        public static async Task MatchScoreUpdate(PacketReader reader, Presence user)
+        {
+            if (user.Match is null || !user.Match.InProgress)
+                return;
+
+            var match = user.Match;
+
+            var bytes = reader.ReadBytes(27);
+            var index = match.Slots.Select(x => x.UserId).IndexOf(user.Id);
+
+            bytes[4] = (byte) index;
+
+            await match.AddPacketsToSpecificPlayers(await FastPackets.MatchScoreUpdate(bytes.ToArray()));
+        }
+
+        public static async Task MatchPlayerFail(PacketReader reader, Presence user)
+        {
+            if (user.Match is null || !user.Match.InProgress)
+                return;
+
+            var match = user.Match;
+            var index = match.Slots.Select(x => x.UserId).IndexOf(user.Id);
+
+            await match.AddPacketsToSpecificPlayers(await FastPackets.MatchPlayerFailed(index));
+        }
+
+        public static async Task MatchCompleted(PacketReader reader, Presence user)
+        {
+            if (user.Match is null)
+                return;
+            
+            var match = user.Match;
+            var slot = match.GetSlot(user.Id);
+
+            slot.Status = SlotStatus.Complete;
+            
+            if(match.Slots.Any(x => x.Status == SlotStatus.Playing))
+                return;
+
+            await match.Unready();
+            await match.AddPacketsToAllPlayers(FastPackets.MatchComplete);
+            await match.Update();
         }
 
         public static async Task MatchChangeMods(PacketReader reader, Presence user)
@@ -389,6 +440,9 @@ namespace Chikatto.Bancho
             foreach (var (_, c) in Global.Channels)
                 await c.RemoveUser(user);
 
+            if (user.Match is not null)
+                await user.Match.Leave(user);
+            
             await Global.OnlineManager.Remove(user);
             await Global.OnlineManager.AddPacketToAllUsers(await FastPackets.Logout(user.Id));
             
