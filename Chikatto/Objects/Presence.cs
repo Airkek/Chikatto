@@ -8,6 +8,7 @@ using Chikatto.Database;
 using Chikatto.Database.Models;
 using Chikatto.Extensions;
 using Chikatto.Multiplayer;
+using Chikatto.Utils;
 
 namespace Chikatto.Objects
 {
@@ -31,7 +32,13 @@ namespace Chikatto.Objects
         public ConcurrentDictionary<int, int> Friends;
         
         public readonly ConcurrentDictionary<string, Channel> JoinedChannels = new();
+        
         public Match Match = null;
+        
+        public Presence Spectating;
+        
+        public ConcurrentDictionary<int, Presence> Spectators = new();
+        public Channel SpectateChannel;
 
         public BanchoUserStatus Status = new ()
         {
@@ -153,6 +160,9 @@ namespace Chikatto.Objects
 
             friendsDict[Global.Bot.Id] = Global.Bot.Id;
 
+            var channel = new Channel($"#spectator_{user.Id}", "Spectator channel");
+            Global.Channels[channel.TrueName] = channel;
+
             return new()
             {
                 Id = user.Id,
@@ -160,7 +170,8 @@ namespace Chikatto.Objects
                 User = user,
                 CountryCode = Misc.CountryCodes.ContainsKey(user.Country.ToUpper()) ? Misc.CountryCodes[user.Country.ToUpper()] : (byte) 0,
                 Stats = await Db.FetchOne<Stats>("SELECT * FROM stats WHERE id = @uid", new { uid = user.Id }),
-                Friends = friendsDict
+                Friends = friendsDict,
+                SpectateChannel = channel
             };
         }
 
@@ -180,6 +191,50 @@ namespace Chikatto.Objects
 
             Friends.Remove(id);
             await Db.Execute("DELETE FROM friendships WHERE user1 = @uid AND user2 = @fid", new { uid = Id, fid = id });
+        }
+        
+        public async Task AddSpectator(Presence user)
+        {
+            if(Spectators.ContainsKey(user.Id))
+                return;
+
+            if (Spectators.IsEmpty)
+                await SpectateChannel.JoinUser(this);
+            else
+                await AddPacketToSpectators(await FastPackets.FellowSpectatorJoined(user.Id));
+
+            Spectators[user.Id] = user;
+            await SpectateChannel.JoinUser(user);
+            
+            WaitingPackets.Enqueue(await FastPackets.SpectatorJoined(user.Id));
+        }
+        
+        public async Task RemoveSpectator(Presence user)
+        {
+            if(!Spectators.ContainsKey(user.Id))
+                return;
+
+            Spectators.Remove(user.Id);
+            await SpectateChannel.RemoveUser(user);
+
+            if (Spectators.IsEmpty)
+                await SpectateChannel.RemoveUser(this);
+            else
+                await AddPacketToSpectators(await FastPackets.FellowSpectatorLeft(user.Id));
+
+            WaitingPackets.Enqueue(await FastPackets.SpectatorLeft(user.Id));
+        }
+
+        public async Task AddPacketToSpectators(Packet packet)
+        {
+            foreach (var (_, spectator) in Spectators)
+                spectator.WaitingPackets.Enqueue(packet);
+        }
+
+        public async Task DropSpectators()
+        {
+            foreach (var (_, spectator) in Spectators)
+                await RemoveSpectator(spectator); 
         }
 
         public override string ToString() => $"<{Name} ({Id})>";

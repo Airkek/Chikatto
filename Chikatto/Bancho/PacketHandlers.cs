@@ -53,7 +53,11 @@ namespace Chikatto.Bancho
             [OsuMatchLoadComplete] = MatchLoadComplete,
             [OsuMatchFailed] = MatchPlayerFail,
             [OsuMatchComplete] = MatchCompleted,
-            [OsuMatchScoreUpdate] = MatchScoreUpdate
+            [OsuMatchScoreUpdate] = MatchScoreUpdate,
+            [OsuStartSpectating] = SpectatorJoin,
+            [OsuStopSpectating] = SpectatorLeft,
+            [OsuCantSpectate] = CantSpectate,
+            [OsuSpectateFrames] = SpectateFrames
         };
         
 #if DEBUG
@@ -63,15 +67,66 @@ namespace Chikatto.Bancho
             OsuUserStatsRequest
         };
 #endif
-
-        public static async Task CreateMatch(PacketReader reader, Presence user)
+        
+        #region SPECTATOR
+        public static async Task SpectatorJoin(PacketReader reader, Presence user)
         {
-            if (user.Match is not null)
+            var id = reader.ReadInt32();
+            var toSpec = Global.OnlineManager.GetById(id);
+
+            if (toSpec is null)
             {
-                user.WaitingPackets.Enqueue(FastPackets.MatchJoinFail);
+                XConsole.Log($"{user} failed to spectate <({id})> (offline)", ConsoleColor.Yellow);
+                return;
+            }
+
+            await toSpec.AddSpectator(user);
+            XConsole.Log($"{user} started spectating {toSpec}", ConsoleColor.Magenta);
+        }
+        
+        public static async Task SpectatorLeft(PacketReader reader, Presence user)
+        {
+            var toSpec = user.Spectating;
+
+            if (toSpec is null)
+            {
+                XConsole.Log($"{user} failed to stop spectating (not spectating)", ConsoleColor.Yellow);
                 return;
             }
             
+            await toSpec.RemoveSpectator(user);
+            XConsole.Log($"{user} stop spectating {toSpec}", ConsoleColor.Magenta);
+        }
+        
+        public static async Task CantSpectate(PacketReader reader, Presence user)
+        {
+            var toSpec = user.Spectating;
+
+            if (toSpec is null)
+            {
+                XConsole.Log($"{user} sent cant spectate while not spectatinmg", ConsoleColor.Yellow);
+                return;
+            }
+
+            var packet = await FastPackets.CantSpectate(user.Id);
+            
+            toSpec.WaitingPackets.Enqueue(packet);
+            await toSpec.AddPacketToSpectators(packet);
+        }
+        
+        public static async Task SpectateFrames(PacketReader reader, Presence user)
+        {
+            var frames = reader.Dump().Data;
+            await user.AddPacketToSpectators(await FastPackets.SpectateFrames(frames));
+        }
+        #endregion
+        
+        #region MULTIPLAYER
+        public static async Task CreateMatch(PacketReader reader, Presence user)
+        {
+            if (user.Match is not null)
+                await user.Match.Leave(user);
+
             var match = reader.ReadBanchoObject<Match>();
             match.Id = ++Global.MatchId;
 
@@ -87,8 +142,12 @@ namespace Chikatto.Bancho
 
         public static async Task MatchJoin(PacketReader reader, Presence user)
         {
+            if (user.Match is not null)
+                await user.Match.Leave(user);
+
             var id = reader.ReadInt32();
-            if (user.Match is not null || !Global.Rooms.ContainsKey(id))
+            
+            if (!Global.Rooms.ContainsKey(id))
             {
                 user.WaitingPackets.Enqueue(FastPackets.MatchJoinFail);
                 return;
@@ -104,20 +163,12 @@ namespace Chikatto.Bancho
 
         public static async Task PartMatch(PacketReader reader, Presence user)
         {
-            var match = user.Match;
-            if(match is null)
-                return;
-
-            await match.Leave(user);
-
-            XConsole.Log($"{user} left from multiplayer room {match}", ConsoleColor.Cyan);
+            await user.Match.Leave(user);
+            XConsole.Log($"{user} left from multiplayer room {user.Match}", ConsoleColor.Cyan);
         }
 
         public static async Task UpdateMatch(PacketReader reader, Presence user)
         {
-            if (user.Match is null)
-                return;
-
             var match = user.Match;
             var newMatch = reader.ReadBanchoObject<BanchoMatch>();
 
@@ -170,7 +221,7 @@ namespace Chikatto.Bancho
 
         public static async Task MatchSlotLock(PacketReader reader, Presence user)
         {
-            if(user.Match is null || user.Match.InProgress || user.Match.HostId != user.Id)
+            if(user.Match.InProgress || user.Match.HostId != user.Id)
                 return;
 
             var index = reader.ReadInt32();
@@ -186,7 +237,7 @@ namespace Chikatto.Bancho
 
         public static async Task MatchChangePassword(PacketReader reader, Presence user)
         {
-            if (user.Match is null || user.Match.HostId != user.Id)
+            if (user.Match.HostId != user.Id)
                 return;
 
             user.Match.Password = reader.ReadString();
@@ -195,12 +246,12 @@ namespace Chikatto.Bancho
         
         public static async Task MatchScoreUpdate(PacketReader reader, Presence user)
         {
-            if (user.Match is null || !user.Match.InProgress)
+            if (!user.Match.InProgress)
                 return;
 
             var match = user.Match;
 
-            var bytes = reader.ReadBytes(27);
+            var bytes = reader.Dump().Data;
             var index = match.Slots.Select(x => x.UserId).IndexOf(user.Id);
 
             bytes[4] = (byte) index;
@@ -210,7 +261,7 @@ namespace Chikatto.Bancho
 
         public static async Task MatchPlayerFail(PacketReader reader, Presence user)
         {
-            if (user.Match is null || !user.Match.InProgress)
+            if (!user.Match.InProgress)
                 return;
 
             var match = user.Match;
@@ -221,9 +272,6 @@ namespace Chikatto.Bancho
 
         public static async Task MatchCompleted(PacketReader reader, Presence user)
         {
-            if (user.Match is null)
-                return;
-            
             var match = user.Match;
             var slot = match.GetSlot(user.Id);
 
@@ -239,7 +287,7 @@ namespace Chikatto.Bancho
 
         public static async Task MatchChangeMods(PacketReader reader, Presence user)
         {
-            if(user.Match is null || user.Match.InProgress)
+            if(user.Match.InProgress)
                 return;
 
             var mods = (Mods) reader.ReadInt32();
@@ -265,8 +313,7 @@ namespace Chikatto.Bancho
         
         public static async Task MatchChangeTeam(PacketReader reader, Presence user)
         {
-            if(user.Match is null || user.Match.InProgress || 
-               user.Match.TeamType != MatchTeamType.TagTeamVS && user.Match.TeamType != MatchTeamType.TeamVS)
+            if(user.Match.InProgress || (user.Match.TeamType != MatchTeamType.TagTeamVS && user.Match.TeamType != MatchTeamType.TeamVS))
                 return;
 
             var slot = user.Match.GetSlot(user.Id);
@@ -276,7 +323,7 @@ namespace Chikatto.Bancho
 
         public static async Task MatchStart(PacketReader reader, Presence user)
         {
-            if(user.Match is null || user.Id != user.Match.HostId)
+            if(user.Id != user.Match.HostId)
                 return;
 
             await user.Match.Start();
@@ -285,9 +332,6 @@ namespace Chikatto.Bancho
         
         public static async Task MatchLoadComplete(PacketReader reader, Presence user)
         {
-            if(user.Match is null)
-                return;
-
             var match = user.Match;
             var slot = match.GetSlot(user.Id);
             
@@ -303,7 +347,7 @@ namespace Chikatto.Bancho
 
         public static async Task MatchTransferHost(PacketReader reader, Presence user)
         {
-            if(user.Match is null || user.Match.InProgress || user.Match.HostId != user.Id)
+            if(user.Match.InProgress || user.Match.HostId != user.Id)
                 return;
 
             var index = reader.ReadInt32();
@@ -323,9 +367,6 @@ namespace Chikatto.Bancho
 
         public static async Task MatchSkipRequest(PacketReader reader, Presence user)
         {
-            if(user.Match is null)
-                return;
-
             var match = user.Match;
 
             var uSlot = match.GetSlot(user.Id);
@@ -337,7 +378,7 @@ namespace Chikatto.Bancho
         
         public static async Task MatchChangeSlot(PacketReader reader, Presence user)
         {
-            if(user.Match is null || user.Match.InProgress)
+            if(user.Match.InProgress)
                 return;
 
             var index = reader.ReadInt32();
@@ -367,27 +408,38 @@ namespace Chikatto.Bancho
 
         public static async Task MatchReady(PacketReader reader, Presence user)
         {
-            if(user.Match is null)
-                return;
-            
             await user.Match.UpdateUserStatus(user, SlotStatus.Ready);
         }
         
         public static async Task MatchNotReady(PacketReader reader, Presence user)
         {
-            if(user.Match is null)
-                return;
-            
             await user.Match.UpdateUserStatus(user, SlotStatus.NotReady);
         }
         
         public static async Task MatchNoBeatmap(PacketReader reader, Presence user)
         {
-            if(user.Match is null)
-                return;
-            
             await user.Match.UpdateUserStatus(user, SlotStatus.NoMap);
         }
+        
+        private static async Task LobbyJoin(PacketReader reader, Presence user)
+        {
+            user.InLobby = true;
+            await Global.Channels["#lobby"].JoinUser(user);
+            
+            foreach (var (_, match) in Global.Rooms)
+                user.WaitingPackets.Enqueue(await FastPackets.NewMatch(match.Foreign()));
+
+            XConsole.Log($"{user} joined to lobby", ConsoleColor.Cyan);
+        }
+
+        private static async Task LobbyPart(PacketReader reader, Presence user)
+        {
+            user.InLobby = false;
+            await Global.Channels["#lobby"].RemoveUser(user);
+            
+            XConsole.Log($"{user} left from lobby", ConsoleColor.Cyan);
+        }
+        #endregion
 
         public static async Task UpdateAction(PacketReader reader, Presence user)
         {
@@ -478,25 +530,6 @@ namespace Chikatto.Bancho
             await c.RemoveUser(user);
 
             XConsole.Log($"{user} left from {channel}", ConsoleColor.Cyan);
-        }
-
-        private static async Task LobbyJoin(PacketReader reader, Presence user)
-        {
-            user.InLobby = true;
-            await Global.Channels["#lobby"].JoinUser(user);
-            
-            foreach (var (_, match) in Global.Rooms)
-                user.WaitingPackets.Enqueue(await FastPackets.NewMatch(match.Foreign()));
-
-            XConsole.Log($"{user} joined to lobby", ConsoleColor.Cyan);
-        }
-
-        private static async Task LobbyPart(PacketReader reader, Presence user)
-        {
-            user.InLobby = false;
-            await Global.Channels["#lobby"].RemoveUser(user);
-            
-            XConsole.Log($"{user} left from lobby", ConsoleColor.Cyan);
         }
 
         private static Task AddFriend(PacketReader reader, Presence user)

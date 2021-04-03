@@ -57,6 +57,9 @@ namespace Chikatto.Objects
             foreach (var (_, c) in user.JoinedChannels)
                 await c.RemoveUser(user);
 
+            Global.Channels.Remove(user.SpectateChannel.TrueName);
+            await user.DropSpectators();
+            
             OsuTokens.Remove(user.Token);
             SafeNames.Remove(user.User.SafeName);
             Users.Remove(user.Id);
