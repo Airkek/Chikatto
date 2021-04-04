@@ -48,10 +48,10 @@ namespace Chikatto.Database
             return all.Count == 0 ? default : all[0];
         }
 
-        public static async Task Execute(string command, object param = null)
+        public static async Task<int> Execute(string command, object param = null)
         {
             await using var connection = new MySqlConnection(ConnectionString);
-            await connection.ExecuteAsync(command, param);
+            return await connection.ExecuteAsync(command, param);
         }
         
         private static string GetColumnFromAttribute(MemberInfo member)

@@ -12,6 +12,8 @@ namespace Chikatto.Objects
         
         [JsonProperty("bot_id")] public int BotId = 1;
         [JsonProperty("commands_prefix")] public string CommandPrefix = "!";
+
+        [JsonProperty("allow_registrations")] public bool AllowRegistrations = true;
         
         [JsonProperty("osu_direct_mirror")] public string DirectMirror = "chimu.moe";
 

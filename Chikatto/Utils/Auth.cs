@@ -24,19 +24,7 @@ namespace Chikatto.Utils
             if (user is null)
                 return null;
 
-            string bcrypt;
-
-            if (Global.BCryptCache.ContainsKey(pwMd5))
-                bcrypt = Global.BCryptCache[pwMd5];
-            else
-            {
-                if (BCrypt.Net.BCrypt.Verify(pwMd5, user.User.Password))
-                    bcrypt = user.User.Password;
-                else
-                    bcrypt = BCrypt.Net.BCrypt.HashPassword(pwMd5);
-                
-                Global.BCryptCache[pwMd5] = bcrypt;
-            }
+            var bcrypt = Crypto.Bcrypt(pwMd5, user.User.Password);
 
             return bcrypt == user.User.Password ? user : null;
         }
