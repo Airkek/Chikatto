@@ -138,7 +138,6 @@ namespace Chikatto.Bancho
         public static async Task<Packet> MatchScoreUpdate(byte[] ScoreFrame) =>
             new(PacketType.BanchoMatchScoreUpdate, ScoreFrame);
         
-        
         //50
         public static readonly Packet MatchTransferHost = new(PacketType.BanchoMatchTransferHost);
         

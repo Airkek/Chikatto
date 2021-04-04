@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Chikatto.Bancho;
 using Chikatto.Bancho.Enums;
 using Chikatto.Objects;
+using Microsoft.EntityFrameworkCore.Internal;
 
 namespace Chikatto.Events.Types
 {
@@ -17,7 +18,7 @@ namespace Chikatto.Events.Types
             var match = user.Match;
 
             var bytes = reader.Dump().Data;
-            var index = match.Slots.Select(x => x.UserId).ToList().IndexOf(user.Id);
+            var index = match.Slots.Select(x => x.UserId).IndexOf(user.Id);
 
             bytes[4] = (byte) index;
 

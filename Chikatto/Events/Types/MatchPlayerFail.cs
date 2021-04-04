@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Chikatto.Bancho;
 using Chikatto.Bancho.Enums;
 using Chikatto.Objects;
+using Microsoft.EntityFrameworkCore.Internal;
 
 namespace Chikatto.Events.Types
 {
@@ -15,7 +16,7 @@ namespace Chikatto.Events.Types
                 return;
 
             var match = user.Match;
-            var index = match.Slots.Select(x => x.UserId).ToList().IndexOf(user.Id);
+            var index = match.Slots.Select(x => x.UserId).IndexOf(user.Id);
 
             await match.AddPacketsToSpecificPlayers(await FastPackets.MatchPlayerFailed(index));
         }
