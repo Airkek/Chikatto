@@ -2,6 +2,8 @@
 
 namespace Chikatto.Constants
 {
+    //author: cmyui https://github.com/cmyui/gulag/blob/master/constants/privileges.py
+    
     [Flags]
     public enum Privileges
     {
@@ -24,6 +26,7 @@ namespace Chikatto.Constants
         Mod = 1 << 12, // able to manage users (level 1).
         Admin = 1 << 13, // able to manage users (level 2).
         Dangerous = 1 << 14, // able to manage full server state.
+        Restricted = 1 << 15, // restricted player.
 
         Donator = Supporter | Premium,
         Staff = Mod | Admin | Dangerous

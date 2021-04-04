@@ -27,4 +27,8 @@
       <Content Remove="config.json" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="ChatCommands\Multiplayer" />
+    </ItemGroup>
+
 </Project>

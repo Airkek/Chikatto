@@ -1,8 +1,11 @@
+using System;
 using System.IO;
 using System.Threading;
+using Chikatto.ChatCommands;
 using Chikatto.Constants;
 using Chikatto.Database;
 using Chikatto.Database.Models;
+using Chikatto.Events;
 using Chikatto.Objects;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -23,6 +26,9 @@ namespace Chikatto
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public static void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            CommandHandler.Init();
+            BanchoEventHandler.Init();
+
             if (!Directory.Exists("data"))
                 Directory.CreateDirectory("data");
 

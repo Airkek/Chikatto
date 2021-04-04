@@ -40,6 +40,8 @@ namespace Chikatto.Objects
         public ConcurrentDictionary<int, Presence> Spectators = new();
         public Channel SpectateChannel;
 
+        public bool Restricted = false;
+
         public BanchoUserStatus Status = new ()
         {
             Action = BanchoAction.Idle, 

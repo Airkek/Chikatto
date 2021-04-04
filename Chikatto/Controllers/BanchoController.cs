@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Chikatto.Bancho;
 using Chikatto.Bancho.Serialization;
 using Chikatto.Constants;
+using Chikatto.Events;
 using Chikatto.Objects;
 using Chikatto.Utils;
 using Microsoft.AspNetCore.Mvc;
@@ -48,25 +49,23 @@ namespace Chikatto.Controllers
                 var clientData = req[2].Split(":");
 
                 if (u is null)
-                    return SendPackets(new[] { await FastPackets.UserId(-1) });
-                
+                {
+                    return SendPackets(new[]
+                    {
+                        await FastPackets.UserId(-1) // bad password
+                    });
+                }
+
                 if (u.LastPong > new DateTimeOffset(DateTime.Now).ToUnixTimeSeconds() - 10)
                 {
                     return SendPackets(new[]
                     {
-                        await FastPackets.UserId(-1),
+                        await FastPackets.UserId(-1), // bad password
                         await FastPackets.Notification("User already logged in")
                     });
                 }
-
-                u.LastPong = new DateTimeOffset(DateTime.Now).ToUnixTimeSeconds();
                 
-                token = Auth.CreateBanchoToken(u.Id, clientData);
-                Response.Headers["cho-token"] = token;
-
-                u.Token = token;
-                await Global.OnlineManager.AddUser(u);
-                var users = await Global.OnlineManager.GetOnlineUsers();
+                u.LastPong = new DateTimeOffset(DateTime.Now).ToUnixTimeSeconds();
 
                 var packets = new List<Packet>
                 {
@@ -78,6 +77,30 @@ namespace Chikatto.Controllers
                     await FastPackets.FriendList(u.Friends.Select(x => x.Key).ToList()),
                     await FastPackets.BotPresence(),
                 };
+
+                if ((u.User.Privileges & Privileges.Normal) == 0) 
+                {
+                    if ((u.User.Privileges & Privileges.Restricted) != 0) // account restricted
+                    {
+                        u.Restricted = true;
+                        packets.Add(FastPackets.AccountRestricted);
+                        await u.SendMessage("Your account is currently in restricted mode", Global.Bot);
+                    }
+                    else // account banned
+                    {
+                        return SendPackets(new[]
+                        {
+                            await FastPackets.UserId(-3) // banned
+                        });
+                    }
+                }
+
+                token = Auth.CreateBanchoToken(u.Id, clientData);
+                Response.Headers["cho-token"] = token;
+
+                u.Token = token;
+                await Global.OnlineManager.AddUser(u);
+                var users = await Global.OnlineManager.GetOnlineUsers();
 
                 foreach (var us in users)
                     packets.Add(await FastPackets.UserPresence(us));
@@ -109,13 +132,11 @@ namespace Chikatto.Controllers
 
             if (user is null)
             {
-                var packets = new[]
+                return SendPackets(new[]
                 {
-                    await FastPackets.Notification("Server has restarted"), 
+                    await FastPackets.Notification("Server has restarted"),
                     await FastPackets.ServerRestart(0)
-                };
-                
-                return SendPackets(packets);
+                });
             }
             
             user.LastPong = new DateTimeOffset(DateTime.Now).ToUnixTimeSeconds();

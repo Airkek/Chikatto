@@ -1,46 +1,29 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using Chikatto.Objects;
-using Chikatto.Utils;
 
 namespace Chikatto.ChatCommands
 {
     public static class CommandHandler
     {
-        private static readonly Dictionary<string[], Handler> Handlers = new() //<Triggers[], Handler> 
-        {
-            [new[] { "test" }] = async (_, _) => "Hello World!",
-            [new[] { "roll" }] = Roll,
-        };
+        private static readonly Dictionary<CommandAttribute, Handler> Commands = new();
 
-        public static async Task<string> Roll(Presence user, string[] args)
+        public static void Init()
         {
-            var min = 0;
-            var max = 100;
-            
-            switch (args.Length)
+            var methods = Assembly.GetEntryAssembly().GetTypes()
+                .SelectMany(t => t.GetMethods())
+                .Where(m => m.GetCustomAttributes(typeof(CommandAttribute), false).Length > 0);
+
+            foreach (var method in methods)
             {
-                case 0:
-                    break;
+                var info = method.GetCustomAttributes(typeof(CommandAttribute), false)[0] as CommandAttribute;
+                var handler = (Handler) Delegate.CreateDelegate(typeof(Handler), method);
                 
-                case 1:
-                    int.TryParse(args[0], out max);
-                    break;
-                
-                default:
-                    int.TryParse(args[0], out var first);
-                    int.TryParse(args[1], out var second);
-
-                    min = first > second ? second : first;
-                    max = first > second ? first : second;
-                    break;
+                Commands[info] = handler;
             }
-
-            var roll = RandomFabric.Next(min, max);
-
-            return $"Your lucky number: {roll}";
         }
 
         public static async Task Process(string message, Presence user, Channel channel = null)
@@ -52,11 +35,11 @@ namespace Chikatto.ChatCommands
             var trigger = split[0].ToLower();
             var args = split.Skip(1).ToArray();
 
-            var commandRet = "Неизвестная команда!";
+            var commandRet = "Unknown command!";
             
-            foreach (var (triggers, handler) in Handlers)
+            foreach (var (info, handler) in Commands)
             {
-                if (triggers.Contains(trigger))
+                if (info.Triggers.Contains(trigger))
                 {
                     commandRet = await handler(user, args);
                     break;

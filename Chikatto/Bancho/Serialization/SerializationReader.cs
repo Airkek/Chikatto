@@ -11,7 +11,7 @@ namespace Chikatto.Bancho.Serialization
     {
         public SerializationReader(Stream input) : base(input, Encoding.UTF8) { }
 
-        public override string ReadString() => ReadByte() == (byte) TypeBytes.Null ? string.Empty : base.ReadString();
+        public override string ReadString() => ReadByte() == (byte) 0 ? string.Empty : base.ReadString();
 
         public byte[] ReadByteArray()
         {
@@ -83,33 +83,6 @@ namespace Chikatto.Bancho.Serialization
             var t = new T();
             t.Deserialize(this);
             return t;
-        } 
-
-        public object ReadObject()
-        {
-            var type = (TypeBytes) ReadByte();
-
-            return type switch
-            {
-                TypeBytes.Bool => ReadBoolean(),
-                TypeBytes.Byte => ReadByte(),
-                TypeBytes.UShort => ReadUInt16(),
-                TypeBytes.UInt => ReadUInt32(),
-                TypeBytes.ULong => ReadUInt64(),
-                TypeBytes.SByte => ReadSByte(),
-                TypeBytes.Short => ReadInt16(),
-                TypeBytes.Int => ReadInt32(),
-                TypeBytes.Long => ReadInt64(),
-                TypeBytes.Char => ReadChar(),
-                TypeBytes.String => base.ReadString(),
-                TypeBytes.Float => ReadSingle(),
-                TypeBytes.Double => ReadDouble(),
-                TypeBytes.Decimal => ReadDecimal(),
-                TypeBytes.DateTime => ReadDateTime(),
-                TypeBytes.ByteArray => ReadByteArray(),
-                TypeBytes.CharArray => ReadCharArray(),
-                _ => null
-            };
         }
     }
 }

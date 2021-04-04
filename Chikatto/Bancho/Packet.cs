@@ -7,7 +7,7 @@ namespace Chikatto.Bancho
     public class Packet 
     {
         public readonly PacketType Type;
-        public byte[] Data;
+        public readonly byte[] Data;
 
         public Packet(PacketType type)
         {
