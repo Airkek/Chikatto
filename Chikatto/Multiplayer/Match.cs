@@ -176,6 +176,7 @@ namespace Chikatto.Multiplayer
         {
             base.Deserialize(reader);
 
+            Id = ++Global.MatchId;
             Host = Global.OnlineManager.GetById(base.HostId);
             Channel = new Channel($"#multi_{Id}", $"Multiplayer match ({Id})");
             Global.Channels[Channel.TrueName] = Channel;

@@ -17,7 +17,6 @@ namespace Chikatto.Events.Types
                 await user.Match.Leave(user);
 
             var match = reader.ReadBanchoObject<Match>();
-            match.Id = ++Global.MatchId;
 
             Global.Rooms[match.Id] = match;
 
