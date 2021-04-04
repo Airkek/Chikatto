@@ -109,7 +109,7 @@ namespace Chikatto.Controllers
 
                 await Db.Execute("INSERT INTO stats (id) VALUES (@id)", new { id });
             
-                XConsole.Log($"<{username} ({id})> has registered!", fore: ConsoleColor.Green);
+                XConsole.Log($"<{username} ({id})> has registered!", back: ConsoleColor.Green);
             }
 
             return Ok("ok");
