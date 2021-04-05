@@ -32,7 +32,7 @@ namespace Chikatto.ChatCommands
             if(string.IsNullOrWhiteSpace(message)) // message == command prefix lol
                 return;
             
-            var split = message.Split(' ');
+            var split = message.Trim().Split(' ');
             var trigger = split[0].ToLower();
             var args = split.Skip(1).ToArray();
             
@@ -48,13 +48,16 @@ namespace Chikatto.ChatCommands
             else
             {
                 var (info, handler) = Commands.FirstOrDefault(x => x.Key.Triggers.Contains(trigger));
-
+                
                 if (info is not null)
                 {
-                    if (info.Type == CommandType.Multi && user.Match is null)
-                        commandRet = "This command should be used in multiplayer room!";
-                    else
-                        commandRet = await handler(user, args);
+                    if ((user.User.Privileges & info.Privileges) == info.Privileges)
+                    {
+                        if (info.Type == CommandType.Multi && user.Match is null)
+                            commandRet = "This command should be used in multiplayer room!";
+                        else
+                            commandRet = await handler(user, args);
+                    }
                 }
             }
 

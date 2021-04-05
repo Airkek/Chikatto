@@ -20,14 +20,14 @@
         public int rscore_rx_taiko { get; set; }
         public int rscore_rx_catch { get; set; }
         public int rscore_ap_std { get; set; }
-        public int pp_vn_std { get; set; }
-        public int pp_vn_taiko { get; set; }
-        public int pp_vn_catch { get; set; }
-        public int pp_vn_mania { get; set; }
-        public int pp_rx_std { get; set; }
-        public int pp_rx_taiko { get; set; }
-        public int pp_rx_catch { get; set; }
-        public int pp_ap_std { get; set; }
+        public short pp_vn_std { get; set; }
+        public short pp_vn_taiko { get; set; }
+        public short pp_vn_catch { get; set; }
+        public short pp_vn_mania { get; set; }
+        public short pp_rx_std { get; set; }
+        public short pp_rx_taiko { get; set; }
+        public short pp_rx_catch { get; set; }
+        public short pp_ap_std { get; set; }
         public int plays_vn_std { get; set; }
         public int plays_vn_taiko { get; set; }
         public int plays_vn_catch { get; set; }

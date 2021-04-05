@@ -1,4 +1,5 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading.Tasks;
 using Chikatto.Bancho;
@@ -28,6 +29,7 @@ namespace Chikatto.Objects
         public readonly ConcurrentQueue<Packet> WaitingPackets = new();
 
         public bool InLobby = false;
+        public bool Online = false;
 
         public ConcurrentDictionary<int, int> Friends;
         
@@ -40,7 +42,7 @@ namespace Chikatto.Objects
         public ConcurrentDictionary<int, Presence> Spectators = new();
         public Channel SpectateChannel;
 
-        public bool Restricted = false;
+        public bool Restricted;
 
         public BanchoUserStatus Status = new ()
         {
@@ -80,7 +82,21 @@ namespace Chikatto.Objects
 
         public async Task<BanchoUserStats> GetStats()
         {
-            return new()
+            if (Restricted)
+            {
+                return new BanchoUserStats
+                {
+                    Id = Id,
+                    Status = Status,
+                    RankedScore = Stats.rscore_vn_std,
+                    Accuracy = Stats.acc_vn_std,
+                    PlayCount = Stats.plays_vn_std,
+                    TotalScore = Stats.tscore_vn_std,
+                    Rank = 0,
+                    PP = 0
+                };
+            }
+            return new BanchoUserStats
             {
                 Id = Id,
                 Status = Status,
@@ -89,7 +105,7 @@ namespace Chikatto.Objects
                 PlayCount = Stats.plays_vn_std,
                 TotalScore = Stats.tscore_vn_std,
                 Rank = await GetRank(),
-                PP = (short) Stats.pp_vn_std
+                PP = Stats.pp_vn_std
             };
         }
 
@@ -136,6 +152,10 @@ namespace Chikatto.Objects
 
         public static async Task<Presence> FromDatabase(int id)
         {
+            var cached = Global.OnlineManager.GetById(id);
+            if (cached is not null)
+                return cached;
+            
             var user = await Db.FetchOne<User>("SELECT * FROM users WHERE id = @uid", new { uid = id });
             
             if (user is null)
@@ -143,9 +163,13 @@ namespace Chikatto.Objects
 
             return await FromUser(user);
         }
-
+        
         public static async Task<Presence> FromDatabase(string safename)
         {
+            var cached = Global.OnlineManager.GetBySafeName(safename);
+            if (cached is not null)
+                return cached;
+            
             var user = await Db.FetchOne<User>("SELECT * FROM users WHERE safe_name = @safe",new {safe = safename});
             if (user is null)
                 return null;
@@ -173,7 +197,8 @@ namespace Chikatto.Objects
                 CountryCode = Misc.CountryCodes.ContainsKey(user.Country.ToUpper()) ? Misc.CountryCodes[user.Country.ToUpper()] : (byte) 0,
                 Stats = await Db.FetchOne<Stats>("SELECT * FROM stats WHERE id = @uid", new { uid = user.Id }),
                 Friends = friendsDict,
-                SpectateChannel = channel
+                SpectateChannel = channel,
+                Restricted = (user.Privileges & Privileges.Normal) == 0
             };
         }
 
@@ -193,6 +218,58 @@ namespace Chikatto.Objects
 
             Friends.Remove(id);
             await Db.Execute("DELETE FROM friendships WHERE user1 = @uid AND user2 = @fid", new { uid = Id, fid = id });
+        }
+
+        public async Task Ban(bool restrict = true)
+        {
+            var newPriv = User.Privileges & ~Privileges.Normal;
+            
+            if (restrict)
+                newPriv |= Privileges.Restricted;
+
+            await UpdatePrivileges(newPriv);
+
+            Restricted = true;
+            
+            if (Online)
+            {
+                if (restrict)
+                {
+                    await Notify("Your account is currently in restricted mode");
+                    WaitingPackets.Enqueue(FastPackets.AccountRestricted);
+                }
+                else
+                {
+                    await Notify("Goodbye...");
+                    WaitingPackets.Enqueue(await FastPackets.UserId(-3));
+                }
+                
+                await Global.OnlineManager.AddPacketToAllUsers(await FastPackets.Logout(Id));
+            }
+            
+            XConsole.Log($"{ToString()} has banned ({restrict})", back: ConsoleColor.Magenta);
+        }
+
+        public async Task Unban()
+        {
+            var newPriv = (User.Privileges & ~Privileges.Restricted) | Privileges.Normal;
+
+            await UpdatePrivileges(newPriv);
+
+            Restricted = false;
+
+            if (Online)
+            {
+                await Notify("You just been unrestricted!");
+                WaitingPackets.Enqueue(await FastPackets.ServerRestart(0));
+            }
+
+            XConsole.Log($"{ToString()} has unbanned", back: ConsoleColor.Magenta);
+        }
+
+        public async Task UpdatePrivileges(Privileges newPriv)
+        {
+            await Db.Execute("UPDATE users SET priv = @newPriv where id = @id", new { newPriv, Id });
         }
         
         public async Task AddSpectator(Presence user)

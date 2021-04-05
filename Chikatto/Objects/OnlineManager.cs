@@ -25,7 +25,9 @@ namespace Chikatto.Objects
             }
         }
 
-        public async Task<List<Presence>> GetOnlineUsers() => Users.Select(x => x.Value).ToList();
+        public async Task<List<Presence>> GetOnlineUsers() => Users
+            .Select(x => x.Value)
+            .Where(x => x.Online && !x.Restricted).ToList();
 
         public async Task AddUser(Presence presence)
         {
@@ -33,7 +35,8 @@ namespace Chikatto.Objects
             SafeNames[presence.User.SafeName] = presence.Id;
             Users[presence.Id] = presence;
             
-            await AddPacketToAllUsers(await FastPackets.UserPresence(presence));
+            if(!presence.Restricted)
+                await AddPacketToAllUsers(await FastPackets.UserPresence(presence));
         }
 
         public async Task AddUser(int id, string token)
@@ -50,6 +53,7 @@ namespace Chikatto.Objects
                 return;
             
             user.LastPong = 0;
+            user.Online = false;
             
             if (user.Match is not null)
                 await user.Match.Leave(user);

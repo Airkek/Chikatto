@@ -79,11 +79,10 @@ namespace Chikatto.Controllers
                     await FastPackets.BotPresence(),
                 };
 
-                if ((u.User.Privileges & Privileges.Normal) == 0) 
+                if (u.Restricted) 
                 {
                     if ((u.User.Privileges & Privileges.Restricted) != 0) // account restricted
                     {
-                        u.Restricted = true;
                         packets.Add(FastPackets.AccountRestricted);
                         await u.Notify("Your account is currently in restricted mode");
                     }
@@ -108,6 +107,7 @@ namespace Chikatto.Controllers
                 Response.Headers["cho-token"] = token;
 
                 u.Token = token;
+                u.Online = true;
                 await Global.OnlineManager.AddUser(u);
                 var users = await Global.OnlineManager.GetOnlineUsers();
 
