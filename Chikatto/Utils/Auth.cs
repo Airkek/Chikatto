@@ -24,9 +24,16 @@ namespace Chikatto.Utils
             if (user is null)
                 return null;
 
-            var bcrypt = Crypto.Bcrypt(pwMd5, user.User.Password);
+            if (Global.BCryptCache.ContainsKey(user.User.Password))
+                return Global.BCryptCache[user.User.Password] == pwMd5 ? user : null;
+                
+            var valid = BCrypt.Net.BCrypt.Verify(pwMd5, user.User.Password);
 
-            return bcrypt == user.User.Password ? user : null;
+            if (!valid) 
+                return null;
+            
+            Global.BCryptCache[user.User.Password] = pwMd5;
+            return user;
         }
 
         public static string CreateBanchoToken(int userId, string[] clientData)

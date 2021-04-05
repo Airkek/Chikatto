@@ -17,6 +17,6 @@ namespace Chikatto.Objects
         public static readonly ConcurrentDictionary<string, Channel> Channels = new (); // <ChannelName, Channel>
         public static readonly ConcurrentDictionary<int, Match> Rooms = new (); // <Id, Match>
 
-        public static readonly ConcurrentDictionary<string, string> BCryptCache = new (); //<Plain, Hash>
+        public static readonly ConcurrentDictionary<string, string> BCryptCache = new (); //<Hash, plain>
     }
 }

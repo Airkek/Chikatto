@@ -99,7 +99,9 @@ namespace Chikatto.Controllers
                 var data = md5.ComputeHash(Encoding.UTF8.GetBytes(password));
                 var md5Pw = BitConverter.ToString(data).ToLower().Replace("-", "");
 
-                var hashPw = Crypto.Bcrypt(md5Pw);
+                var hashPw = BCrypt.Net.BCrypt.HashPassword(md5Pw);
+                
+                //TODO: parse country from X-Real-IP
 
                 await Db.Execute(@"INSERT INTO users (name, safe_name, email, pw_bcrypt, creation_time, latest_activity, country)
                              VALUES (@username, @safe, @email, @hashPw, UNIX_TIMESTAMP(), UNIX_TIMESTAMP(), @country)",
