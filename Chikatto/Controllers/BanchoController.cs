@@ -74,7 +74,7 @@ namespace Chikatto.Controllers
                     await FastPackets.UserId(u.Id),
                     await FastPackets.MainMenuIcon(Global.Config.LogoIngame, Global.Config.LogoClickUrl),
                     await FastPackets.Notification($"Welcome back!\r\nChikatto Build v{Misc.Version}"),
-                    await FastPackets.BanchoPrivileges(await u.GetBanchoPermissions()),
+                    await FastPackets.BanchoPrivileges(await u.GetBanchoPermissions() | BanchoPermissions.Supporter),
                     await FastPackets.FriendList(u.Friends.Select(x => x.Key).ToList()),
                     await FastPackets.BotPresence(),
                 };

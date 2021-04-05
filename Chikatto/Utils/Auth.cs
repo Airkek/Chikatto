@@ -51,7 +51,8 @@ namespace Chikatto.Utils
                 "f",
                 clientData[3].Substring(0, 5), // first 5 chars of UninstallId
                 "e",
-                clientData[4].Substring(0, 5) // first 5 chars of DiskSig
+                clientData[4].Substring(0, 5), // first 5 chars of DiskSig
+                "e"
             );
         }
 

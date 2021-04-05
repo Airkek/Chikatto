@@ -133,7 +133,10 @@ namespace Chikatto.Objects
 
         public static async Task<BanchoPermissions> GetBanchoPermissions(User user)
         {
-            var privs = BanchoPermissions.User;
+            var privs = BanchoPermissions.Normal;
+
+            if ((user.Privileges & Privileges.Donator) != 0)
+                privs |= BanchoPermissions.Supporter;
 
             if ((user.Privileges & Privileges.Nominator) != 0)
                 privs |= BanchoPermissions.BAT;

@@ -15,7 +15,8 @@ namespace Chikatto.Objects
 
         [JsonProperty("allow_registrations")] public bool AllowRegistrations = true;
         
-        [JsonProperty("osu_direct_mirror")] public string DirectMirror = "chimu.moe";
+        [JsonProperty("osu_direct_search_mirror")] public string DirectSearchMirror = "https://api.chimu.moe/cheesegull/search";
+        [JsonProperty("osu_direct_download_mirror")] public string DirectDownloadMirror = "https://chimu.moe/d";
 
         [JsonProperty("osu_logo_ingame")] public string LogoIngame = "https://osu.shizofrenia.pw/static/images/logo_ingame.png";
         [JsonProperty("osu_logo_click_url")] public string LogoClickUrl = "https://github.com/Airkek/Chikatto";
