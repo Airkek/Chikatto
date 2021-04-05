@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Chikatto.Bancho;
 using Chikatto.Bancho.Serialization;
 using Chikatto.Constants;
+using Chikatto.Database;
 using Chikatto.Events;
 using Chikatto.Objects;
 using Chikatto.Utils;
@@ -84,7 +85,7 @@ namespace Chikatto.Controllers
                     {
                         u.Restricted = true;
                         packets.Add(FastPackets.AccountRestricted);
-                        await u.SendMessage("Your account is currently in restricted mode", Global.Bot);
+                        await u.Notify("Your account is currently in restricted mode");
                     }
                     else // account banned
                     {
@@ -93,6 +94,14 @@ namespace Chikatto.Controllers
                             await FastPackets.UserId(-3) // banned
                         });
                     }
+                }
+                else if ((u.User.Privileges & Privileges.Verified) == 0) // user just registered
+                {
+                    u.User.Privileges |= Privileges.Verified;
+                    await Db.Execute("UPDATE users SET priv = @priv WHERE id = @id", new { priv = u.User.Privileges, id = u.User.Id });
+                    await u.SendMessage(
+                        $"Welcome to our server. \r\nType {Global.Config.CommandPrefix}help to see list of available commands.",
+                        Global.Bot);
                 }
 
                 token = Auth.CreateBanchoToken(u.Id, clientData);

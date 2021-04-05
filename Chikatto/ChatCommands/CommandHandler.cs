@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using Chikatto.ChatCommands.Enums;
 using Chikatto.Objects;
 
 namespace Chikatto.ChatCommands
@@ -34,18 +35,29 @@ namespace Chikatto.ChatCommands
             var split = message.Split(' ');
             var trigger = split[0].ToLower();
             var args = split.Skip(1).ToArray();
-
+            
             var commandRet = "Unknown command!";
             
-            foreach (var (info, handler) in Commands)
+            if (trigger == "help")
             {
-                if (info.Triggers.Contains(trigger))
+                commandRet = "List of available commands:\r\n";
+                commandRet += string.Join("\r\n", Commands
+                    .Where(x => (x.Key.Privileges & user.User.Privileges) == x.Key.Privileges)
+                    .Select(x => $"{Global.Config.CommandPrefix}{x.Key.Triggers[0]} - {x.Key.Description}"));
+            }
+            else
+            {
+                var (info, handler) = Commands.FirstOrDefault(x => x.Key.Triggers.Contains(trigger));
+
+                if (info is not null)
                 {
-                    commandRet = await handler(user, args);
-                    break;
+                    if (info.Type == CommandType.Multi && user.Match is null)
+                        commandRet = "This command should be used in multiplayer room!";
+                    else
+                        commandRet = await handler(user, args);
                 }
             }
-            
+
             if (channel is null)
                 await user.SendMessage(commandRet, Global.Bot);
             else
