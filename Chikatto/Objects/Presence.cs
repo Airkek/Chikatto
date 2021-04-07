@@ -39,7 +39,7 @@ namespace Chikatto.Objects
         
         public Presence Spectating;
         
-        public ConcurrentDictionary<int, Presence> Spectators = new();
+        public readonly ConcurrentDictionary<int, Presence> Spectators = new();
         public Channel SpectateChannel;
 
         public bool Restricted;
@@ -53,10 +53,20 @@ namespace Chikatto.Objects
             Mode = GameMode.Standard,
             MapId = 0
         };
+        
+        public string Table;
+        public int Rank;
+        public int RankedScore;
+        public int TotalScore;
+        public int PlayCount;
+        public short PP;
+        public float Accuracy;
 
         public async Task<int> GetRank()
         {
-            return (await Db.FetchAll<Stats>("SELECT * FROM stats")).Count(x => x.pp_vn_std > Stats.pp_vn_std) + 1;
+            return await Db.FetchOne<int>(
+                $"SELECT COUNT(stats.id) FROM stats JOIN users WHERE users.id = stats.id AND pp_{Table} > @pp AND priv & 1",
+                new {pp = Stats.pp_vn_std}) + 1;
         }
 
         public async Task SendMessage(string body, string sender, int senderId)
@@ -82,31 +92,63 @@ namespace Chikatto.Objects
 
         public async Task<BanchoUserStats> GetStats()
         {
-            if (Restricted)
-            {
-                return new BanchoUserStats
-                {
-                    Id = Id,
-                    Status = Status,
-                    RankedScore = Stats.rscore_vn_std,
-                    Accuracy = Stats.acc_vn_std,
-                    PlayCount = Stats.plays_vn_std,
-                    TotalScore = Stats.tscore_vn_std,
-                    Rank = 0,
-                    PP = 0
-                };
-            }
-            return new BanchoUserStats
+            var stats = new BanchoUserStats
             {
                 Id = Id,
                 Status = Status,
-                RankedScore = Stats.rscore_vn_std,
-                Accuracy = Stats.acc_vn_std,
-                PlayCount = Stats.plays_vn_std,
-                TotalScore = Stats.tscore_vn_std,
-                Rank = await GetRank(),
-                PP = Stats.pp_vn_std
+                RankedScore = RankedScore,
+                Accuracy = Accuracy,
+                PlayCount = PlayCount,
+                TotalScore = TotalScore,
+                Rank = 0,
+                PP = 0
             };
+            
+            if (!Restricted)
+            {
+                stats.Rank = Rank;
+                stats.PP = PP;
+            }
+            
+            return stats;
+        }
+
+        public async Task UpdateStatus(BanchoUserStatus status)
+        {
+            Status = status;
+            
+            var mode = Status.Mode switch
+            {
+                GameMode.Standard => "std",
+                GameMode.Taiko => "taiko",
+                GameMode.Catch => "ctb",
+                GameMode.Mania => "mania",
+                _ => "std"
+            };
+            var mods = "vn";
+            
+            if ((Status.Mods & Mods.Relax) != 0)
+            {
+                mods = "rx";
+            }
+            else if ((Status.Mods & Mods.AutoPilot) != 0)
+            {
+                mods = "ap";
+            }
+
+            var table = $"{mods}_{mode}";
+
+            if (table != Table)
+            {
+                Table = table;
+                
+                RankedScore = (int) typeof(Stats).GetProperty($"rscore_{mods}_{mode}").GetValue(Stats, null);
+                TotalScore = (int) typeof(Stats).GetProperty($"tscore_{mods}_{mode}").GetValue(Stats, null);
+                Accuracy = (float) typeof(Stats).GetProperty($"acc_{mods}_{mode}").GetValue(Stats, null);
+                PP = (short) typeof(Stats).GetProperty($"pp_{mods}_{mode}").GetValue(Stats, null);
+                PlayCount = (int) typeof(Stats).GetProperty($"plays_{mods}_{mode}").GetValue(Stats, null);
+                Rank = await GetRank();
+            }
         }
 
         public async Task<BanchoUserPresence> GetUserPresence()
@@ -117,7 +159,7 @@ namespace Chikatto.Objects
                 Name = Name,
                 BanchoPermissions = await GetBanchoPermissions(),
                 CountryCode = CountryCode,
-                Rank = await GetRank(),
+                Rank = Rank,
                 Timezone = 3,
                 Longitude = 0.0f,
                 Latitude = 0.0f
@@ -192,7 +234,7 @@ namespace Chikatto.Objects
             var channel = new Channel($"#spectator_{user.Id}", "Spectator channel");
             Global.Channels[channel.TrueName] = channel;
 
-            return new()
+            var presence = new Presence()
             {
                 Id = user.Id,
                 Name = user.Name,
@@ -203,6 +245,9 @@ namespace Chikatto.Objects
                 SpectateChannel = channel,
                 Restricted = (user.Privileges & Privileges.Normal) == 0
             };
+
+            await presence.UpdateStatus(presence.Status); // init rank, pp, score etc
+            return presence;
         }
 
         public async Task AddFriend(int id)

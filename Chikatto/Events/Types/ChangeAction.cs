@@ -11,7 +11,7 @@ namespace Chikatto.Events.Types
         [Event(PacketType.OsuChangeAction)]
         public static async Task Handle(PacketReader reader, Presence user)
         {
-            user.Status = reader.ReadBanchoObject<BanchoUserStatus>();
+            await user.UpdateStatus(reader.ReadBanchoObject<BanchoUserStatus>());
         }
     }
 }
