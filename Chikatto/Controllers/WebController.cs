@@ -63,7 +63,7 @@ namespace Chikatto.Controllers
                     continue;
                 
                 set.ChildrenBeatmaps.Sort((x, y) => x.DifficultyRating.CompareTo(y.DifficultyRating));
-                output.Add($"{set.SetId}.osz|{set.Artist}|{set.Title}|{set.Creator}|{(int) set.RankedStatus}|10.0|{set.SetId}|0|0|0|0|0|" + string.Join(",", set.ChildrenBeatmaps.Select(x => 
+                output.Add($"{set.SetId}.osz|{set.Artist}|{set.Title}|{set.Creator}|{(int) set.RankedStatus}|10.0|{set.LastUpdate}|{set.SetId}|0|0|0|0|0|" + string.Join(",", set.ChildrenBeatmaps.Select(x => 
                     $"[{x.DifficultyRating:n2}⭐] {x.DiffName} {{CS{x.CS} OD{x.OD} AR{x.AR} HP{x.HP}}}@{(int) x.Mode}")));
             }
             
