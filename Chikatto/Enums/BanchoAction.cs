@@ -1,4 +1,4 @@
-﻿namespace Chikatto.Constants
+﻿namespace Chikatto.Enums
 {
     public enum BanchoAction : byte
     {

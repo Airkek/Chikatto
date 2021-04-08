@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Chikatto.Enums;
 using Microsoft.EntityFrameworkCore.Query.Internal;
 using Newtonsoft.Json;
 
@@ -15,7 +16,7 @@ namespace Chikatto.Cheesegull.Models
 
         public List<Beatmap> ChildrenBeatmaps;
 
-        public int RankedStatus; // TODO: RankedStatus enum
+        public int RankedStatus;
         
         public string Tags;
         public string LastUpdate;

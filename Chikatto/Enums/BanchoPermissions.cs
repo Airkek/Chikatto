@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Chikatto.Constants
+namespace Chikatto.Enums
 {
     [Flags]
     public enum BanchoPermissions : byte
@@ -13,7 +13,6 @@ namespace Chikatto.Constants
         Peppy = 1 << 4,
         Tournament = 1 << 5,
         
-        User = Normal | Supporter,
         Bot = Normal | BAT | Peppy,
     }
 }

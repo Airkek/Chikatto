@@ -10,6 +10,7 @@ using Chikatto.Database.Models;
 using Chikatto.Extensions;
 using Chikatto.Multiplayer;
 using Chikatto.Utils;
+using Chikatto.Enums;
 
 namespace Chikatto.Objects
 {

@@ -1,5 +1,4 @@
-﻿using System.Security.Permissions;
-using Chikatto.Constants;
+﻿using Chikatto.Enums;
 
 namespace Chikatto.Cheesegull.Models
 {

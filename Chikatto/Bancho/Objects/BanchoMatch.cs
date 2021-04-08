@@ -1,6 +1,6 @@
 ﻿using System.Collections.Concurrent;
 using Chikatto.Bancho.Serialization;
-using Chikatto.Constants;
+using Chikatto.Enums;
 using Chikatto.Multiplayer;
 
 namespace Chikatto.Bancho.Objects

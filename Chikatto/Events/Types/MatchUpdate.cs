@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using Chikatto.Bancho;
 using Chikatto.Bancho.Enums;
 using Chikatto.Bancho.Objects;
-using Chikatto.Constants;
+using Chikatto.Enums;
 using Chikatto.Objects;
 
 namespace Chikatto.Events.Types

@@ -1,5 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
-using Chikatto.Constants;
+using Chikatto.Enums;
 
 namespace Chikatto.Database.Models
 {

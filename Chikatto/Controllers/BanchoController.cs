@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
 using Chikatto.Bancho;
 using Chikatto.Bancho.Serialization;
 using Chikatto.Constants;
@@ -12,7 +13,7 @@ using Chikatto.Database;
 using Chikatto.Events;
 using Chikatto.Objects;
 using Chikatto.Utils;
-using Microsoft.AspNetCore.Mvc;
+using Chikatto.Enums;
 
 namespace Chikatto.Controllers
 {

@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using Chikatto.Bancho;
 using Chikatto.Bancho.Objects;
 using Chikatto.Bancho.Serialization;
-using Chikatto.Constants;
+using Chikatto.Enums;
 using Chikatto.Extensions;
 using Chikatto.Objects;
 using Chikatto.Utils;

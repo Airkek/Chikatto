@@ -1,11 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using Chikatto.Bancho.Enums;
 using Chikatto.Bancho.Objects;
 using Chikatto.Constants;
 using Chikatto.Multiplayer;
 using Chikatto.Objects;
+using Chikatto.Enums;
 
 namespace Chikatto.Bancho
 {

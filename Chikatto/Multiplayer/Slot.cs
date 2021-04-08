@@ -1,5 +1,5 @@
 ﻿using System.Threading.Tasks;
-using Chikatto.Constants;
+using Chikatto.Enums;
 using Chikatto.Objects;
 
 namespace Chikatto.Multiplayer

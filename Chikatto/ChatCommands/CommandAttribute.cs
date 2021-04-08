@@ -1,7 +1,6 @@
 ﻿using System;
 using Chikatto.ChatCommands.Enums;
-using Chikatto.Constants;
-using Chikatto.Objects;
+using Chikatto.Enums;
 
 namespace Chikatto.ChatCommands
 {

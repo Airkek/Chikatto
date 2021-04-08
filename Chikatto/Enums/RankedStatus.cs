@@ -1,10 +1,10 @@
-﻿namespace Chikatto.Constants
+﻿namespace Chikatto.Enums
 {
     public enum RankedStatus : sbyte
     {
         Unknown = -2,
         NotSubmitted = -1,
-        LatestPending = 0,
+        Pending = 0,
         NeedUpdate = 1,
         Ranked = 2,
         Approved = 3,

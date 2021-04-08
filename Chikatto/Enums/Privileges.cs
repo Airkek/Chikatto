@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Chikatto.Constants
+namespace Chikatto.Enums
 {
     //author: cmyui https://github.com/cmyui/gulag/blob/master/constants/privileges.py
     

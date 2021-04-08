@@ -1,10 +1,8 @@
 ﻿using System.Collections.Concurrent;
-using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Chikatto.Bancho;
 using Chikatto.Bancho.Objects;
-using Chikatto.Constants;
+using Chikatto.Enums;
 using Chikatto.Database.Models;
 using Chikatto.Extensions;
 

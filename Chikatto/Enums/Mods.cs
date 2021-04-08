@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Chikatto.Constants
+namespace Chikatto.Enums
 {
     [Flags]
     public enum Mods

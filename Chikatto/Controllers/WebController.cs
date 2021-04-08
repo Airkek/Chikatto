@@ -1,17 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
-using System.Reflection.Metadata.Ecma335;
 using System.Threading.Tasks;
 using Chikatto.Cheesegull;
+using Chikatto.Enums;
 using Chikatto.Objects;
 using Chikatto.Utils;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Routing;
 
 namespace Chikatto.Controllers
 {
@@ -34,10 +29,13 @@ namespace Chikatto.Controllers
         public async Task<IActionResult> DirectSearch()
         {
             if (!await CheckAuthorization() || !int.TryParse(Request.Query["p"], out var offset)
-                                            || !int.TryParse(Request.Query["m"], out var mode))
+                                            || !int.TryParse(Request.Query["m"], out var mode) 
+                                            || !int.TryParse(Request.Query["r"], out var _status))
             {
                 return BadRequest();
             }
+
+            var status = (DirectRankedStatus) _status;
 
             var query = string.Empty;
 
@@ -47,10 +45,7 @@ namespace Chikatto.Controllers
                 query = Request.Query["q"];
             }
 
-            //TODO: Ranked status
-
-
-            var res = await CheesegullHelper.Search(offset, query, mode);
+            var res = await CheesegullHelper.Search(offset, query, mode, status);
 
             var output = new List<string>
             {
@@ -63,7 +58,7 @@ namespace Chikatto.Controllers
                     continue;
                 
                 set.ChildrenBeatmaps.Sort((x, y) => x.DifficultyRating.CompareTo(y.DifficultyRating));
-                output.Add($"{set.SetId}.osz|{set.Artist}|{set.Title}|{set.Creator}|{(int) set.RankedStatus}|10.0|{set.LastUpdate}|{set.SetId}|0|0|0|0|0|" + string.Join(",", set.ChildrenBeatmaps.Select(x => 
+                output.Add($"{set.SetId}.osz|{set.Artist}|{set.Title}|{set.Creator}|{set.RankedStatus}|10.0|{set.LastUpdate}|{set.SetId}|0|0|0|0|0|" + string.Join(",", set.ChildrenBeatmaps.Select(x => 
                     $"[{x.DifficultyRating:n2}⭐] {x.DiffName} {{CS{x.CS} OD{x.OD} AR{x.AR} HP{x.HP}}}@{(int) x.Mode}")));
             }
             
@@ -79,7 +74,7 @@ namespace Chikatto.Controllers
             var presence = await Auth.Login(user, pwMd5);
 
             if (presence is null || !presence.Online)
-                XConsole.Log($"{presence} requested {Request.Path} while not online", ConsoleColor.Yellow);
+                XConsole.Log($"{presence?.ToString() ?? user} requested {Request.Path} while not online", ConsoleColor.Yellow);
 
             return presence;
         }
