@@ -2,11 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Chikatto.Cheesegull;
+using Microsoft.AspNetCore.Mvc;
 using Chikatto.Enums;
 using Chikatto.Objects;
 using Chikatto.Utils;
-using Microsoft.AspNetCore.Mvc;
+using Chikatto.Utils.Cheesegull;
 
 namespace Chikatto.Controllers
 {

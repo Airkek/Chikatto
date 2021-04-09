@@ -1,9 +1,6 @@
 ﻿using System.Collections.Generic;
-using Chikatto.Enums;
-using Microsoft.EntityFrameworkCore.Query.Internal;
-using Newtonsoft.Json;
 
-namespace Chikatto.Cheesegull.Models
+namespace Chikatto.Utils.Cheesegull.Models
 {
     public class BeatmapSet
     {

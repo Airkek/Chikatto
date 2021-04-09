@@ -1,14 +1,11 @@
 ﻿using System;
 using System.Net;
 using System.Threading.Tasks;
-using Chikatto.Cheesegull.Models;
-using Chikatto.Enums;
-using Chikatto.Objects;
-using Chikatto.Utils;
-using Microsoft.EntityFrameworkCore.Infrastructure;
 using Newtonsoft.Json;
+using Chikatto.Enums;
+using Chikatto.Utils.Cheesegull.Models;
 
-namespace Chikatto.Cheesegull
+namespace Chikatto.Utils.Cheesegull
 {
     public static class CheesegullHelper
     {

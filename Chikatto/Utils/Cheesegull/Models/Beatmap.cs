@@ -1,6 +1,6 @@
 ﻿using Chikatto.Enums;
 
-namespace Chikatto.Cheesegull.Models
+namespace Chikatto.Utils.Cheesegull.Models
 {
     public class Beatmap
     {

@@ -1,8 +1,9 @@
 ﻿using System.Collections.Concurrent;
 using Chikatto.Database.Models;
 using Chikatto.Multiplayer;
+using Chikatto.Objects;
 
-namespace Chikatto.Objects
+namespace Chikatto
 {
     public static class Global
     {
@@ -17,6 +18,6 @@ namespace Chikatto.Objects
         public static readonly ConcurrentDictionary<string, Channel> Channels = new (); // <ChannelName, Channel>
         public static readonly ConcurrentDictionary<int, Match> Rooms = new (); // <Id, Match>
 
-        public static readonly ConcurrentDictionary<string, string> BCryptCache = new (); //<Hash, plain>
+        public static readonly ConcurrentDictionary<string, string> BCryptCache = new (); //<Hash, Plain>
     }
 }

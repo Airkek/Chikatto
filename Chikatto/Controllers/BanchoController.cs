@@ -11,7 +11,6 @@ using Chikatto.Bancho.Serialization;
 using Chikatto.Constants;
 using Chikatto.Database;
 using Chikatto.Events;
-using Chikatto.Objects;
 using Chikatto.Utils;
 using Chikatto.Enums;
 
@@ -19,7 +18,15 @@ namespace Chikatto.Controllers
 {
     public class BanchoController : Controller
     {
-        public OkObjectResult Default() => Ok($"Running Chikatto v{Misc.Version}");
+        public OkObjectResult Default()
+        {
+            var defStr = $"Running Chikatto v{Misc.Version}\r\n";
+
+            defStr += $"Online players: {Global.OnlineManager.Online}\r\n";
+            defStr += $"Multiplayer rooms: {Global.Rooms.Count}\r\n";
+            
+            return Ok(defStr);
+        }
         
         [Route("/")]
         public async Task<IActionResult> Bancho(
@@ -29,7 +36,7 @@ namespace Chikatto.Controllers
         {
             if (Request.Method == "GET" || userAgent != "osu!")
                 return Default();
-
+            
             Response.Headers["cho-protocol"] = Misc.BanchoProtocolVersion.ToString();
             
             await using var ms = new MemoryStream();
@@ -91,7 +98,7 @@ namespace Chikatto.Controllers
                     {
                         return SendPackets(new[]
                         {
-                            await FastPackets.UserId(-3) // banned
+                            await FastPackets.UserId(-3) // ban client
                         });
                     }
                 }
@@ -102,6 +109,15 @@ namespace Chikatto.Controllers
                     await u.SendMessage(
                         $"Welcome to our server. \r\nType {Global.Config.CommandPrefix}help to see list of available commands.",
                         Global.Bot);
+                }
+
+                if (u.User.Country.ToLower() == "xx")
+                {
+                    var ip = (string) Request.Headers["X-Real-IP"];
+                    u.User.Country = await IpApi.FetchLocation(ip);
+                    u.CountryCode = Misc.CountryCodes.ContainsKey(u.User.Country.ToUpper())
+                        ? Misc.CountryCodes[u.User.Country.ToUpper()]
+                        : (byte) 0;
                 }
 
                 token = Auth.CreateBanchoToken(u.Id, clientData);

@@ -98,14 +98,13 @@ namespace Chikatto.Controllers
                 using var md5 = MD5.Create();
                 var data = md5.ComputeHash(Encoding.UTF8.GetBytes(password));
                 var md5Pw = BitConverter.ToString(data).ToLower().Replace("-", "");
-
                 var hashPw = BCrypt.Net.BCrypt.HashPassword(md5Pw);
-                
-                //TODO: parse country from X-Real-IP
+
+                Global.BCryptCache[hashPw] = md5Pw;
 
                 await Db.Execute(@"INSERT INTO users (name, safe_name, email, pw_bcrypt, creation_time, latest_activity, country)
                              VALUES (@username, @safe, @email, @hashPw, UNIX_TIMESTAMP(), UNIX_TIMESTAMP(), @country)",
-                    new{ username, safe, email, hashPw, country = "XX" });
+                    new{ username, safe, email, hashPw, country = "xx" });
 
                 var id = await Db.FetchOne<int>("SELECT id FROM users WHERE safe_name = @safe", new {safe});
 
