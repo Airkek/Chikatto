@@ -15,6 +15,8 @@ namespace Chikatto
         public static ConfigScheme Config;
 
         public static readonly OnlineManager OnlineManager = new ();
+        public static readonly BeatmapManager BeatmapManager = new ();
+        
         public static readonly ConcurrentDictionary<string, Channel> Channels = new (); // <ChannelName, Channel>
         public static readonly ConcurrentDictionary<int, Match> Rooms = new (); // <Id, Match>
 

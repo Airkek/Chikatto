@@ -50,6 +50,10 @@ namespace Chikatto
             foreach (var dbChannel in channels)
                 Global.Channels.TryAdd(dbChannel.Name, new Channel(dbChannel));
 
+            var maps = Db.FetchAll<Beatmap>("SELECT * FROM maps").GetAwaiter().GetResult();
+
+            Global.BeatmapManager.Cache(maps);
+
             app.UseRouting();
 
             app.UseAuthorization();

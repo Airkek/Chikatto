@@ -38,20 +38,20 @@ namespace Chikatto.Utils
 
         public static string CreateBanchoToken(int userId, string[] clientData)
         {
-            var mac = clientData[1].ToLower().Split(".")[0];
+            var mac = clientData[1].ToLower().Replace(".", "");
             return string.Concat(
                 "chikatto:",
                 userId,
                 ":c",
-                mac.Substring(0, Math.Min(mac.Length, 5)), // first part of MacAddress (limit by 5 chars)
+                mac[..Math.Min(mac.Length, 5)], // first 5 chars of mac address 
                 "o",
-                clientData[0].Substring(0, 3), // first 3 chars of md5(osu!.exe)
+                clientData[0][..3], // first 3 chars of md5(osu!.exe)
                 "f",
-                clientData[2].Substring(0, 5), // first 5 chars of Adapters
+                clientData[2][..6], // first 6 chars of Adapters
                 "f",
-                clientData[3].Substring(0, 5), // first 5 chars of UninstallId
+                clientData[3][..6], // first 6 chars of UninstallId
                 "e",
-                clientData[4].Substring(0, 5), // first 5 chars of DiskSig
+                clientData[4][..6], // first 6 chars of DiskSig
                 "e"
             );
         }
