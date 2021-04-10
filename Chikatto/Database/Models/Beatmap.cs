@@ -22,5 +22,6 @@ namespace Chikatto.Database.Models
         [Column("od")] public float OD { get; set; }
         [Column("hp")] public float HP { get; set; }
         [Column("diff")] public float SR { get; set; }
+        [Column("max_combo")] public int MaxCombo { get; set; }
     }
 }
