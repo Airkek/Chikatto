@@ -17,7 +17,7 @@ namespace Chikatto.Events.Types
 
             var index = reader.ReadInt32();
             
-            if(index < 0 || index > 15)
+            if(index is < 0 or > 15)
                 return;
 
             var slot = user.Match.Slots.ElementAt(index);
