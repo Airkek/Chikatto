@@ -10,7 +10,7 @@ namespace Chikatto.Multiplayer
         public MatchTeam Team;
         public Mods Mods = Mods.NoMod;
         public Presence User;
-        public int UserId => User.Id;
+        public int UserId => User?.Id ?? -1;
 
         public bool Skipped = false;
 

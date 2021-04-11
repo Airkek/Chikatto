@@ -20,7 +20,7 @@ namespace Chikatto.Events.Types
             if(match.Slots.Any(x => x.Status == SlotStatus.Playing))
                 return;
 
-            await match.Unready();
+            await match.Unready(SlotStatus.HasPlayer);
             await match.AddPacketsToAllPlayers(FastPackets.MatchComplete);
             await match.Update();
         }

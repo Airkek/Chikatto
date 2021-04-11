@@ -17,7 +17,7 @@ namespace Chikatto.Events.Types
             var uSlot = match.GetSlot(user.Id);
             uSlot.Skipped = true;
             
-            if (match.Slots.All(slot => slot.Status == SlotStatus.Playing && slot.Skipped))
+            if (!match.Slots.Any(slot => slot.Status == SlotStatus.Playing && !slot.Skipped))
                 await match.AddPacketsToAllPlayers(FastPackets.MatchSkip);
         }
     }

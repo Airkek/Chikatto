@@ -125,7 +125,7 @@ namespace Chikatto.Multiplayer
         {
             foreach (var slot in Slots)
             {
-                if (slot.Status == status)
+                if ((slot.Status & status) != 0)
                     slot.Status = SlotStatus.NotReady;
             }
         }

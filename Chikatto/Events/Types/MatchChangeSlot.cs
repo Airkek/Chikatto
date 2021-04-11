@@ -12,12 +12,9 @@ namespace Chikatto.Events.Types
         [Event(PacketType.OsuMatchChangeSlot, false)]
         public static async Task Handle(PacketReader reader, Presence user)
         {
-            if(user.Match.InProgress)
-                return;
-
             var index = reader.ReadInt32();
             
-            if(index < 0 || index > 15)
+            if(index is < 0 or > 15)
                 return;
 
             var slot = user.Match.Slots.ElementAt(index);
