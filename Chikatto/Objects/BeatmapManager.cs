@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Chikatto.Database;
 using Chikatto.Database.Models;
+using Dapper;
 
 namespace Chikatto.Objects
 {
@@ -11,20 +12,21 @@ namespace Chikatto.Objects
     {
         private readonly ConcurrentDictionary<int, string> Md5s = new(); // <Map_id, Map_md5>
         private readonly ConcurrentDictionary<string, int> SetIds = new(); // <Map_md5, Set_id>
-        private readonly ConcurrentDictionary<int, string[]> Sets = new(); // <Set_id, Map_md5[]>
-        private readonly ConcurrentDictionary<string, Beatmap> Maps = new (); // <Map_md5, Beatmap>
+        private readonly ConcurrentDictionary<string, Beatmap> Maps = new(); // <Map_md5, Beatmap>
+        private readonly ConcurrentDictionary<int, BeatmapSet> Sets = new(); // <Set_id, BeatmapSet>
 
         public async Task<Beatmap> FromDb(string md5)
         {
             if (Maps.ContainsKey(md5))
                 return Maps[md5];
 
-            var map = await Db.FetchOne<Beatmap>("SELECT * FROM maps WHERE md5 = @md5", new[] { md5 });
+            var map = await Db.FetchOne<Beatmap>("SELECT * FROM maps WHERE md5 = @md5", new {md5});
             
             if (map is null)
                 map = await FromOsuApi(md5);
             
-            Cache(map); //TODO: cache all set
+            var set = await BeatmapSet.FromDbByBeatmap(map);
+            Cache(set);
 
             return map;
         }
@@ -34,15 +36,18 @@ namespace Chikatto.Objects
             if (Md5s.ContainsKey(id) && Maps.ContainsKey(Md5s[id]))
                 return await FromDb(Md5s[id]);
 
-            var map = await Db.FetchOne<Beatmap>("SELECT * FROM maps WHERE id = @id", new[] { id });
+            var map = await Db.FetchOne<Beatmap>("SELECT * FROM maps WHERE id = @id", new {id});
 
             if (map is null)
                 map = await FromOsuApi(id);
 
-            Cache(map); //TODO: cache all set
+            var set = await BeatmapSet.FromDbByBeatmap(map);
+            Cache(set);
 
             return map;
         }
+
+        public BeatmapSet GetMapsetCache(int setId) => Sets.ContainsKey(setId) ? Sets[setId] : null;
 
         public void Cache(Beatmap map)
         {
@@ -61,6 +66,15 @@ namespace Chikatto.Objects
 
             foreach (var map in maps)
                 Cache(map);
+        }
+        
+        public void Cache(BeatmapSet mapset)
+        {
+            if (mapset is null)
+                return;
+            
+            Sets[mapset.Id] = mapset;
+            Cache(mapset.Maps);
         }
 
         public async Task<Beatmap> FromOsuApi(string md5)

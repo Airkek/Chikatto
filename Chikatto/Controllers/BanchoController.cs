@@ -76,6 +76,17 @@ namespace Chikatto.Controllers
                 
                 u.LastPong = new DateTimeOffset(DateTime.Now).ToUnixTimeSeconds();
 
+                if (u.Spectating is not null)
+                    await u.Spectating.RemoveSpectator(u);
+                
+                if(u.Match is not null)
+                    await u.Match.Leave(u);
+
+                foreach (var (_, us) in u.Spectators)
+                {
+                    await u.RemoveSpectator(us);
+                }
+
                 var packets = new List<Packet>
                 {
                     await FastPackets.ProtocolVersion(),

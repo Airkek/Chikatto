@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Chikatto.Database.Models;
 using Microsoft.AspNetCore.Mvc;
 using Chikatto.Enums;
 using Chikatto.Objects;
@@ -64,6 +65,34 @@ namespace Chikatto.Controllers
             
             return Ok(string.Join("\r\n", output));
         }
+
+        [Route("osu-search-set.php")]
+        public async Task<IActionResult> SetSearch()
+        {
+            if (!await CheckAuthorization())
+                return BadRequest();
+
+            BeatmapSet set = null;
+
+            if (Request.Query.ContainsKey("s"))
+            {
+                if (!int.TryParse(Request.Query["s"], out var s))
+                    return BadRequest();
+                set = await BeatmapSet.FromDb(s);
+            }
+            else if (Request.Query.ContainsKey("b"))
+            {
+                if (!int.TryParse(Request.Query["b"], out var b))
+                    return BadRequest();
+                set = await BeatmapSet.FromDbByBeatmap(b);
+            }
+
+            if (set is null)
+                return NotFound();
+
+            return Ok($"{set.Id}.osz|{set.Artist}|{set.Title}|{set.Creator}|{set.Status}|10.0|0|{set.Id}|0|0|0|0|0");
+        }
+        
         //TODO: /web/ 
 
         public async Task<Presence> GetPresence()

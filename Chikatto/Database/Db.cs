@@ -43,9 +43,8 @@ namespace Chikatto.Database
 
         public static async Task<T> FetchOne<T>(string query, object param = null)
         {
-            var all = (await FetchAll<T>(query, param)).ToList();
-            
-            return all.Count == 0 ? default : all[0];
+            await using var connection = new MySqlConnection(ConnectionString);
+            return await connection.QueryFirstOrDefaultAsync<T>(query, param);
         }
 
         public static async Task<int> Execute(string command, object param = null)
