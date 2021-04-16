@@ -142,7 +142,7 @@ namespace Chikatto.Controllers
                 foreach (var us in users)
                     packets.Add(await FastPackets.UserPresence(us));
 
-                var channels = Global.Channels.Select(x => x.Value).Where(x => (x.Read & u.User.Privileges) == x.Read);
+                var channels = Global.Channels.Select(x => x.Value).Where(x => (x.Read & u.User.Privileges) != 0);
 
                 foreach (var channel in channels)
                 {

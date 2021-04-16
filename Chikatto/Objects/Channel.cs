@@ -58,7 +58,7 @@ namespace Chikatto.Objects
             if(Users.ContainsKey(user.Id))
                 return;
             
-            if((user.User.Privileges & Read) != Read)
+            if((user.User.Privileges & Read) == 0)
                 return;
             
             Users[user.Id] = user;
@@ -115,7 +115,7 @@ namespace Chikatto.Objects
                 if(!Users.ContainsKey(user.Id))
                     return;
             
-                if((user.Privileges & Write) != Write)
+                if((user.Privileges & Write) == 0)
                     return;
             }
             
