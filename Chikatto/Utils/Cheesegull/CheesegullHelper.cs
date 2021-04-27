@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Net;
 using System.Threading.Tasks;
+using Chikatto.Database.Models;
 using Newtonsoft.Json;
 using Chikatto.Enums;
 using Chikatto.Utils.Cheesegull.Models;
+using Beatmap = Chikatto.Database.Models.Beatmap;
 
 namespace Chikatto.Utils.Cheesegull
 {
@@ -26,13 +28,43 @@ namespace Chikatto.Utils.Cheesegull
 
             try
             {
-                var res = await wc.DownloadStringTaskAsync(Global.Config.DirectSearchMirror + data);
+                var res = await wc.DownloadStringTaskAsync(Global.Config.DirectCheesegullMirror + "search" + data);
                 return JsonConvert.DeserializeObject<BeatmapSet[]>(res) ?? Array.Empty<BeatmapSet>();
             }
             catch
             {
                 return Array.Empty<BeatmapSet>();
             }
-        } 
+        }
+
+        public static async Task<BeatmapSet> GetSet(int id)
+        {
+            using var wc = new WebClient();
+            
+            try
+            {
+                var res = await wc.DownloadStringTaskAsync(Global.Config.DirectCheesegullMirror + "s/" + id);
+                return JsonConvert.DeserializeObject<BeatmapSet>(res);
+            }
+            catch
+            {
+                return null;
+            }
+        }    
+        
+        public static async Task<Beatmap> GetMap(int id)
+        {
+            using var wc = new WebClient();
+            
+            try
+            {
+                var res = await wc.DownloadStringTaskAsync(Global.Config.DirectCheesegullMirror + "b/" + id);
+                return JsonConvert.DeserializeObject<Beatmap>(res);
+            }
+            catch
+            {
+                return null;
+            }
+        }    
     }
 }

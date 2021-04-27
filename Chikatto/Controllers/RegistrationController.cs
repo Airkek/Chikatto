@@ -7,6 +7,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Chikatto.Database;
 using Chikatto.Database.Models;
+using Chikatto.Enums;
 using Chikatto.Objects;
 using Chikatto.Utils;
 using Microsoft.AspNetCore.Http;
@@ -77,7 +78,7 @@ namespace Chikatto.Controllers
 
             if (errors.All(x => x.Value.Count == 0))
             {
-                var exists = await Db.FetchOne<User>("SELECT safe_name, email FROM users WHERE safe_name = @safe OR email = @email",
+                var exists = await Db.FetchOne<User>("SELECT username_safe, email FROM users WHERE username_safe = @safe OR email = @email",
                     new {safe, email});
 
                 if (exists is not null)
@@ -102,13 +103,19 @@ namespace Chikatto.Controllers
 
                 Global.BCryptCache[hashPw] = md5Pw;
 
-                await Db.Execute(@"INSERT INTO users (name, safe_name, email, pw_bcrypt, creation_time, latest_activity, country)
-                             VALUES (@username, @safe, @email, @hashPw, UNIX_TIMESTAMP(), UNIX_TIMESTAMP(), @country)",
-                    new{ username, safe, email, hashPw, country = "xx" });
+                await Db.Execute(@"INSERT INTO users (privileges, salt, username, username_safe, email, password_md5, password_version, register_datetime, latest_activity)
+                             VALUES (@privs, '', @username, @safe, @email, @hashPw, 2, UNIX_TIMESTAMP(), UNIX_TIMESTAMP())",
+                    new{ privs = Privileges.Normal | Privileges.PendingVerification, username, safe, email, hashPw });
 
-                var id = await Db.FetchOne<int>("SELECT id FROM users WHERE safe_name = @safe", new {safe});
+                var id = await Db.FetchOne<int>("SELECT id FROM users WHERE username_safe = @safe", new {safe});
 
-                await Db.Execute("INSERT INTO stats (id) VALUES (@id)", new { id });
+                await Db.Execute("INSERT INTO users_stats (id, username) VALUES (@id, @username)", new { id, username });
+
+                if (id == 1000)
+                {
+                    await Db.Execute("UPDATE users SET privileges = @privs WHERE id = 1000",
+                        new {privs = Privileges.Public | Privileges.Normal | Privileges.Donor | Privileges.Owner});
+                }
             
                 XConsole.Log($"<{username} ({id})> has registered!", back: ConsoleColor.Green);
             }

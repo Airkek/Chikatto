@@ -113,21 +113,21 @@ namespace Chikatto.Controllers
                         });
                     }
                 }
-                else if ((u.User.Privileges & Privileges.Verified) == 0) // user just registered
+                else if ((u.User.Privileges & Privileges.PendingVerification) != 0) // user just registered
                 {
-                    u.User.Privileges |= Privileges.Verified;
-                    await Db.Execute("UPDATE users SET priv = @priv WHERE id = @id", new { priv = u.User.Privileges, id = u.User.Id });
+                    u.User.Privileges = (u.User.Privileges & ~Privileges.PendingVerification) | Privileges.Public | Privileges.Normal;
+                    await Db.Execute("UPDATE users SET privileges = @priv WHERE id = @id", new { priv = u.User.Privileges, id = u.User.Id });
                     await u.SendMessage(
                         $"Welcome to our server. \r\nType {Global.Config.CommandPrefix}help to see list of available commands.",
                         Global.Bot);
                 }
 
-                if (u.User.Country.ToLower() == "xx")
+                if (u.Stats.Country.ToLower() == "xx")
                 {
                     var ip = (string) Request.Headers["X-Real-IP"];
-                    u.User.Country = await IpApi.FetchLocation(ip);
-                    u.CountryCode = Misc.CountryCodes.ContainsKey(u.User.Country.ToUpper())
-                        ? Misc.CountryCodes[u.User.Country.ToUpper()]
+                    u.Stats.Country = await IpApi.FetchLocation(ip);
+                    u.CountryCode = Misc.CountryCodes.ContainsKey(u.Stats.Country.ToUpper())
+                        ? Misc.CountryCodes[u.Stats.Country.ToUpper()]
                         : (byte) 0;
                 }
 
@@ -149,7 +149,7 @@ namespace Chikatto.Controllers
                     if((channel.Read & u.User.Privileges) != channel.Read || channel.IsTemp || channel.IsLobby)
                         continue;
                     
-                    if (channel.Default)
+                    if (channel.Name == "#osu") 
                         await channel.JoinUser(u);
                     else 
                         u.WaitingPackets.Enqueue(await channel.GetInfoPacket());

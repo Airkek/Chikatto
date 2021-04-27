@@ -16,7 +16,7 @@ namespace Chikatto.Utils
         {
             var safe = GetSafeName(name);
             
-            if(safe == Global.Bot.SafeName)
+            if(safe == GetSafeName(Global.Bot.Name))
                 return null;
             
             var user = await Presence.FromDatabase(GetSafeName(name));

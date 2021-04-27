@@ -28,7 +28,6 @@ namespace Chikatto.Objects
         public readonly string Topic;
         public readonly Privileges Write;
         public readonly Privileges Read;
-        public readonly bool Default;
         public readonly ConcurrentDictionary<int, Presence> Users = new ();
 
         public readonly bool IsLobby;
@@ -46,9 +45,8 @@ namespace Chikatto.Objects
         {
             TrueName = channel.Name;
             Topic = channel.Topic;
-            Write = channel.WritePrivileges;
-            Read = channel.ReadPrivileges;
-            Default = channel.AutoJoin;
+            Write = channel.PublicWrite ? Privileges.Normal : Privileges.Staff;
+            Read = channel.PublicRead ? Privileges.Normal : Privileges.Staff;
             IsLobby = Name == "#lobby";
             IsTemp = false;
         }

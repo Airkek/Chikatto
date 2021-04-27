@@ -23,6 +23,7 @@ namespace Chikatto.Database
             Map(typeof(DbChannel));
             Map(typeof(Beatmap));
             Map(typeof(Friendships));
+            Map(typeof(Stats));
         }
 
         private static void Map(Type type)

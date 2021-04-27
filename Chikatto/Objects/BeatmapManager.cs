@@ -20,7 +20,7 @@ namespace Chikatto.Objects
             if (Maps.ContainsKey(md5))
                 return Maps[md5];
 
-            var map = await Db.FetchOne<Beatmap>("SELECT * FROM maps WHERE md5 = @md5", new {md5});
+            var map = await Db.FetchOne<Beatmap>("SELECT * FROM beatmaps WHERE beatmap_md5 = @md5", new {md5});
             
             if (map is null)
                 map = await FromOsuApi(md5);
@@ -36,7 +36,7 @@ namespace Chikatto.Objects
             if (Md5s.ContainsKey(id) && Maps.ContainsKey(Md5s[id]))
                 return await FromDb(Md5s[id]);
 
-            var map = await Db.FetchOne<Beatmap>("SELECT * FROM maps WHERE id = @id", new {id});
+            var map = await Db.FetchOne<Beatmap>("SELECT * FROM beatmaps WHERE beatmap_id = @id", new {id});
 
             if (map is null)
                 map = await FromOsuApi(id);

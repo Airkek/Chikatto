@@ -12,9 +12,6 @@ namespace Chikatto.Objects
     {
         public readonly int Id;
         
-        public readonly string Artist;
-        public readonly string Title;
-        public readonly string Creator;
         public readonly RankedStatus Status;
 
         public readonly Beatmap[] Maps;
@@ -24,9 +21,6 @@ namespace Chikatto.Objects
         {
             var diff = maps.ElementAt(0);
             
-            Artist = diff.Artist;
-            Title = diff.Title;
-            Creator = diff.Creator;
             Status = diff.Status;
 
             Id = diff.SetId;
@@ -54,7 +48,7 @@ namespace Chikatto.Objects
             
             if (set is null)
             {
-                var maps = await Db.FetchAll<Beatmap>("SELECT * FROM maps WHERE set_id = @setId", new {setId});
+                var maps = await Db.FetchAll<Beatmap>("SELECT * FROM beatmaps WHERE beatmapset_id = @setId", new {setId});
 
                 if (maps is null || !maps.Any())
                     return null;

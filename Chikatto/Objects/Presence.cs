@@ -57,8 +57,8 @@ namespace Chikatto.Objects
         
         public string Table;
         public int Rank;
-        public int RankedScore;
-        public int TotalScore;
+        public long RankedScore;
+        public long TotalScore;
         public int PlayCount;
         public short PP;
         public float Accuracy;
@@ -66,8 +66,8 @@ namespace Chikatto.Objects
         public async Task<int> GetRank()
         {
             return await Db.FetchOne<int>(
-                $"SELECT COUNT(stats.id) FROM stats JOIN users WHERE users.id = stats.id AND pp_{Table} > @pp AND priv & 1",
-                new {pp = Stats.pp_vn_std}) + 1;
+                $"SELECT COUNT(users_stats.id) FROM users_stats JOIN users WHERE users.id = users_stats.id AND pp_{Table.ToLower()} > @pp AND privileges & 1",
+                new {pp = PP}) + 1;
         }
 
         public async Task SendMessage(string body, string sender, int senderId)
@@ -120,34 +120,22 @@ namespace Chikatto.Objects
             
             var mode = Status.Mode switch
             {
-                GameMode.Standard => "std",
-                GameMode.Taiko => "taiko",
-                GameMode.Catch => "ctb",
-                GameMode.Mania => "mania",
-                _ => "std"
+                GameMode.Standard => "STD",
+                GameMode.Taiko => "Taiko",
+                GameMode.Catch => "CTB",
+                GameMode.Mania => "Mania",
+                _ => "STD"
             };
-            var mods = "vn";
-            
-            if ((Status.Mods & Mods.Relax) != 0)
-            {
-                mods = "rx";
-            }
-            else if ((Status.Mods & Mods.AutoPilot) != 0)
-            {
-                mods = "ap";
-            }
 
-            var table = $"{mods}_{mode}";
-
-            if (table != Table)
+            if (mode != Table)
             {
-                Table = table;
+                Table = mode;
                 
-                RankedScore = (int) typeof(Stats).GetProperty($"rscore_{mods}_{mode}").GetValue(Stats, null);
-                TotalScore = (int) typeof(Stats).GetProperty($"tscore_{mods}_{mode}").GetValue(Stats, null);
-                Accuracy = (float) typeof(Stats).GetProperty($"acc_{mods}_{mode}").GetValue(Stats, null);
-                PP = (short) typeof(Stats).GetProperty($"pp_{mods}_{mode}").GetValue(Stats, null);
-                PlayCount = (int) typeof(Stats).GetProperty($"plays_{mods}_{mode}").GetValue(Stats, null);
+                RankedScore = (long) typeof(Stats).GetProperty($"RankedScore{mode}").GetValue(Stats, null);
+                TotalScore = (long) typeof(Stats).GetProperty($"TotalScore{mode}").GetValue(Stats, null);
+                Accuracy = (float) typeof(Stats).GetProperty($"Accuracy{mode}").GetValue(Stats, null);
+                PP = (short) typeof(Stats).GetProperty($"PP{mode}").GetValue(Stats, null);
+                PlayCount = (int) typeof(Stats).GetProperty($"Playcount{mode}").GetValue(Stats, null);
                 Rank = await GetRank();
             }
         }
@@ -178,7 +166,7 @@ namespace Chikatto.Objects
         {
             var privs = BanchoPermissions.Normal;
 
-            if ((user.Privileges & Privileges.Donator) != 0)
+            if ((user.Privileges & Privileges.Donor) != 0)
                 privs |= BanchoPermissions.Supporter;
 
             if ((user.Privileges & Privileges.Nominator) != 0)
@@ -187,10 +175,10 @@ namespace Chikatto.Objects
             if ((user.Privileges & Privileges.Staff) != 0)
                 privs |= BanchoPermissions.Moderator;
 
-            if ((user.Privileges & Privileges.Dangerous) != 0)
+            if ((user.Privileges & Privileges.Owner) != 0)
                 privs |= BanchoPermissions.Peppy;
 
-            if ((user.Privileges & Privileges.Tournament) != 0)
+            if ((user.Privileges & Privileges.TournamentStaff) != 0)
                 privs |= BanchoPermissions.Tournament;
 
             return privs;
@@ -216,7 +204,7 @@ namespace Chikatto.Objects
             if (cached is not null)
                 return cached;
             
-            var user = await Db.FetchOne<User>("SELECT * FROM users WHERE safe_name = @safe",new {safe = safename});
+            var user = await Db.FetchOne<User>("SELECT * FROM users WHERE username_safe = @safe",new {safe = safename});
             if (user is null)
                 return null;
 
@@ -226,7 +214,7 @@ namespace Chikatto.Objects
         public static async Task<Presence> FromUser(User user)
         {
             var friendsDict = new ConcurrentDictionary<int, int>();
-            var x = await Db.FetchAll<Friendships>("SELECT * FROM friendships WHERE user1 = @uid", new {uid = user.Id});
+            var x = await Db.FetchAll<Friendships>("SELECT * FROM users_relationships WHERE user1 = @uid", new {uid = user.Id});
             x
                 .Select(x => x.FriendId).ToList().ForEach(x => friendsDict[x] = x);
 
@@ -235,16 +223,18 @@ namespace Chikatto.Objects
             var channel = new Channel($"#spectator_{user.Id}", "Spectator channel");
             Global.Channels[channel.TrueName] = channel;
 
+            var stats = await Db.FetchOne<Stats>("SELECT * FROM users_stats WHERE id = @uid", new {uid = user.Id});
+
             var presence = new Presence()
             {
                 Id = user.Id,
                 Name = user.Name,
                 User = user,
-                CountryCode = Misc.CountryCodes.ContainsKey(user.Country.ToUpper()) ? Misc.CountryCodes[user.Country.ToUpper()] : (byte) 0,
-                Stats = await Db.FetchOne<Stats>("SELECT * FROM stats WHERE id = @uid", new { uid = user.Id }),
+                CountryCode = Misc.CountryCodes.ContainsKey(stats.Country.ToUpper()) ? Misc.CountryCodes[stats.Country.ToUpper()] : (byte) 0,
+                Stats = stats,
                 Friends = friendsDict,
                 SpectateChannel = channel,
-                Restricted = (user.Privileges & Privileges.Normal) == 0
+                Restricted = (user.Privileges & Privileges.Public) == 0
             };
 
             await presence.UpdateStatus(presence.Status); // init rank, pp, score etc
@@ -257,7 +247,7 @@ namespace Chikatto.Objects
                 return;
 
             Friends[id] = id;
-            await Db.Execute("INSERT INTO friendships VALUE (@uid, @fid)", new { uid = Id, fid = id });
+            await Db.Execute("INSERT INTO users_relationships VALUE (@uid, @fid)", new { uid = Id, fid = id });
         }
         
         public async Task RemoveFriend(int id)
@@ -266,12 +256,12 @@ namespace Chikatto.Objects
                 return;
 
             Friends.Remove(id);
-            await Db.Execute("DELETE FROM friendships WHERE user1 = @uid AND user2 = @fid", new { uid = Id, fid = id });
+            await Db.Execute("DELETE FROM users_relationships WHERE user1 = @uid AND user2 = @fid", new { uid = Id, fid = id });
         }
 
         public async Task Ban(bool restrict = true)
         {
-            var newPriv = User.Privileges & ~Privileges.Normal;
+            var newPriv = User.Privileges & ~Privileges.Public;
             
             if (restrict)
                 newPriv |= Privileges.Restricted;
@@ -301,7 +291,7 @@ namespace Chikatto.Objects
 
         public async Task Unban()
         {
-            var newPriv = (User.Privileges & ~Privileges.Restricted) | Privileges.Normal;
+            var newPriv = (User.Privileges & ~Privileges.Restricted) | Privileges.Public;
 
             await UpdatePrivileges(newPriv);
 
@@ -318,7 +308,7 @@ namespace Chikatto.Objects
 
         public async Task UpdatePrivileges(Privileges newPriv)
         {
-            await Db.Execute("UPDATE users SET priv = @newPriv where id = @id", new { newPriv, Id });
+            await Db.Execute("UPDATE users SET privileges = @newPriv where id = @id", new { newPriv, Id });
         }
         
         public async Task AddSpectator(Presence user)

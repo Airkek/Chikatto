@@ -7,28 +7,35 @@ namespace Chikatto.Enums
     [Flags]
     public enum Privileges
     {
-        Normal = 1 << 0, // is an unbanned player.
-        Verified = 1 << 1, // has logged in to the server in-game.
-
-        // has bypass to low-ceiling anticheat measures (trusted).
-        Whitelisted = 1 << 2,
-
-        // donation tiers, receives some extra benefits.
-        Supporter = 1 << 4,
-        Premium = 1 << 5,
-
-        // notable users, receives some extra benefits.
-        Alumni = 1 << 7,
-
-        // staff permissions, able to manage server state.
-        Tournament = 1 << 10, //able to manage match state without host.
-        Nominator = 1 << 11, // able to manage maps ranked status.
-        Mod = 1 << 12, // able to manage users (level 1).
-        Admin = 1 << 13, // able to manage users (level 2).
-        Dangerous = 1 << 14, // able to manage full server state.
-        Restricted = 1 << 15, // restricted player.
-
-        Donator = Supporter | Premium,
-        Staff = Mod | Admin | Dangerous
+        Public = 1,
+        Normal = 2 << 0,
+        Donor = 2 << 1,
+        AdminAccessRap = 2 << 2,
+        AdminManageUsers = 2 << 3,
+        AdminBanUsers = 2 << 4,
+        AdminSilenceUsers = 2 << 5,
+        AdminWipeUsers = 2 << 6,
+        AdminManageBeatmaps = 2 << 7,
+        AdminManageServers = 2 << 8,
+        AdminManageSettings = 2 << 9,
+        AdminManageBetakeys = 2 << 10,
+        AdminManageReports = 2 << 11,
+        AdminManageDocs = 2 << 12,
+        AdminManageBadges = 2 << 13,
+        AdminViewRapLogs = 2 << 14,
+        AdminManagePrivileges = 2 << 15,
+        AdminSendAlerts = 2 << 16,
+        AdminChatMod = 2 << 17,
+        AdminKickUsers = 2 << 18,
+        PendingVerification = 2 << 19,
+        TournamentStaff = 2 << 20,
+        AdminCaker = 2 << 21,
+        Restricted = 2 << 22,
+        
+        Nominator = AdminViewRapLogs | AdminManageBeatmaps,
+        Mod = AdminViewRapLogs | AdminManageBetakeys | AdminManageUsers | AdminChatMod | AdminSendAlerts | AdminSilenceUsers | AdminManageReports,
+        Admin = Mod | AdminKickUsers | AdminBanUsers | AdminManageBadges | AdminWipeUsers,
+        Owner = Nominator | Admin | AdminAccessRap | AdminManageServers | AdminManageSettings | AdminManageDocs | AdminManagePrivileges | TournamentStaff | AdminCaker,
+        Staff = Owner
     }
 }

@@ -8,6 +8,7 @@ using Chikatto.Enums;
 using Chikatto.Objects;
 using Chikatto.Utils;
 using Chikatto.Utils.Cheesegull;
+using BeatmapSet = Chikatto.Utils.Cheesegull.Models.BeatmapSet;
 
 namespace Chikatto.Controllers
 {
@@ -72,27 +73,32 @@ namespace Chikatto.Controllers
             if (!await CheckAuthorization())
                 return BadRequest();
 
-            BeatmapSet set = null;
 
+            Utils.Cheesegull.Models.BeatmapSet set = null;
+            
             if (Request.Query.ContainsKey("s"))
             {
                 if (!int.TryParse(Request.Query["s"], out var s))
                     return BadRequest();
-                set = await BeatmapSet.FromDb(s);
+                
+                set = await CheesegullHelper.GetSet(s);
             }
             else if (Request.Query.ContainsKey("b"))
             {
                 if (!int.TryParse(Request.Query["b"], out var b))
                     return BadRequest();
-                set = await BeatmapSet.FromDbByBeatmap(b);
+                
+                var map = await CheesegullHelper.GetMap(b);
+
+                set = await CheesegullHelper.GetSet(map.SetId);
             }
 
             if (set is null)
                 return NotFound();
-
-            return Ok($"{set.Id}.osz|{set.Artist}|{set.Title}|{set.Creator}|{set.Status}|10.0|0|{set.Id}|0|0|0|0|0");
+            
+            return Ok($"{set.SetId}.osz|{set.Artist}|{set.Title}|{set.Creator}|{set.RankedStatus}|10.0|0|{set.SetId}|0|0|0|0|0");
         }
-        
+
         //TODO: /web/ 
 
         public async Task<Presence> GetPresence()

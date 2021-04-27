@@ -40,17 +40,18 @@ namespace Chikatto
             }
 
             Global.Bot = Db.FetchOne<User>("SELECT * FROM users WHERE id = @id", new{ id = Global.Config.BotId }).GetAwaiter().GetResult();
-
-            Global.BotCountry = Misc.CountryCodes.ContainsKey(Global.Bot.Country.ToUpper())
-                ? Misc.CountryCodes[Global.Bot.Country.ToUpper()]
+            
+            var stats = Db.FetchOne<Stats>("SELECT * FROM users_stats WHERE id = @id", new{ id = Global.Config.BotId }).GetAwaiter().GetResult();
+            Global.BotCountry = Misc.CountryCodes.ContainsKey(stats.Country.ToUpper())
+                ? Misc.CountryCodes[stats.Country.ToUpper()]
                 : (byte) 245; // satellite provider
 
-            var channels = Db.FetchAll<DbChannel>("SELECT * FROM channels").GetAwaiter().GetResult();
+            var channels = Db.FetchAll<DbChannel>("SELECT * FROM bancho_channels").GetAwaiter().GetResult();
             
             foreach (var dbChannel in channels)
                 Global.Channels.TryAdd(dbChannel.Name, new Channel(dbChannel));
 
-            var maps = Db.FetchAll<Beatmap>("SELECT * FROM maps").GetAwaiter().GetResult();
+            var maps = Db.FetchAll<Beatmap>("SELECT * FROM beatmaps").GetAwaiter().GetResult();
 
             Global.BeatmapManager.Cache(maps);
 
