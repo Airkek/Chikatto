@@ -132,9 +132,9 @@ namespace Chikatto.Controllers
                         ? Misc.CountryCodes[country]
                         : (byte) 0;
 
-                    await Db.Execute("UPDATE users_stats WHERE id = @id SET country = @country",
+                    await Db.Execute("UPDATE users_stats SET country = @country WHERE id = @id",
                         new {id = u.Id, country});
-                    await Db.Execute("UPDATE rx_stats WHERE id = @id SET country = @country",
+                    await Db.Execute("UPDATE rx_stats SET country = @country WHERE id = @id",
                         new {id = u.Id, country});
                 }
 
