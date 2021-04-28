@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Net;
 using System.Threading.Tasks;
-using Chikatto.Database.Models;
 using Newtonsoft.Json;
 using Chikatto.Enums;
 using Chikatto.Utils.Cheesegull.Models;
-using Beatmap = Chikatto.Database.Models.Beatmap;
 
 namespace Chikatto.Utils.Cheesegull
 {

@@ -8,7 +8,6 @@ using Chikatto.Enums;
 using Chikatto.Objects;
 using Chikatto.Utils;
 using Chikatto.Utils.Cheesegull;
-using BeatmapSet = Chikatto.Utils.Cheesegull.Models.BeatmapSet;
 
 namespace Chikatto.Controllers
 {
@@ -90,7 +89,7 @@ namespace Chikatto.Controllers
                 
                 var map = await CheesegullHelper.GetMap(b);
 
-                set = await CheesegullHelper.GetSet(map.SetId);
+                set = await CheesegullHelper.GetSet(map.ParentSetID);
             }
 
             if (set is null)
