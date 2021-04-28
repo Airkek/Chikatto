@@ -122,13 +122,19 @@ namespace Chikatto.Controllers
                         Global.Bot);
                 }
 
-                if (u.Stats.Country.ToLower() == "xx")
+                if (u.Stats.Country.ToUpper() == "XX")
                 {
                     var ip = (string) Request.Headers["X-Real-IP"];
-                    u.Stats.Country = await IpApi.FetchLocation(ip);
+                    var country = await IpApi.FetchLocation(ip);
+                    u.Stats.Country = country;
                     u.CountryCode = Misc.CountryCodes.ContainsKey(u.Stats.Country.ToUpper())
                         ? Misc.CountryCodes[u.Stats.Country.ToUpper()]
                         : (byte) 0;
+
+                    await Db.Execute("UPDATE users_stats WHERE id = @id SET country = @country",
+                        new {id = u.Id, country});
+                    await Db.Execute("UPDATE rx_stats WHERE id = @id SET country = @country",
+                        new {id = u.Id, country});
                 }
 
                 token = Auth.CreateBanchoToken(u.Id, clientData);
