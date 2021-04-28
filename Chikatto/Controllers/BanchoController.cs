@@ -98,11 +98,11 @@ namespace Chikatto.Controllers
                     await FastPackets.BotPresence(),
                 };
 
-                if (u.User.Privileges == Privileges.PendingVerification) // user just registered
+                if ((u.User.Privileges & Privileges.PendingVerification) != 0) // user just registered
                 {
                     u.User.Privileges &= ~Privileges.PendingVerification;
                     //TODO: check for duplicate hwids
-                    u.User.Privileges |= Privileges.Public | Privileges.Normal;
+                    u.User.Privileges |= Privileges.Public | Privileges.Normal; // set user normal
                     await Db.Execute("UPDATE users SET privileges = @priv WHERE id = @id", new { priv = u.User.Privileges, id = u.User.Id });
                     await u.SendMessage(
                         $"Welcome to our server. \r\nType {Global.Config.CommandPrefix}help to see list of available commands.",
@@ -110,7 +110,7 @@ namespace Chikatto.Controllers
                 }
                 else if (u.Restricted) 
                 {
-                    if ((u.User.Privileges & Privileges.Restricted) != 0) // account restricted
+                    if ((u.User.Privileges & Privileges.Normal) == 0) // account restricted
                     {
                         packets.Add(FastPackets.AccountRestricted);
                         await u.Notify("Your account is currently in restricted mode");

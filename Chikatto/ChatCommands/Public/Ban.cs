@@ -22,7 +22,7 @@ namespace Chikatto.ChatCommands.Public
             if (toBan is null)
                 return $"User <{username}> not found";
 
-            if (toBan.Restricted && (toBan.User.Privileges & Privileges.Restricted) == 0)
+            if (toBan.Restricted && (toBan.User.Privileges & Privileges.Normal) == 0)
                 return $"{toBan} is already banned";
 
             await toBan.Ban(false);

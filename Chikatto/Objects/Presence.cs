@@ -244,7 +244,7 @@ namespace Chikatto.Objects
                 StatsTable = "users",
                 Friends = friendsDict,
                 SpectateChannel = channel,
-                Restricted = (user.Privileges & Privileges.Public) == 0
+                Restricted = (user.Privileges & (Privileges.Public | Privileges.PendingVerification)) == 0
             };
 
             await presence.UpdateStatus(presence.Status); // init rank, pp, score etc
@@ -273,8 +273,8 @@ namespace Chikatto.Objects
         {
             var newPriv = User.Privileges & ~Privileges.Public;
             
-            if (restrict)
-                newPriv |= Privileges.Restricted;
+            if (!restrict)
+                newPriv &= ~Privileges.Normal;
 
             await UpdatePrivileges(newPriv);
 
@@ -301,7 +301,7 @@ namespace Chikatto.Objects
 
         public async Task Unban()
         {
-            var newPriv = (User.Privileges & ~Privileges.Restricted) | Privileges.Public;
+            var newPriv = User.Privileges | Privileges.Normal | Privileges.Public;
 
             await UpdatePrivileges(newPriv);
 

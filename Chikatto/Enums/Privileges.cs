@@ -30,8 +30,7 @@ namespace Chikatto.Enums
         PendingVerification = 2 << 19,
         TournamentStaff = 2 << 20,
         AdminCaker = 2 << 21,
-        Restricted = 2 << 22,
-        
+
         Nominator = AdminViewRapLogs | AdminManageBeatmaps,
         Mod = AdminViewRapLogs | AdminManageBetakeys | AdminManageUsers | AdminChatMod | AdminSendAlerts | AdminSilenceUsers | AdminManageReports,
         Admin = Mod | AdminKickUsers | AdminBanUsers | AdminManageBadges | AdminWipeUsers,
