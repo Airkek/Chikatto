@@ -105,7 +105,7 @@ namespace Chikatto.Controllers
 
                 await Db.Execute(@"INSERT INTO users (privileges, salt, username, username_safe, email, password_md5, password_version, register_datetime, latest_activity)
                              VALUES (@privs, '', @username, @safe, @email, @hashPw, 2, UNIX_TIMESTAMP(), UNIX_TIMESTAMP())",
-                    new{ privs = Privileges.Normal | Privileges.PendingVerification, username, safe, email, hashPw });
+                    new{ privs = Privileges.PendingVerification, username, safe, email, hashPw });
 
                 var id = await Db.FetchOne<int>("SELECT id FROM users WHERE username_safe = @safe", new {safe});
 
@@ -116,7 +116,7 @@ namespace Chikatto.Controllers
                 {
                     //give all permissions to first registered user
                     await Db.Execute("UPDATE users SET privileges = @privs WHERE id = 1000",
-                        new {privs = Privileges.Public | Privileges.Normal | Privileges.Donor | Privileges.Owner});
+                        new {privs = Privileges.Public | Privileges.Normal | Privileges.Donor | Privileges.Owner | Privileges.PendingVerification});
                 }
             
                 XConsole.Log($"<{username} ({id})> has registered!", back: ConsoleColor.Green);
