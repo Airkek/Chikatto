@@ -55,7 +55,8 @@ namespace Chikatto.Objects
             MapId = 0
         };
         
-        public string Table;
+        public string ModeName;
+        public string StatsTable;
         public int Rank;
         public long RankedScore;
         public long TotalScore;
@@ -66,7 +67,7 @@ namespace Chikatto.Objects
         public async Task<int> GetRank()
         {
             return await Db.FetchOne<int>(
-                $"SELECT COUNT(users_stats.id) FROM users_stats JOIN users WHERE users.id = users_stats.id AND pp_{Table.ToLower()} > @pp AND privileges & 1",
+                $"SELECT COUNT(users_stats.id) FROM users_stats JOIN users WHERE users.id = users_stats.id AND pp_{ModeName.ToLower()} > @pp AND privileges & 1",
                 new {pp = PP}) + 1;
         }
 
@@ -127,10 +128,18 @@ namespace Chikatto.Objects
                 _ => "STD"
             };
 
-            if (mode != Table)
+            var mod = (Status.Mods & Mods.Relax) == 0 ? "users" : "rx";
+
+            if (mode != ModeName || mod != StatsTable)
             {
-                Table = mode;
+                if (StatsTable != mod)
+                {
+                    StatsTable = mod;
+                    Stats = await Db.FetchOne<Stats>("SELECT * FROM {mod}_stats WHERE id = @uid", new {uid = Id});
+                }
                 
+                ModeName = mode;
+
                 RankedScore = (long) typeof(Stats).GetProperty($"RankedScore{mode}").GetValue(Stats, null);
                 TotalScore = (long) typeof(Stats).GetProperty($"TotalScore{mode}").GetValue(Stats, null);
                 Accuracy = (float) typeof(Stats).GetProperty($"Accuracy{mode}").GetValue(Stats, null);
@@ -232,6 +241,7 @@ namespace Chikatto.Objects
                 User = user,
                 CountryCode = Misc.CountryCodes.ContainsKey(stats.Country.ToUpper()) ? Misc.CountryCodes[stats.Country.ToUpper()] : (byte) 0,
                 Stats = stats,
+                StatsTable = "users",
                 Friends = friendsDict,
                 SpectateChannel = channel,
                 Restricted = (user.Privileges & Privileges.Public) == 0

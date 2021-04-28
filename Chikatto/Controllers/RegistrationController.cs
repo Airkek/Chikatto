@@ -110,9 +110,11 @@ namespace Chikatto.Controllers
                 var id = await Db.FetchOne<int>("SELECT id FROM users WHERE username_safe = @safe", new {safe});
 
                 await Db.Execute("INSERT INTO users_stats (id, username) VALUES (@id, @username)", new { id, username });
-
+                await Db.Execute("INSERT INTO rx_stats (id, username) VALUES (@id, @username)", new { id, username });
+                
                 if (id == 1000)
                 {
+                    //give all permissions to first registered user
                     await Db.Execute("UPDATE users SET privileges = @privs WHERE id = 1000",
                         new {privs = Privileges.Public | Privileges.Normal | Privileges.Donor | Privileges.Owner});
                 }
