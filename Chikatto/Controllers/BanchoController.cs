@@ -128,7 +128,7 @@ namespace Chikatto.Controllers
                     var country = (await IpApi.FetchLocation(ip)).ToUpper();
                     u.Stats.Country = country;
                     u.CountryCode = Misc.CountryCodes.ContainsKey(country)
-                        ? Misc.CountryCodes[u.Stats.Country.ToUpper()]
+                        ? Misc.CountryCodes[country]
                         : (byte) 0;
 
                     await Db.Execute("UPDATE users_stats WHERE id = @id SET country = @country",
