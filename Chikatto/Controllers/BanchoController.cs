@@ -125,9 +125,9 @@ namespace Chikatto.Controllers
                 if (u.Stats.Country.ToUpper() == "XX")
                 {
                     var ip = (string) Request.Headers["X-Real-IP"];
-                    var country = await IpApi.FetchLocation(ip);
+                    var country = (await IpApi.FetchLocation(ip)).ToUpper();
                     u.Stats.Country = country;
-                    u.CountryCode = Misc.CountryCodes.ContainsKey(u.Stats.Country.ToUpper())
+                    u.CountryCode = Misc.CountryCodes.ContainsKey(country)
                         ? Misc.CountryCodes[u.Stats.Country.ToUpper()]
                         : (byte) 0;
 
