@@ -963,10 +963,10 @@ INSERT IGNORE INTO `rx_stats` (
 ) 
 VALUES 
   (
-    999, 'Ripple', '', 'black', '', 0, 1, 
+    999, 'DenBai', '', 'black', '', 0, 1, 
     1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
-    0, 'JP', 1, 1
+    0, 'UA', 1, 1
   );
 -- Dumping structure for table scores
 CREATE TABLE IF NOT EXISTS `scores` (
@@ -1083,7 +1083,7 @@ INSERT IGNORE INTO `users` (
 ) 
 VALUES 
   (
-    999, NULL, 'Ripple', 'ripple', '0', 
+    999, NULL, 'DenBai', 'denbai', '0', 
     '*0', '5e/AceVLS7jJtxTJA1U6rmVqrWREYg==', 
     'fo@kab.ot', 1566228790, 4, 1, 1569775752, 
     0, '', 1, 3145727, 2147483647, 0, 0, 
@@ -1202,7 +1202,7 @@ INSERT IGNORE INTO `users_stats` (
 ) 
 VALUES 
   (
-    999, 'Ripple', '', 'black', '', 0, 26956, 
+    999, 'DenBai', '', 'black', '', 0, 26956, 
     237228316533, 6228506, 0, 0, 0, 0, 0, 
     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'JP', 1, 0, 
     1, 102, 1, 1, 1, 0, 0, 0, 0, 0.000000000000, 
