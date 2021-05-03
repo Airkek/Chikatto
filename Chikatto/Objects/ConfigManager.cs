@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using Chikatto.Config;
 using Newtonsoft.Json;
 
 namespace Chikatto.Objects
@@ -23,7 +24,7 @@ namespace Chikatto.Objects
                 File.WriteAllText(FileName, JsonConvert.SerializeObject(cfg, Formatting.Indented)); //update config file to latest scheme
             }
 
-            cfg.SeasonalBgsJson = JsonConvert.SerializeObject(cfg.SeasonalBgs);
+            cfg.SeasonalBgsJson = JsonConvert.SerializeObject(cfg.Misc.SeasonalBgs);
 
             return cfg;
         }

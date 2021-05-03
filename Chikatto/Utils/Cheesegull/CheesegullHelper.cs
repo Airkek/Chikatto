@@ -26,7 +26,7 @@ namespace Chikatto.Utils.Cheesegull
 
             try
             {
-                var res = await wc.DownloadStringTaskAsync(Global.Config.DirectCheesegullMirror + "search" + data);
+                var res = await wc.DownloadStringTaskAsync(Global.Config.Cheesegull.ApiMirror + "search" + data);
                 return JsonConvert.DeserializeObject<BeatmapSet[]>(res) ?? Array.Empty<BeatmapSet>();
             }
             catch
@@ -41,7 +41,7 @@ namespace Chikatto.Utils.Cheesegull
             
             try
             {
-                var res = await wc.DownloadStringTaskAsync(Global.Config.DirectCheesegullMirror + "s/" + id);
+                var res = await wc.DownloadStringTaskAsync(Global.Config.Cheesegull.ApiMirror + "s/" + id);
                 return JsonConvert.DeserializeObject<BeatmapSet>(res);
             }
             catch
@@ -56,7 +56,7 @@ namespace Chikatto.Utils.Cheesegull
             
             try
             {
-                var res = await wc.DownloadStringTaskAsync(Global.Config.DirectCheesegullMirror + "b/" + id);
+                var res = await wc.DownloadStringTaskAsync(Global.Config.Cheesegull.ApiMirror + "b/" + id);
                 return JsonConvert.DeserializeObject<Beatmap>(res);
             }
             catch

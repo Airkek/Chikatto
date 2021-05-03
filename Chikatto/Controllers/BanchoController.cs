@@ -91,7 +91,7 @@ namespace Chikatto.Controllers
                 {
                     await FastPackets.ProtocolVersion(),
                     await FastPackets.UserId(u.Id),
-                    await FastPackets.MainMenuIcon(Global.Config.LogoIngame, Global.Config.LogoClickUrl),
+                    await FastPackets.MainMenuIcon(Global.Config.Misc.LogoIngame, Global.Config.Misc.LogoClickUrl),
                     await FastPackets.Notification($"Welcome back!\r\nChikatto Build v{Misc.Version}"),
                     await FastPackets.BanchoPrivileges(await u.GetBanchoPermissions() | BanchoPermissions.Supporter),
                     await FastPackets.FriendList(u.Friends.Select(x => x.Key).ToList()),

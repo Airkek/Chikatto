@@ -13,8 +13,8 @@ namespace Chikatto.Database
 {
     public static class Db
     {
-        private static string ConnectionString => $"server={Global.Config.DatabaseHost};database={Global.Config.DatabaseName};" +
-                                                  $"user={Global.Config.DatabaseUser};password={Global.Config.DatabasePassword};";
+        private static string ConnectionString => $"server={Global.Config.Database.Host};database={Global.Config.Database.Database};" +
+                                                  $"user={Global.Config.Database.User};password={Global.Config.Database.Password};";
 
         public static void Init()
         {

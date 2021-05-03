@@ -1,4 +1,5 @@
 ﻿using System.Collections.Concurrent;
+using Chikatto.Config;
 using Chikatto.Database.Models;
 using Chikatto.Multiplayer;
 using Chikatto.Objects;

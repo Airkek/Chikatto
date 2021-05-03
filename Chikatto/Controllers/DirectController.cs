@@ -9,6 +9,6 @@ namespace Chikatto.Controllers
         [HttpGet]
         [Route("/d/{id}")]
         public async Task<IActionResult> Download(string id) =>
-            Redirect($"{Global.Config.DirectDownloadMirror}{id.Replace("n", "")}");
+            Redirect($"{Global.Config.Cheesegull.DownloadMirror}{id.Replace("n", "")}");
     }
 }
