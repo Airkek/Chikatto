@@ -7,6 +7,7 @@ using Chikatto.Database;
 using Chikatto.Database.Models;
 using Chikatto.Events;
 using Chikatto.Objects;
+using Chikatto.Redis;
 using Chikatto.Utils;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -22,7 +23,7 @@ namespace Chikatto
         {
             services.AddControllers();
             Db.Init();
-            Redis.Init();
+            RedisManager.Init();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

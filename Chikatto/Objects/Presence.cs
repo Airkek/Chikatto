@@ -140,11 +140,13 @@ namespace Chikatto.Objects
                 
                 ModeName = mode;
 
-                RankedScore = (long) typeof(Stats).GetProperty($"RankedScore{mode}").GetValue(Stats, null);
-                TotalScore = (long) typeof(Stats).GetProperty($"TotalScore{mode}").GetValue(Stats, null);
-                Accuracy = (float) typeof(Stats).GetProperty($"Accuracy{mode}").GetValue(Stats, null);
-                PP = (short) typeof(Stats).GetProperty($"PP{mode}").GetValue(Stats, null);
-                PlayCount = (int) typeof(Stats).GetProperty($"Playcount{mode}").GetValue(Stats, null);
+                var type = typeof(Stats);
+
+                RankedScore = (long) type.GetProperty($"RankedScore{mode}").GetValue(Stats, null);
+                TotalScore = (long) type.GetProperty($"TotalScore{mode}").GetValue(Stats, null);
+                Accuracy = (float) type.GetProperty($"Accuracy{mode}")?.GetValue(Stats, null);
+                PP = (short) type.GetProperty($"PP{mode}").GetValue(Stats, null);
+                PlayCount = (int) type.GetProperty($"Playcount{mode}").GetValue(Stats, null);
                 Rank = await GetRank();
             }
         }

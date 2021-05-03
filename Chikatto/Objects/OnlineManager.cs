@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Chikatto.Bancho;
 using Chikatto.Extensions;
 using Chikatto.Utils;
+using Chikatto.Redis;
 
 namespace Chikatto.Objects
 {
@@ -37,6 +38,8 @@ namespace Chikatto.Objects
             
             if(!presence.Restricted)
                 await AddPacketToAllUsers(await FastPackets.UserPresence(presence));
+            
+            await RedisManager.Set("ripple:online_users", Online.ToString());
         }
 
         public async Task AddUser(int id, string token)
@@ -69,7 +72,7 @@ namespace Chikatto.Objects
             SafeNames.Remove(user.User.SafeName);
             Users.Remove(user.Id);
 
-            await Redis.Set("ripple:online_users", Online.ToString());
+            await RedisManager.Set("ripple:online_users", Online.ToString());
         }
 
         public async Task RemoveUserById(int id)

@@ -1,12 +1,16 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
+using Chikatto.ChatCommands;
 using Chikatto.Constants;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Microsoft.EntityFrameworkCore.Query.Internal;
 using StackExchange.Redis;
 
-namespace Chikatto.Utils
+namespace Chikatto.Redis
 {
-    public static class Redis
+    public static class RedisManager
     {
         public static void Init()
         {
@@ -29,6 +33,28 @@ namespace Chikatto.Utils
             cache.ScriptEvaluate(flush_script, new RedisKey []{ "peppy:*" });
             cache.ScriptEvaluate(flush_script, new RedisKey []{ "peppy:sessions:*" });
             cache.StringSet("peppy:version", Misc.Version);
+
+            var methods = Assembly.GetEntryAssembly().GetTypes()
+                .SelectMany(t => t.GetMethods())
+                .Where(m => m.GetCustomAttributes(typeof(RedisHandlerAttribute), false).Length > 0);
+
+            var subscriber = Connection.GetSubscriber();
+
+            foreach (var method in methods)
+            {
+                var info = method.GetCustomAttributes(typeof(RedisHandlerAttribute), false)[0] as RedisHandlerAttribute;
+                var handler = (Action<RedisChannel, RedisValue>) Delegate.CreateDelegate(typeof(Action<RedisChannel, RedisValue>), method);
+
+                subscriber.Subscribe(info.Channel, handler);
+                
+                /*
+                 * TODO:
+                 * peppy:ban
+                 * peppy:silence //TODO: silence
+                 * peppy:update_cached_stats
+                 * peppy:change_username
+                 */
+            }
         }
         
         private static Lazy<ConnectionMultiplexer> connection;
