@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Threading;
 using Chikatto.ChatCommands;
@@ -6,6 +7,7 @@ using Chikatto.Database;
 using Chikatto.Database.Models;
 using Chikatto.Events;
 using Chikatto.Objects;
+using Chikatto.Utils;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
@@ -65,6 +67,8 @@ namespace Chikatto
             });
             
             new Thread(BackgroundLoops.Cleaner).Start();
+            
+            XConsole.Log($"Chikatto started; Bot: {Global.Bot.Name} ({Global.Bot.Id})", ConsoleColor.Green);
         }
     }
 }

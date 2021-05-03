@@ -19,8 +19,8 @@ namespace Chikatto.Database
         public static void Init()
         {
             Assembly.GetEntryAssembly().GetTypes()
-                .Where(t => t.GetFields()
-                    .Any(x => x.GetCustomAttributes(typeof(TableAttribute), false).Length > 0)
+                .Where(t => t.GetProperties()
+                    .Any(x => x.GetCustomAttributes(typeof(ColumnAttribute), false).Length > 0)
                 ).ToList().ForEach(Map);
         }
 
