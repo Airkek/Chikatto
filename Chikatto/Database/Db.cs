@@ -18,12 +18,13 @@ namespace Chikatto.Database
 
         public static void Init()
         {
-            Map(typeof(User));
-            Map(typeof(Score));
-            Map(typeof(DbChannel));
-            Map(typeof(Beatmap));
-            Map(typeof(Friendships));
-            Map(typeof(Stats));
+            var types = Assembly.GetEntryAssembly().GetTypes()
+                .Where(t => t.GetFields()
+                    .Any(x => x.GetCustomAttributes(typeof(TableAttribute), false).Length > 0)
+                );
+            
+            foreach (var type in types)
+                Map(type);
         }
 
         private static void Map(Type type)
