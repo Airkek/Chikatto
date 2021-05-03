@@ -21,8 +21,7 @@ namespace Chikatto.Events.Types
                 await user.Match.Leave(user);
             
             await Global.OnlineManager.Remove(user);
-            await Global.OnlineManager.AddPacketToAllUsers(await FastPackets.Logout(user.Id));
-            
+
             XConsole.Log($"{user} logged out", ConsoleColor.Green);
         }
     }

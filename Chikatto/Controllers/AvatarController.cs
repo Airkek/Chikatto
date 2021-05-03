@@ -6,7 +6,7 @@ namespace Chikatto.Controllers
 {
     public class AvatarController : Controller
     {
-        private static string[] AvailableSuffixes = { "png", "jpg", "gif"};
+        private static string[] AvailableSuffixes = { "png", "jpg", "jpeg", "gif"};
         [Route("/{id:int}")]
         public async Task<IActionResult> Avatar(int id)
         {

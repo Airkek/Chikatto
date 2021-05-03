@@ -22,6 +22,7 @@ namespace Chikatto
         {
             services.AddControllers();
             Db.Init();
+            Redis.Init();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

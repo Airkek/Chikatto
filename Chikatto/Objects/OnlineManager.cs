@@ -63,10 +63,13 @@ namespace Chikatto.Objects
 
             Global.Channels.Remove(user.SpectateChannel.TrueName);
             await user.DropSpectators();
+            await AddPacketToAllUsers(await FastPackets.Logout(user.Id));
             
             OsuTokens.Remove(user.Token);
             SafeNames.Remove(user.User.SafeName);
             Users.Remove(user.Id);
+
+            await Redis.Set("ripple:online_users", Online.ToString());
         }
 
         public async Task RemoveUserById(int id)

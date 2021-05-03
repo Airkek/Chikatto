@@ -8,5 +8,6 @@ namespace Chikatto.Config
         [JsonProperty("host")] public string Host = "localhost";
         [JsonProperty("port")] public uint Port = 6379;
         [JsonProperty("password")] public string Password = "";
+        [JsonProperty("database_index")] public uint DatabaseIndex = 0;
     }
 }
