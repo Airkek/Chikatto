@@ -2,7 +2,7 @@
 
 namespace Chikatto.Bancho.Objects
 {
-    public class BanchoUserStats : ISerializable
+    public struct BanchoUserStats : ISerializable
     {
         public int Id;
         public BanchoUserStatus Status;

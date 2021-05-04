@@ -4,7 +4,7 @@ using Chikatto.Bancho.Enums;
 
 namespace Chikatto.Bancho
 {
-    public class Packet 
+    public struct Packet 
     {
         public readonly PacketType Type;
         public readonly byte[] Data;

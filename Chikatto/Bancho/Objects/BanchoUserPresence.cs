@@ -3,7 +3,7 @@ using Chikatto.Enums;
 
 namespace Chikatto.Bancho.Objects
 {
-    public class BanchoUserPresence : ISerializable
+    public struct BanchoUserPresence : ISerializable
     {
         public int Id;
         public string Name;
