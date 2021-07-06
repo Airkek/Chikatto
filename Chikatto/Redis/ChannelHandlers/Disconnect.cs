@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Chikatto.Objects;
 using Chikatto.Utils;
-using Microsoft.EntityFrameworkCore.Update.Internal;
 using Newtonsoft.Json.Linq;
 using StackExchange.Redis;
 

@@ -8,7 +8,6 @@ namespace Chikatto
     {
         public static void Main(string[] args)
         {
-            Global.Config = ConfigManager.Read();
             CreateHostBuilder(args).Build().Run();
         }
 

@@ -6,11 +6,21 @@ using Chikatto.Constants;
 using Chikatto.Multiplayer;
 using Chikatto.Objects;
 using Chikatto.Enums;
+using Microsoft.AspNetCore.Http;
 
 namespace Chikatto.Bancho
 {
     public static class FastPackets
     {
+        public static Packet WelcomePacket { get; private set; }
+        public static Packet LogoPacket { get; private set; }
+
+        public static async Task InitConstPackets()
+        {
+            LogoPacket = await MainMenuIcon(Global.Config.Misc.LogoIngame, Global.Config.Misc.LogoClickUrl);
+            WelcomePacket = await Notification($"Welcome back!\r\nChikatto Build v{Misc.Version}");
+        }
+
         //5
         public static Task<Packet> UserId(int id) => 
             GetPacket (PacketType.BanchoUserId, id);

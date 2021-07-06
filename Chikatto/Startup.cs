@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Threading;
+using Chikatto.Bancho;
 using Chikatto.ChatCommands;
 using Chikatto.Constants;
 using Chikatto.Database;
@@ -22,26 +23,29 @@ namespace Chikatto
         public static void ConfigureServices(IServiceCollection services)
         {
             services.AddControllers();
-            Db.Init();
-            RedisManager.Init();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public static void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            Global.Config = ConfigManager.Read();
+            FastPackets.InitConstPackets().Wait();
+            Db.Init();
+            RedisManager.Init();
             CommandHandler.Init();
             BanchoEventHandler.Init();
 
-            if (!Directory.Exists("data"))
-                Directory.CreateDirectory("data");
+            if (!Directory.Exists(".data"))
+                Directory.CreateDirectory(".data");
 
-            if (!Directory.Exists(Path.Combine("data", "avatars")))
-                Directory.CreateDirectory(Path.Combine("data", "avatars"));
+            if (!Directory.Exists(Path.Combine(".data", "avatars")))
+                Directory.CreateDirectory(Path.Combine(".data", "avatars"));
+            
+            if (!Directory.Exists(Path.Combine(".data", "screenshots")))
+                Directory.CreateDirectory(Path.Combine(".data", "screenshots"));
 
             if (env.IsDevelopment())
-            {
                 app.UseDeveloperExceptionPage();
-            }
 
             Global.Bot = Db.FetchOne<User>("SELECT * FROM users WHERE id = @id", new{ id = Global.Config.BotId }).GetAwaiter().GetResult();
             

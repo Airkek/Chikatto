@@ -26,7 +26,7 @@ namespace Chikatto.Controllers
         [Route("bancho_connect.php")]
         public async Task<IActionResult> BanchoConnect() => Ok("Chikatto");
 
-        [Route("osu-search.php")]
+        [HttpGet("osu-search.php")]
         public async Task<IActionResult> DirectSearch()
         {
             if (!await CheckAuthorization() || !int.TryParse(Request.Query["p"], out var offset)
@@ -66,7 +66,7 @@ namespace Chikatto.Controllers
             return Ok(string.Join("\r\n", output));
         }
 
-        [Route("osu-search-set.php")]
+        [HttpGet("osu-search-set.php")]
         public async Task<IActionResult> SetSearch()
         {
             if (!await CheckAuthorization())

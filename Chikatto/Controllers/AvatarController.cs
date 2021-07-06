@@ -7,15 +7,17 @@ namespace Chikatto.Controllers
     public class AvatarController : Controller
     {
         private static string[] AvailableSuffixes = { "png", "jpg", "jpeg", "gif"};
+        
+        [HttpGet]
         [Route("/{id:int}")]
         public async Task<IActionResult> Avatar(int id)
         {
-            var file = Path.Combine("data", "avatars", "default.jpg");
+            var file = Path.Combine(".data", "avatars", "default.jpg");
             var ext = "jpeg";
             
             foreach (var suffix in AvailableSuffixes)
             {
-                var path = Path.Combine("data", "avatars", $"{id}.{suffix}");
+                var path = Path.Combine(".data", "avatars", $"{id}.{suffix}");
                 if (System.IO.File.Exists(path))
                 {
                     file = path;

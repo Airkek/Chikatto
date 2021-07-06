@@ -1,5 +1,4 @@
 ﻿using System.Threading.Tasks;
-using Chikatto.Database.Models;
 using Chikatto.Objects;
 using Chikatto.Utils;
 using Newtonsoft.Json.Linq;

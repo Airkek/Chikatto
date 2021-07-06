@@ -7,6 +7,7 @@ namespace Chikatto.Controllers
     public class DirectController : Controller
     {
         [HttpGet]
+        [Route("/s/{id}")]
         [Route("/d/{id}")]
         public async Task<IActionResult> Download(string id) =>
             Redirect($"{Global.Config.Cheesegull.DownloadMirror}{id.Replace("n", "")}");
