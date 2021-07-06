@@ -1,5 +1,5 @@
 ﻿using System.Collections.Concurrent;
-using Chikatto.Bancho;
+using System.Reflection;
 using Chikatto.Config;
 using Chikatto.Database.Models;
 using Chikatto.Multiplayer;
@@ -23,5 +23,21 @@ namespace Chikatto
         public static readonly ConcurrentDictionary<int, Match> Rooms = new (); // <Id, Match>
 
         public static readonly ConcurrentDictionary<string, string> BCryptCache = new (); //<Hash, Plain>
+
+        public static readonly ConcurrentDictionary<string, PropertyInfo> StatsReflectionCache = new();
+        
+        public static PropertyInfo GetPropertyFromStatsCache(string name, string mode) // TODO: перенести бы это куда нить
+        {
+            var fullname = name + mode;
+            
+            if (Global.StatsReflectionCache.ContainsKey(fullname))
+                return Global.StatsReflectionCache[fullname];
+
+            var prop = typeof(Stats).GetProperty(fullname);
+
+            Global.StatsReflectionCache[fullname] = prop;
+            
+            return prop;
+        }
     }
 }

@@ -135,18 +135,26 @@ namespace Chikatto.Objects
                 if (StatsTable != mod)
                 {
                     StatsTable = mod;
-                    Stats = await Db.FetchOne<Stats>("SELECT * FROM {mod}_stats WHERE id = @uid", new {uid = Id});
+                    Stats = await Db.FetchOne<Stats>($"SELECT * FROM {mod}_stats WHERE id = @uid", new {uid = Id});
                 }
                 
                 ModeName = mode;
 
-                var type = typeof(Stats);
-
-                RankedScore = (long) type.GetProperty($"RankedScore{mode}").GetValue(Stats, null);
-                TotalScore = (long) type.GetProperty($"TotalScore{mode}").GetValue(Stats, null);
-                Accuracy = (float) type.GetProperty($"Accuracy{mode}")?.GetValue(Stats, null);
-                PP = (short) type.GetProperty($"PP{mode}").GetValue(Stats, null);
-                PlayCount = (int) type.GetProperty($"Playcount{mode}").GetValue(Stats, null);
+                // ReSharper disable once PossibleNullReferenceException
+                RankedScore = (long) Global.GetPropertyFromStatsCache("RankedScore", mode).GetValue(Stats);
+                
+                // ReSharper disable once PossibleNullReferenceException
+                TotalScore = (long) Global.GetPropertyFromStatsCache("TotalScore", mode).GetValue(Stats);
+                
+                // ReSharper disable once PossibleNullReferenceException
+                Accuracy = (float) Global.GetPropertyFromStatsCache("Accuracy", mode).GetValue(Stats);
+                
+                // ReSharper disable once PossibleNullReferenceException
+                PP = (short) Global.GetPropertyFromStatsCache("PP", mode).GetValue(Stats);
+                
+                // ReSharper disable once PossibleNullReferenceException
+                PlayCount = (int) Global.GetPropertyFromStatsCache("Playcount", mode).GetValue(Stats);
+                
                 Rank = await GetRank();
             }
         }
