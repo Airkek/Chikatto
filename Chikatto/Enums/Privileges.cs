@@ -2,8 +2,6 @@
 
 namespace Chikatto.Enums
 {
-    //author: cmyui https://github.com/cmyui/gulag/blob/master/constants/privileges.py
-    
     [Flags]
     public enum Privileges
     {
@@ -35,6 +33,7 @@ namespace Chikatto.Enums
         Mod = AdminViewRapLogs | AdminManageBetakeys | AdminManageUsers | AdminChatMod | AdminSendAlerts | AdminSilenceUsers | AdminManageReports,
         Admin = Mod | AdminKickUsers | AdminBanUsers | AdminManageBadges | AdminWipeUsers,
         Owner = Nominator | Admin | AdminAccessRap | AdminManageServers | AdminManageSettings | AdminManageDocs | AdminManagePrivileges | TournamentStaff | AdminCaker,
+        
         Staff = Owner
     }
 }

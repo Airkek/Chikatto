@@ -62,6 +62,9 @@ namespace Chikatto.Redis
 
         public static async Task Set(string key, string value)
         {
+            if(!Global.Config.Redis.Enabled)
+                return;
+            
             var cache = Connection.GetDatabase();
 
             await cache.StringSetAsync(key, value);
