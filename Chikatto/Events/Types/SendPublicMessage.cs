@@ -34,7 +34,7 @@ namespace Chikatto.Events.Types
             await channel.WriteMessage(message.Body, user);
             
             if (message.Body.StartsWith(Global.Config.CommandPrefix))
-                await CommandHandler.Process(message.Body.Substring(Global.Config.CommandPrefix.Length), user, channel);
+                await CommandHandler.Process(message.Body[Global.Config.CommandPrefix.Length..], user, channel);
             
             XConsole.Log($"{user} -> {message.To}: {message.Body}");
         }

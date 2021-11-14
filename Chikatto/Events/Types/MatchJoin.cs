@@ -12,6 +12,9 @@ namespace Chikatto.Events.Types
         [Event(PacketType.OsuJoinMatch, false)]
         public static async Task Handle(PacketReader reader, Presence user)
         {
+            if (user.Silenced)
+                return;
+            
             if (user.Match is not null)
                 await user.Match.Leave(user);
 

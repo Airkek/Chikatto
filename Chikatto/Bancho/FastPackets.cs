@@ -255,7 +255,7 @@ namespace Chikatto.Bancho
             {
                 From = user.Name,
                 To = to,
-                Body = $"Hey! Let's play together!: {user.Match}",
+                Body = $"Hey! Let's play together!: [{user.Match.Url} {user.Match.Name}]",
                 ClientId = user.Id
             };
 

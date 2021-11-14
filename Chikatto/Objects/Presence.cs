@@ -295,6 +295,8 @@ namespace Chikatto.Objects
 
             if (Online)
             {
+                if (Match is not null) await Match.Leave(this);
+                
                 await Notify("You has been silenced");
                 WaitingPackets.Enqueue(await FastPackets.SilenceEnd(seconds));
 
