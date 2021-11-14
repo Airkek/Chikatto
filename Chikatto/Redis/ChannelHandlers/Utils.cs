@@ -10,7 +10,7 @@ namespace Chikatto.Redis.ChannelHandlers
     {
         public static int GetId(RedisChannel channel, JObject json)
         {
-            if (json.ContainsKey("userID") && int.TryParse(json.GetValue("id").ToString(), out var id)) 
+            if (json.ContainsKey("userID") && int.TryParse((string) json.GetValue("id"), out var id)) 
                 return id;
             
             XConsole.Log($"Error in ({channel}) / userID must be integer: {json}");

@@ -110,7 +110,7 @@ namespace Chikatto.Controllers
                 var id = await Db.FetchOne<int>("SELECT id FROM users WHERE username_safe = @safe", new {safe});
 
                 await Db.Execute("INSERT INTO users_stats (id, username) VALUES (@id, @username)", new { id, username });
-                await Db.Execute("INSERT INTO rx_stats (id, username) VALUES (@id, @username)", new { id, username });
+                await Db.Execute("INSERT INTO users_stats_relax (id, username) VALUES (@id, @username)", new { id, username });
                 
                 if (id == 1000)
                 {

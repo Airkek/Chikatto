@@ -4,7 +4,7 @@ using Chikatto.Enums;
 using Chikatto.Objects;
 using Chikatto.Utils;
 
-namespace Chikatto.ChatCommands.Public
+namespace Chikatto.ChatCommands.Admin
 {
     public class Unrestrict
     {
@@ -15,7 +15,6 @@ namespace Chikatto.ChatCommands.Public
                 return $"Usage: {Global.Config.CommandPrefix}unrestrict <safename>";
 
             var username = Auth.GetSafeName(args[0]);
-            var reason = string.Join(" ", args.Skip(1));
 
             var toUnrestrict = await Presence.FromDatabase(username);
 

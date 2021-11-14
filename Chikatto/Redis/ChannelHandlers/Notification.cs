@@ -17,7 +17,7 @@ namespace Chikatto.Redis.ChannelHandlers
                 return;
 
             if (user.Online)
-                await user.Notify(json.GetValue("message").ToString());
+                await user.Notify((string)json.GetValue("message"));
         }
     }
 }

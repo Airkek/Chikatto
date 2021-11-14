@@ -123,6 +123,10 @@ namespace Chikatto.Controllers
                         });
                     }
                 }
+                else if (u.Silenced)
+                {
+                    packets.Add(await FastPackets.SilenceEnd(u.SilenceEndRelative));
+                }
 
                 if (u.Stats.Country.ToUpper() == "XX")
                 {
@@ -134,7 +138,7 @@ namespace Chikatto.Controllers
 
                     await Db.Execute("UPDATE users_stats SET country = @country WHERE id = @id",
                         new {id = u.Id, country});
-                    await Db.Execute("UPDATE rx_stats SET country = @country WHERE id = @id",
+                    await Db.Execute("UPDATE users_stats_relax SET country = @country WHERE id = @id",
                         new {id = u.Id, country});
                 }
 

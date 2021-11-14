@@ -44,7 +44,8 @@ namespace Chikatto.Objects
         public Channel SpectateChannel;
 
         public bool Restricted;
-
+        public long SilenceEnd;
+        
         public BanchoUserStatus Status = new ()
         {
             Action = BanchoAction.Idle, 
@@ -128,14 +129,14 @@ namespace Chikatto.Objects
                 _ => "STD"
             };
 
-            var mod = (Status.Mods & Mods.Relax) == 0 ? "users" : "rx";
+            var table = !Global.Config.EnableRelax || (Status.Mods & Mods.Relax) == 0 ? "users_stats" : "users_stats_relax";
 
-            if (mode != ModeName || mod != StatsTable)
+            if (mode != ModeName || table != StatsTable)
             {
-                if (StatsTable != mod)
+                if (StatsTable != table)
                 {
-                    StatsTable = mod;
-                    Stats = await Db.FetchOne<Stats>($"SELECT * FROM {mod}_stats WHERE id = @uid", new {uid = Id});
+                    StatsTable = table;
+                    Stats = await Db.FetchOne<Stats>($"SELECT * FROM {StatsTable} WHERE id = @uid", new {uid = Id});
                 }
                 
                 ModeName = mode;
@@ -238,6 +239,7 @@ namespace Chikatto.Objects
                 .Select(x => x.FriendId).ToList().ForEach(x => friendsDict[x] = x);
 
             friendsDict[Global.Bot.Id] = Global.Bot.Id;
+            friendsDict[user.Id] = user.Id;
 
             var channel = new Channel($"#spectator_{user.Id}", "Spectator channel");
             Global.Channels[channel.TrueName] = channel;
@@ -251,10 +253,11 @@ namespace Chikatto.Objects
                 User = user,
                 CountryCode = Misc.CountryCodes.ContainsKey(stats.Country.ToUpper()) ? Misc.CountryCodes[stats.Country.ToUpper()] : (byte) 0,
                 Stats = stats,
-                StatsTable = "users",
+                StatsTable = "users_stats",
                 Friends = friendsDict,
                 SpectateChannel = channel,
-                Restricted = (user.Privileges & (Privileges.Public | Privileges.PendingVerification)) == 0
+                Restricted = (user.Privileges & (Privileges.Public | Privileges.PendingVerification)) == 0,
+                SilenceEnd = user.SilenceEnd
             };
 
             await presence.UpdateStatus(presence.Status); // init rank, pp, score etc
@@ -267,7 +270,7 @@ namespace Chikatto.Objects
                 return;
 
             Friends[id] = id;
-            await Db.Execute("INSERT INTO users_relationships VALUE (@uid, @fid)", new { uid = Id, fid = id });
+            await Db.Execute("INSERT INTO users_relationships (user1, user2) VALUES (@uid, @fid)", new { uid = Id, fid = id });
         }
         
         public async Task RemoveFriend(int id)
@@ -276,7 +279,29 @@ namespace Chikatto.Objects
                 return;
 
             Friends.Remove(id);
-            await Db.Execute("DELETE FROM users_relationships WHERE user1 = @uid AND user2 = @fid", new { uid = Id, fid = id });
+            await Db.Execute("DELETE FROM users_relationships WHERE user1 = @uid AND user2 = @fid", 
+                new { uid = Id, fid = id });
+        }
+
+        public int SilenceEndRelative => (int)(SilenceEnd - DateTimeOffset.Now.ToUnixTimeSeconds());
+        public bool Silenced => SilenceEndRelative > 0;
+
+        public async Task Mute(int seconds, string reason)
+        {
+            SilenceEnd = DateTimeOffset.Now.ToUnixTimeSeconds() + seconds;
+            
+            await Db.Execute("UPDATE users SET silence_reason = @reason, silence_end = @seconds WHERE id = @uid",
+                new {uid = Id, seconds = (int)SilenceEnd, reason});
+
+            if (Online)
+            {
+                await Notify("You has been silenced");
+                WaitingPackets.Enqueue(await FastPackets.SilenceEnd(seconds));
+
+                await Global.OnlineManager.AddPacketToAllUsers(await FastPackets.UserSilenced(Id));
+            }
+
+            XConsole.Log($"{ToString()} has silenced ({seconds} seconds)", back: ConsoleColor.Magenta);
         }
 
         public async Task Ban(bool restrict = true)

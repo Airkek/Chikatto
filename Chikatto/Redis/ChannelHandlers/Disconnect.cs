@@ -21,7 +21,7 @@ namespace Chikatto.Redis.ChannelHandlers
             if (user.Online)
             {
                 var reason = json.GetValue("reason");
-                await user.Notify($"You was kicked for {reason}");
+                await user.Notify($"You were kicked for {reason}");
                 await Global.OnlineManager.Remove(user);
                 XConsole.Log($"{user} was kicked for {reason}", fore: ConsoleColor.Yellow);
             }

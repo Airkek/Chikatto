@@ -12,6 +12,7 @@ namespace Chikatto.Database.Models
         [Column("register_datetime")] public int JoinTimestamp { get; set; }
         [Column("email")] public string Email { get; set; }
         [Column("privileges")] public Privileges Privileges { get; set; }
+        [Column("silence_end")] public int SilenceEnd { get; set; }
         
         //TODO: add all rows
     }

@@ -13,6 +13,9 @@ namespace Chikatto.Events.Types
         [Event(PacketType.OsuSendPrivateMessage, false)]
         public static async Task Handle(PacketReader reader, Presence user)
         {
+            if (user.Silenced)
+                return;
+
             var message = reader.ReadBanchoObject<BanchoMessage>();
 
             if (message.To == Global.Bot.Name)

@@ -4,7 +4,7 @@ using Chikatto.Enums;
 using Chikatto.Objects;
 using Chikatto.Utils;
 
-namespace Chikatto.ChatCommands.Public
+namespace Chikatto.ChatCommands.Admin
 {
     public class Ban
     {

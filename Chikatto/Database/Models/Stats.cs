@@ -36,7 +36,5 @@ namespace Chikatto.Database.Models
         [Column("playcount_mania")] public int PlaycountMania { get; set; }
         [Column("total_score_mania")] public long TotalScoreMania { get; set; }
         [Column("replays_watched_mania")] public int ReplaysWatchedMania { get; set; }
-        
-        
     }
 }
