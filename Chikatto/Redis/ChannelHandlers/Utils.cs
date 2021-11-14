@@ -6,7 +6,7 @@ using StackExchange.Redis;
 
 namespace Chikatto.Redis.ChannelHandlers
 {
-    public class Utils
+    public static class Utils
     {
         public static int GetId(RedisChannel channel, JObject json)
         {

@@ -49,10 +49,10 @@ namespace Chikatto.Redis
                 
                 /*
                  * TODO:
-                 * peppy:ban
-                 * peppy:silence //TODO: silence
                  * peppy:update_cached_stats
                  * peppy:change_username
+                 * peppy:reload_settings
+                 * peppy:update_cached_stats
                  */
             }
         }
