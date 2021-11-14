@@ -4,7 +4,7 @@ namespace Chikatto.Constants
 {
     public static class Misc
     {
-        public const string Version = "0.7.1";
+        public const string Version = "0.7.2";
         public const int BanchoProtocolVersion = 19;
 
         public static readonly Dictionary<string, byte> CountryCodes = new()
