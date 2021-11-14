@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Chikatto.Bancho;
 using Chikatto.Bancho.Enums;
 using Chikatto.Bancho.Objects;
@@ -13,6 +14,13 @@ namespace Chikatto.Events.Types
         [Event(PacketType.OsuSendPublicMessage, false)]
         public static async Task Handle(PacketReader reader, Presence user)
         {
+            if (user.Silenced)
+            {
+                XConsole.Log($"{user} tried to write a message while silenced", back: ConsoleColor.Red);
+                user.WaitingPackets.Enqueue(await FastPackets.SilenceEnd(user.SilenceEndRelative));
+                return;
+            }
+            
             var message = reader.ReadBanchoObject<BanchoMessage>();
 
             if (!user.JoinedChannels.ContainsKey(message.To))
