@@ -14,6 +14,8 @@ namespace Chikatto.Config
         
         [JsonProperty("bot_id")] public int BotId = 999;
 
+        [JsonProperty("enable_relax")] public bool EnableRelax = false;
+
         [JsonProperty("cheesegull")] public DirectData Cheesegull = new();
 
         [JsonProperty("misc")] public MiscData Misc = new();
