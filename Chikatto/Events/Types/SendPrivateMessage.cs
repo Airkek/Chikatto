@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Chikatto.Bancho;
 using Chikatto.Bancho.Enums;
 using Chikatto.Bancho.Objects;
@@ -14,16 +15,19 @@ namespace Chikatto.Events.Types
         public static async Task Handle(PacketReader reader, Presence user)
         {
             if (user.Silenced)
+            {
+                XConsole.Log($"{user} tried to write a message while silenced", back: ConsoleColor.Red);
+                user.WaitingPackets.Enqueue(await FastPackets.SilenceEnd(user.SilenceEndRelative));
                 return;
+            }
 
             var message = reader.ReadBanchoObject<BanchoMessage>();
 
             if (message.To == Global.Bot.Name)
             {
                 if (message.Body.StartsWith(Global.Config.CommandPrefix))
-                {
-                    await CommandHandler.Process(message.Body.Substring(Global.Config.CommandPrefix.Length), user);
-                }
+                    await CommandHandler.Process(message.Body[Global.Config.CommandPrefix.Length..], user);
+                
                 return;
             }
             
@@ -35,10 +39,16 @@ namespace Chikatto.Events.Types
                 return;
             }
 
+            if (location.Silenced)
+            {
+                user.WaitingPackets.Enqueue(await FastPackets.TargetSilenced(location.Name));
+                return;
+            }
+
             await location.SendMessage(message.Body, user);
 
             if (message.Body.StartsWith(Global.Config.CommandPrefix))
-                await CommandHandler.Process(message.Body.Substring(Global.Config.CommandPrefix.Length), user);
+                await CommandHandler.Process(message.Body[Global.Config.CommandPrefix.Length..], user);
             
             XConsole.Log($"{user} -> {location}: {message.Body}");
         }
