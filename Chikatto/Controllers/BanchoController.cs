@@ -138,8 +138,12 @@ namespace Chikatto.Controllers
 
                     await Db.Execute("UPDATE users_stats SET country = @country WHERE id = @id",
                         new {id = u.Id, country});
-                    await Db.Execute("UPDATE users_stats_relax SET country = @country WHERE id = @id",
-                        new {id = u.Id, country});
+
+                    if (Global.Config.EnableRelax)
+                    {
+                        await Db.Execute("UPDATE users_stats_relax SET country = @country WHERE id = @id",
+                            new {id = u.Id, country});
+                    }
                 }
 
                 token = Auth.CreateBanchoToken(u.Id, clientData);
