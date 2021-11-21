@@ -14,15 +14,19 @@ compatible with all ripple stack servers
         - [X] Admin commands
             - [X] (un)Ban
             - [X] (un)Restrict
-            - [ ] Give supporter
+            - [X] Give supporter
         - [X] Moderator commands
             - [X] (un)Silence
         - [ ] Beatmap nominator commands
             - [ ] Rank beatmap
             - [ ] Love beatmap
             - [ ] Unrank beatmap
-        - [ ] Owner commands
-            - [ ] Manage staff
+        - [X] Owner commands
+            - [X] Manage staff
+                - [X] Add admin
+                - [X] Add mod
+                - [X] Add BN
+                - [X] Add owner
         - [ ] Multi commands
             - [ ] make \<name> 
             - [ ] addref \<username> [\<username>] 

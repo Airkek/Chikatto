@@ -12,7 +12,7 @@ namespace Chikatto.ChatCommands.Mod
         public static async Task<string> Handle(Presence user, string[] args)
         {
             if (args.Length != 1)
-                return $"Usage: {Global.Config.CommandPrefix}unsilence <safename>";
+                return $"Usage: {Global.Config.CommandPrefix}unsilence <safe_name>";
 
             var username = Auth.GetSafeName(args[0]);
 

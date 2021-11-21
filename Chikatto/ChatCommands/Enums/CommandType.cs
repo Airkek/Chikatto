@@ -2,7 +2,7 @@
 {
     public enum CommandType
     {
-        Public, // public command
+        Any, // public command
         Multi, // multiplayer command
         Tournament, // tournament command //TODO: tournament support xD
     }

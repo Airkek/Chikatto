@@ -19,6 +19,9 @@ namespace Chikatto.Objects
         public User User;
         public Stats Stats;
 
+        public Score LastScore;
+        public Beatmap LastNP;
+
         public int Id;
         public string Name;
 
@@ -340,15 +343,14 @@ namespace Chikatto.Objects
                 
                 await Global.OnlineManager.AddPacketToAllUsers(await FastPackets.Logout(Id));
             }
-            
-            XConsole.Log($"{ToString()} has banned ({restrict})", back: ConsoleColor.Magenta);
+
+            var logStr = restrict ? "restricted" : "banned";
+            XConsole.Log($"{ToString()} has {logStr}", back: ConsoleColor.Magenta);
         }
 
         public async Task Unban()
         {
-            var newPriv = User.Privileges | Privileges.Normal | Privileges.Public;
-
-            await UpdatePrivileges(newPriv);
+            await AddPrivileges(Privileges.Normal | Privileges.Public);
 
             Restricted = false;
 
@@ -360,9 +362,22 @@ namespace Chikatto.Objects
 
             XConsole.Log($"{ToString()} has unbanned", back: ConsoleColor.Magenta);
         }
+        
+        public Task AddPrivileges(Privileges priv)
+        {
+            var newPriv = User.Privileges | priv;
+            return UpdatePrivileges(newPriv);
+        }
+
+        public Task RemovePrivileges(Privileges priv)
+        {
+            var newPriv = User.Privileges & ~priv;
+            return UpdatePrivileges(newPriv);
+        }
 
         public async Task UpdatePrivileges(Privileges newPriv)
         {
+            User.Privileges = newPriv;
             await Db.Execute("UPDATE users SET privileges = @newPriv where id = @id", new { newPriv, Id });
         }
         

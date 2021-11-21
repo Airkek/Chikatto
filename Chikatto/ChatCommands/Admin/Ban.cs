@@ -12,7 +12,7 @@ namespace Chikatto.ChatCommands.Admin
         public static async Task<string> Handle(Presence user, string[] args)
         {
             if (args.Length < 2)
-                return $"Usage: {Global.Config.CommandPrefix}ban <safename> <reason>";
+                return $"Usage: {Global.Config.CommandPrefix}ban <safe_name> <reason>";
 
             var username = Auth.GetSafeName(args[0]);
             var reason = string.Join(" ", args.Skip(1));

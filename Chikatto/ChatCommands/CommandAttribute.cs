@@ -12,7 +12,7 @@ namespace Chikatto.ChatCommands
         public string[] Triggers;
         public string Description;
 
-        public CommandAttribute(string[] triggers, string description, Privileges privileges = Privileges.Normal, CommandType type = CommandType.Public)
+        public CommandAttribute(string[] triggers, string description, Privileges privileges = Privileges.Normal, CommandType type = CommandType.Any)
         {
             Triggers = triggers;
             Description = description;
