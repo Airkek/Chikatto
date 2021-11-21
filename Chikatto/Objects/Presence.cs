@@ -234,9 +234,8 @@ namespace Chikatto.Objects
         public static async Task<Presence> FromUser(User user)
         {
             var friendsDict = new ConcurrentDictionary<int, int>();
-            var x = await Db.FetchAll<Friendships>("SELECT * FROM users_relationships WHERE user1 = @uid", new {uid = user.Id});
-            x
-                .Select(x => x.FriendId).ToList().ForEach(x => friendsDict[x] = x);
+            var friendships = await Db.FetchAll<Friendships>("SELECT * FROM users_relationships WHERE user1 = @uid", new {uid = user.Id});
+            friendships.Select(x => x.FriendId).ToList().ForEach(x => friendsDict[x] = x);
 
             friendsDict[Global.Bot.Id] = Global.Bot.Id;
             friendsDict[user.Id] = user.Id;
@@ -246,7 +245,13 @@ namespace Chikatto.Objects
 
             var stats = await Db.FetchOne<Stats>("SELECT * FROM users_stats WHERE id = @uid", new {uid = user.Id});
 
-            var presence = new Presence()
+            if (stats is null)
+            {
+                XConsole.Log($"{user} - stats is null", back: ConsoleColor.Red);
+                return null;
+            }
+
+            var presence = new Presence
             {
                 Id = user.Id,
                 Name = user.Name,
@@ -296,6 +301,9 @@ namespace Chikatto.Objects
             if (Online)
             {
                 if (Match is not null) await Match.Leave(this);
+                
+                InLobby = false;
+                await Global.Channels["#lobby"].RemoveUser(this);
                 
                 await Notify("You has been silenced");
                 WaitingPackets.Enqueue(await FastPackets.SilenceEnd(seconds));

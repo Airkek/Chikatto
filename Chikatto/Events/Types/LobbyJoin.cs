@@ -12,6 +12,9 @@ namespace Chikatto.Events.Types
         [Event(PacketType.OsuJoinLobby, false)]
         public static async Task Handle(PacketReader _, Presence user)
         {
+            if(user.Silenced)
+                return;
+            
             user.InLobby = true;
             await Global.Channels["#lobby"].JoinUser(user);
             

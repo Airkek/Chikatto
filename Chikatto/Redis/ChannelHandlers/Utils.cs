@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Chikatto.Objects;
 using Chikatto.Utils;
 using Newtonsoft.Json.Linq;
@@ -13,7 +14,7 @@ namespace Chikatto.Redis.ChannelHandlers
             if (json.ContainsKey("userID") && int.TryParse((string) json.GetValue("id"), out var id)) 
                 return id;
             
-            XConsole.Log($"Error in ({channel}) / userID must be integer: {json}");
+            XConsole.Log($"Error in ({channel}) / userID must be integer: {json}", back: ConsoleColor.Red);
             return -1;
         }
 

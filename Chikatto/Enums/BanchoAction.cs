@@ -1,4 +1,6 @@
-﻿namespace Chikatto.Enums
+﻿using System;
+
+namespace Chikatto.Enums
 {
     public enum BanchoAction : byte
     {

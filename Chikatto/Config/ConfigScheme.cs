@@ -6,6 +6,8 @@ namespace Chikatto.Config
     {
         [JsonProperty("database")] public SqlData Database = new();
         [JsonProperty("redis")] public RedisData Redis = new();
+        
+        [JsonProperty("domain")] public string Domain = "keijia.cyou";
 
         [JsonProperty("osu_api_token")] public string OsuApiToken = "changeme";
         

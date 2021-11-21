@@ -80,7 +80,7 @@ namespace Chikatto.Objects
             
             user.WaitingPackets.Enqueue(await FastPackets.ChannelKick(Name));
             user.WaitingPackets.Enqueue(info);
-
+            
             foreach (var (_, u) in Users)
                 u.WaitingPackets.Enqueue(info);
         }

@@ -52,7 +52,6 @@ namespace Chikatto.Redis
                  * peppy:update_cached_stats
                  * peppy:change_username
                  * peppy:reload_settings
-                 * peppy:update_cached_stats
                  */
             }
         }

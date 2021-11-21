@@ -25,5 +25,6 @@ namespace Chikatto.Database.Models
         [Column("accuracy")] public double Accuracy { get; set; }
         [Column("pp")] public double Performance { get; set; }
         [Column("full_combo")] public bool Perfect { get; set; }
+        [Column("is_relax")] public bool IsRelax { get; set; }
     }
 }
