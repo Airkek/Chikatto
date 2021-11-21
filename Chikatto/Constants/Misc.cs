@@ -6,6 +6,8 @@ namespace Chikatto.Constants
     {
         public const string Version = "0.7.2";
         public const int BanchoProtocolVersion = 19;
+        public const string RelaxStatsColumn = "users_stats_relax"; // relax_stats for ainu database
+        public const string NomodStatsColumn = "users_stats";
 
         public static readonly Dictionary<string, byte> CountryCodes = new()
         {

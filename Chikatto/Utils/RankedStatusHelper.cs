@@ -1,5 +1,4 @@
-﻿using System;
-using Chikatto.Enums;
+﻿using Chikatto.Enums;
 
 namespace Chikatto.Utils
 {

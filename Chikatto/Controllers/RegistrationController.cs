@@ -5,6 +5,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Chikatto.Constants;
 using Chikatto.Database;
 using Chikatto.Database.Models;
 using Chikatto.Enums;
@@ -109,11 +110,11 @@ namespace Chikatto.Controllers
 
                 var id = await Db.FetchOne<int>("SELECT id FROM users WHERE username_safe = @safe", new {safe});
 
-                await Db.Execute("INSERT INTO users_stats (id, username) VALUES (@id, @username)", new { id, username });
+                await Db.Execute($"INSERT INTO {Misc.NomodStatsColumn} (id, username) VALUES (@id, @username)", new { id, username });
 
                 if (Global.Config.EnableRelax)
                 {
-                    await Db.Execute("INSERT INTO users_stats_relax (id, username) VALUES (@id, @username)", new { id, username });
+                    await Db.Execute($"INSERT INTO {Misc.RelaxStatsColumn} (id, username) VALUES (@id, @username)", new { id, username });
                 }
 
                 if (id == 1000)

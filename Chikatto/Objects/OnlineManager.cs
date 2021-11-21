@@ -90,7 +90,7 @@ namespace Chikatto.Objects
 
         public async Task ClearTrash()
         {
-            foreach (var presence in Users.Select(x => x.Value).Where(presence => presence.LastPong < new DateTimeOffset(DateTime.Now).ToUnixTimeSeconds() - 300))
+            foreach (var presence in Users.Select(x => x.Value).Where(presence => presence.LastPong < DateTimeOffset.Now.ToUnixTimeSeconds() - 300))
             {
                 await Remove(presence);
                 XConsole.Log($"{presence} has been removed from online users due to inactivity", ConsoleColor.Magenta);

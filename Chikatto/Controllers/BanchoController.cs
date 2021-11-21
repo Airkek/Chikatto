@@ -136,12 +136,12 @@ namespace Chikatto.Controllers
                         ? Misc.CountryCodes[country]
                         : (byte) 0;
 
-                    await Db.Execute("UPDATE users_stats SET country = @country WHERE id = @id",
+                    await Db.Execute($"UPDATE {Misc.NomodStatsColumn} SET country = @country WHERE id = @id",
                         new {id = u.Id, country});
 
                     if (Global.Config.EnableRelax)
                     {
-                        await Db.Execute("UPDATE users_stats_relax SET country = @country WHERE id = @id",
+                        await Db.Execute($"UPDATE {Misc.RelaxStatsColumn} SET country = @country WHERE id = @id",
                             new {id = u.Id, country});
                     }
                 }

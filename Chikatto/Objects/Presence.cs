@@ -68,7 +68,7 @@ namespace Chikatto.Objects
         public async Task<int> GetRank()
         {
             return await Db.FetchOne<int>(
-                $"SELECT COUNT(users_stats.id) FROM users_stats JOIN users WHERE users.id = users_stats.id AND pp_{ModeName.ToLower()} > @pp AND privileges & 1",
+                $"SELECT COUNT({Misc.NomodStatsColumn}.id) FROM {Misc.NomodStatsColumn} JOIN users WHERE users.id = {Misc.NomodStatsColumn}.id AND pp_{ModeName.ToLower()} > @pp AND privileges & 1",
                 new {pp = PP}) + 1;
         }
 
@@ -129,7 +129,7 @@ namespace Chikatto.Objects
                 _ => "STD"
             };
 
-            var table = !Global.Config.EnableRelax || (Status.Mods & Mods.Relax) == 0 ? "users_stats" : "users_stats_relax";
+            var table = !Global.Config.EnableRelax || (Status.Mods & Mods.Relax) == 0 ? Misc.NomodStatsColumn : Misc.RelaxStatsColumn;
 
             if (mode != ModeName || table != StatsTable)
             {
@@ -243,7 +243,7 @@ namespace Chikatto.Objects
             var channel = new Channel($"#spectator_{user.Id}", "Spectator channel");
             Global.Channels[channel.TrueName] = channel;
 
-            var stats = await Db.FetchOne<Stats>("SELECT * FROM users_stats WHERE id = @uid", new {uid = user.Id});
+            var stats = await Db.FetchOne<Stats>($"SELECT * FROM {Misc.NomodStatsColumn} WHERE id = @uid", new {uid = user.Id});
 
             if (stats is null)
             {
