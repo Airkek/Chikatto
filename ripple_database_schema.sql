@@ -886,16 +886,6 @@ CREATE TABLE IF NOT EXISTS `reports` (
   `assigned` int(11) NOT NULL DEFAULT '0', 
   PRIMARY KEY (`id`)
 ) ENGINE = InnoDB AUTO_INCREMENT = 0 DEFAULT CHARSET = utf8;
--- Dumping structure for table rx_beatmap_playcount
-CREATE TABLE IF NOT EXISTS `rx_beatmap_playcount` (
-  `id` int(11) NOT NULL AUTO_INCREMENT, 
-  `user_id` int(11) NOT NULL, 
-  `beatmap_id` int(11) DEFAULT NULL, 
-  `game_mode` int(11) DEFAULT NULL, 
-  `playcount` int(11) DEFAULT NULL, 
-  PRIMARY KEY (`id`), 
-  UNIQUE KEY `playcount_index` (`user_id`, `beatmap_id`)
-) ENGINE = InnoDB AUTO_INCREMENT = 0 DEFAULT CHARSET = utf8;
 -- Dumping structure for table rx_stats
 CREATE TABLE IF NOT EXISTS `users_stats_relax` (
   `id` int(11) NOT NULL AUTO_INCREMENT, 
