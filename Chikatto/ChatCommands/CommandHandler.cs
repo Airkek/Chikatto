@@ -40,9 +40,10 @@ namespace Chikatto.ChatCommands
             
             if (trigger == "help")
             {
-                commandRet = "List of available commands:\r\n";
+                commandRet = "List of available commands:\r\nWrite a command to get additional info";
                 commandRet += string.Join("\r\n", Commands
                     .Where(x => (x.Key.Privileges & user.User.Privileges) == x.Key.Privileges)
+                    .OrderBy(x => x.Key.Privileges)
                     .Select(x => $"{Global.Config.CommandPrefix}{x.Key.Triggers[0]} - {x.Key.Description}"));
             }
             else

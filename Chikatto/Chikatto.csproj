@@ -9,6 +9,7 @@
         <PackageReference Include="Dapper" Version="2.0.78" />
         <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
         <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="3.2.4" />
+        <PackageReference Include="Portable.BouncyCastle" Version="1.9.0" />
         <PackageReference Include="StackExchange.Redis" Version="2.2.4" />
     </ItemGroup>
 
