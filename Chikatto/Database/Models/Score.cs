@@ -10,7 +10,7 @@ namespace Chikatto.Database.Models
         [Column("beatmap_md5")] public string BeatmapChecksum { get; set; }
         [Column("userid")] public int UserId { get; set; }
         [Column("score")] public long GameScore { get; set; }
-        [Column("completed")] public int Completed { get; set; }
+        [Column("completed")] public bool Completed { get; set; }
         [Column("max_combo")] public int MaxCombo { get; set; }
         [Column("mods")] public Mods Mods { get; set; }
         [Column("300_count")] public int Count300 { get; set; }
@@ -21,7 +21,7 @@ namespace Chikatto.Database.Models
         [Column("misses_count")] public int CountMiss { get; set; }
         [Column("playtime")] public int PlayTime { get; set; }
         [Column("time")] public DateTime Time { get; set; }
-        [Column("play_mode")] public int PlayMode { get; set; }
+        [Column("play_mode")] public GameMode PlayMode { get; set; }
         [Column("accuracy")] public double Accuracy { get; set; }
         [Column("pp")] public double Performance { get; set; }
         [Column("full_combo")] public bool Perfect { get; set; }

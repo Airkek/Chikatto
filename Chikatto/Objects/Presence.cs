@@ -119,6 +119,11 @@ namespace Chikatto.Objects
             return stats;
         }
 
+        public async Task UpdateStats()
+        {
+            Stats = await Db.FetchOne<Stats>($"SELECT * FROM {StatsTable} WHERE id = @uid", new {uid = Id});
+        }
+
         public async Task UpdateStatus(BanchoUserStatus status)
         {
             Status = status;
@@ -291,12 +296,12 @@ namespace Chikatto.Objects
                 new { uid = Id, fid = id });
         }
 
-        public int SilenceEndRelative => (int)(SilenceEnd - DateTimeOffset.Now.ToUnixTimeSeconds());
+        public int SilenceEndRelative => (int)(SilenceEnd - DateTimeOffset.UtcNow.ToUnixTimeSeconds());
         public bool Silenced => SilenceEndRelative > 0;
 
         public async Task Mute(int seconds, string reason)
         {
-            SilenceEnd = DateTimeOffset.Now.ToUnixTimeSeconds() + seconds;
+            SilenceEnd = DateTimeOffset.UtcNow.ToUnixTimeSeconds() + seconds;
             
             await Db.Execute("UPDATE users SET silence_reason = @reason, silence_end = @seconds WHERE id = @uid",
                 new {uid = Id, seconds = (int)SilenceEnd, reason});

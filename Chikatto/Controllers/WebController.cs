@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Chikatto.Database;
 using Chikatto.Database.Models;
 using Microsoft.AspNetCore.Mvc;
 using Chikatto.Enums;
@@ -42,7 +43,9 @@ namespace Chikatto.Controllers
 
             if (!isSelector)
                 return Ok("error: oldver"); // should I accept fallback?
-            
+            else if (!Request.Headers.ContainsKey("Token"))
+                return Ok("error: oldver"); // patched or too old client with no osu!auth.dll 
+
             string[] requiredArgs = {"x", "ft", "score", "fs", "bmk", "iv", "c1", "st", "pass", "osuver", "s"};
 
             if (requiredArgs.Any(arg => !Request.Form.ContainsKey(arg)))
@@ -52,10 +55,10 @@ namespace Chikatto.Controllers
             var ivB64 = (string) Request.Form["iv"];
             var osuver = (string) Request.Form["osuver"];
             var passwordMd5 = (string) Request.Form["pass"];
+            var failed = Request.Form["x"] == "1";
 
-            //0           1        2                    3        4        5       6         7         8         9     10    11      12   13   14        15       16   17
-            //beatmapHash:username:chickenmcnuggetshash:count300:count100:count50:countGeki:countKatu:countMiss:score:combo:perfect:rank:mods:completed:playmode:date:version
             var scoreData = await Submission.Decrypt(dataB64, ivB64, osuver);
+            var score = await Submission.ScoreDataToScore(scoreData);
 
             var username = scoreData[1].TrimEnd(); // remove anticheat flags
 
@@ -67,34 +70,68 @@ namespace Chikatto.Controllers
             if (user.Restricted)
                 return Ok("error: ban");
 
+            var map = await Global.BeatmapManager.FromDb(score.BeatmapChecksum);
+
+            if (map is null)
+                return Ok("error: no");
+
+            await PPCalculation.Calculate(score, map);
+            
+            var oldBest = await Db.FetchOne<Score>(
+                "SELECT * FROM scores WHERE userid = @uid AND beatmap_md5 = @bmMd5 AND is_relax = @isRelax ORDER BY pp DESC LIMIT 1",
+                new { uid = user.Id, bmMd5 = score.BeatmapChecksum, isRelax = score.IsRelax });
+
+            var oldMapRank = oldBest is null ? 0 :
+                await Db.FetchOne<int>("SELECT COUNT(*) FROM scores WHERE beatmap_md5 = @bmMd5 AND is_relax = @isRelax AND pp > @pp",
+                    new { bmMd5 = score.BeatmapChecksum, isRelax = score.IsRelax, pp = oldBest.Performance});
+
+            var oldMC = await Db.FetchOne<int>("SELECT max_combo FROM scores WHERE userid = @uid AND is_relax = @isRelax ORDER BY max_combo DESC LIMIT 1",
+                new { isRelax = score.IsRelax, uid = user.Id });
+            
+            var oldRank = user.Rank;
+            var oldRS = user.RankedScore;
+            var oldTS = user.TotalScore;
+            var oldAcc = user.Accuracy;
+            var oldPP = user.PP;
+            
+            var newMapRank = await Db.FetchOne<int>("SELECT COUNT(*) FROM scores WHERE beatmap_md5 = @bmMd5 AND is_relax = @isRelax AND pp > @pp",
+                new { bmMd5 = score.BeatmapChecksum, isRelax = score.IsRelax, pp = score.Performance});
+
+            await user.UpdateStats();
+            
+            var newMC = await Db.FetchOne<int>("SELECT max_combo FROM scores WHERE userid = @uid AND is_relax = @isRelax ORDER BY max_combo DESC LIMIT 1",
+                new { isRelax = score.IsRelax, uid = user.Id });
+            
+            XConsole.Log(score.Accuracy.ToString());
+            
             var charts = new[]
             {
-                "beatmapId:0",
-                "beatmapSetId:0",
-                "beatmapPlaycount:0",
-                "beatmapPasscount:0",
+                $"beatmapId:{map.MapId}",
+                $"beatmapSetId:{map.SetId}",
+                $"beatmapPlaycount:{map.Playcount}",
+                $"beatmapPasscount:{map.Passcount}",
                 "approvedDate:0",
                 "\n",
                 "chartId:beatmap",
                 "chartUrl:localhost:5000",
                 "chartName:Beatmap Ranking",
-                Submission.ChartEntry("rank", "", user.Rank.ToString()),
-                Submission.ChartEntry("rankedScore", "", user.RankedScore.ToString()),
-                Submission.ChartEntry("totalScore", "", user.TotalScore.ToString()),
-                Submission.ChartEntry("maxCombo", "", "727"),
-                Submission.ChartEntry("accuracy", "", "100"),
-                Submission.ChartEntry("pp", "", "727"), // wysi
+                Submission.ChartEntry("rank", oldMapRank == 0 ? "" : oldMapRank.ToString(), newMapRank.ToString()),
+                Submission.ChartEntry("rankedScore", oldBest?.GameScore.ToString(), score.GameScore.ToString()),
+                Submission.ChartEntry("totalScore", oldBest?.GameScore.ToString(), score.GameScore.ToString()),
+                Submission.ChartEntry("maxCombo", oldBest?.MaxCombo.ToString(), score.MaxCombo.ToString()),
+                Submission.ChartEntry("accuracy", oldBest?.Accuracy.ToString("F").Replace(',', '.'), score.Accuracy.ToString("F").Replace(',', '.')),
+                Submission.ChartEntry("pp", oldBest?.Performance.ToString().Split(',')[0], score.Performance.ToString().Split(',')[0]),
                 "onlineScoreId:1",
                 "\n",
                 "chartId:overall",
                 $"chartUrl:https://{Global.Config.Domain}/u/{user.Id}",
                 "chartName:Overall Ranking",
-                Submission.ChartEntry("rank", "", user.Rank.ToString()),
-                Submission.ChartEntry("rankedScore", "", user.RankedScore.ToString()),
-                Submission.ChartEntry("totalScore", "", user.TotalScore.ToString()),
-                Submission.ChartEntry("maxCombo", "", "727"),
-                Submission.ChartEntry("accuracy", "", "100"),
-                Submission.ChartEntry("pp", "", "727"),
+                Submission.ChartEntry("rank", oldRank.ToString(), user.Rank.ToString()),
+                Submission.ChartEntry("rankedScore", oldRS.ToString(), user.RankedScore.ToString()),
+                Submission.ChartEntry("totalScore", oldTS.ToString(), user.TotalScore.ToString()),
+                Submission.ChartEntry("maxCombo", oldMC.ToString(), newMC.ToString()),
+                Submission.ChartEntry("accuracy", oldAcc.ToString("F").Replace(',', '.'), user.Accuracy.ToString("F").Replace(',', '.')),
+                Submission.ChartEntry("pp", oldPP.ToString(), user.PP.ToString()),
                 "achievements-new:"
             };
 

@@ -65,7 +65,7 @@ namespace Chikatto.Controllers
                     });
                 }
 
-                if (u.LastPong > new DateTimeOffset(DateTime.Now).ToUnixTimeSeconds() - 10)
+                if (u.LastPong > DateTimeOffset.Now.ToUnixTimeSeconds() - 10)
                 {
                     return SendPackets(new[]
                     {
@@ -74,7 +74,7 @@ namespace Chikatto.Controllers
                     });
                 }
                 
-                u.LastPong = new DateTimeOffset(DateTime.Now).ToUnixTimeSeconds();
+                u.LastPong = DateTimeOffset.Now.ToUnixTimeSeconds();
 
                 if (u.Spectating is not null)
                     await u.Spectating.RemoveSpectator(u);

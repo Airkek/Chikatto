@@ -43,6 +43,12 @@ namespace Chikatto
             
             if (!Directory.Exists(Path.Combine(".data", "screenshots")))
                 Directory.CreateDirectory(Path.Combine(".data", "screenshots"));
+            
+            if (!Directory.Exists(Path.Combine(".data", "maps")))
+                Directory.CreateDirectory(Path.Combine(".data", "maps"));
+            
+            if (!Directory.Exists(Path.Combine(".data", "replays")))
+                Directory.CreateDirectory(Path.Combine(".data", "replays"));
 
             if (env.IsDevelopment())
                 app.UseDeveloperExceptionPage();

@@ -34,7 +34,7 @@ namespace Chikatto.ChatCommands.Admin
             await toSupport.AddPrivileges(Privileges.Donor);
             
             await Db.Execute("UPDATE users SET donor_expire = @exp WHERE id = @uid", 
-                new{uid = toSupport.Id, exp = DateTimeOffset.Now.ToUnixTimeSeconds() + timeTotalSeconds});
+                new{uid = toSupport.Id, exp = DateTimeOffset.UtcNow.ToUnixTimeSeconds() + timeTotalSeconds});
 
             return $"Given supporter to {toSupport} for {timeStr}";
         }

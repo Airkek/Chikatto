@@ -15,7 +15,6 @@ namespace Chikatto.Database.Models
         [Column("ar")] public float AR { get; set; }
         [Column("od")] public float OD { get; set; }
         [Column("mode")] public GameMode Mode { get; set; }
-        [Column("rating")] public int Rating { get; set; }
         [Column("difficulty_std")] public float DiffSTD { get; set; }
         [Column("difficulty_taiko")] public float DiffTaiko { get; set; }
         [Column("difficulty_ctb")] public float DiffCTB { get; set; }
@@ -25,9 +24,9 @@ namespace Chikatto.Database.Models
         [Column("bpm")] public int BPM { get; set; }
         [Column("playcount")] public int Playcount { get; set; }
         [Column("passcount")] public int Passcount { get; set; }
-        [Column("ranked")] public RankedStatus Status { get; set; }
+        [Column("ranked")] public bool Ranked { get; set; }
         [Column("latest_update")] public int LatestUpdate { get; set; }
         [Column("ranked_status_freezed")] public bool Frozen { get; set; }
-        [Column("disable_pp")] public int DisablePP { get; set; }
+        [Column("disable_pp")] public bool DisablePP { get; set; }
      }
 }
