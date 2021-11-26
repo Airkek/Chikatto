@@ -2,6 +2,7 @@
 using Chikatto.Bancho.Serialization;
 using Chikatto.Enums;
 using Chikatto.Multiplayer;
+using osu.Game.Beatmaps.Legacy;
 
 namespace Chikatto.Bancho.Objects
 {
@@ -23,7 +24,7 @@ namespace Chikatto.Bancho.Objects
         public string BeatmapHash;
 
         public MatchType Type;
-        public Mods Mods;
+        public LegacyMods Mods;
         public GameMode Mode;
         public MatchScoringType ScoringType;
         public MatchTeamType TeamType;
@@ -76,7 +77,7 @@ namespace Chikatto.Bancho.Objects
             reader.ReadByte(); //in progress
             
             Type = (MatchType) reader.ReadByte();
-            Mods = (Mods) reader.ReadInt32();
+            Mods = (LegacyMods) reader.ReadInt32();
             
             Name = reader.ReadString();
             Password = reader.ReadString();
@@ -106,7 +107,7 @@ namespace Chikatto.Bancho.Objects
             if (FreeMod)
             {
                 foreach (var slot in Slots)
-                    slot.Mods = (Mods) reader.ReadInt32();
+                    slot.Mods = (LegacyMods) reader.ReadInt32();
             }
 
             Seed = reader.ReadInt32();

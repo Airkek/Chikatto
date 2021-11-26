@@ -10,6 +10,11 @@
         <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
         <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="3.2.4" />
         <PackageReference Include="Portable.BouncyCastle" Version="1.9.0" />
+        <PackageReference Include="ppy.osu.Game" Version="2021.1122.0" />
+        <PackageReference Include="ppy.osu.Game.Rulesets.Catch" Version="2021.1122.0" />
+        <PackageReference Include="ppy.osu.Game.Rulesets.Mania" Version="2021.1122.0" />
+        <PackageReference Include="ppy.osu.Game.Rulesets.Osu" Version="2021.1122.0" />
+        <PackageReference Include="ppy.osu.Game.Rulesets.Taiko" Version="2021.1122.0" />
         <PackageReference Include="StackExchange.Redis" Version="2.2.4" />
     </ItemGroup>
 

@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 using Chikatto.Enums;
 using Chikatto.Objects;
+using osu.Game.Beatmaps.Legacy;
 
 namespace Chikatto.Multiplayer
 {
@@ -8,7 +9,7 @@ namespace Chikatto.Multiplayer
     {
         public SlotStatus Status;
         public MatchTeam Team;
-        public Mods Mods = Mods.NoMod;
+        public LegacyMods Mods = LegacyMods.None;
         public Presence User;
         public int UserId => User?.Id ?? -1;
 

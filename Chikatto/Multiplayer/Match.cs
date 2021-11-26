@@ -8,6 +8,7 @@ using Chikatto.Enums;
 using Chikatto.Extensions;
 using Chikatto.Objects;
 using Chikatto.Utils;
+using osu.Game.Beatmaps.Legacy;
 
 namespace Chikatto.Multiplayer
 {
@@ -98,7 +99,7 @@ namespace Chikatto.Multiplayer
                     return;
 
                 slot.User = null;
-                slot.Mods = Mods.NoMod;
+                slot.Mods = LegacyMods.None;
                 slot.Team = MatchTeam.Neutral;
                 slot.Status = SlotStatus.Open;
                 

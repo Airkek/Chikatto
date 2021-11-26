@@ -1,5 +1,6 @@
 ﻿using Chikatto.Bancho.Serialization;
 using Chikatto.Enums;
+using osu.Game.Beatmaps.Legacy;
 
 namespace Chikatto.Bancho.Objects
 {
@@ -8,7 +9,7 @@ namespace Chikatto.Bancho.Objects
         public BanchoAction Action;
         public string Text;
         public string MapMd5;
-        public Mods Mods;
+        public LegacyMods Mods;
         public GameMode Mode;
         public int MapId;
         
@@ -27,7 +28,7 @@ namespace Chikatto.Bancho.Objects
             Action = (BanchoAction) reader.ReadByte();
             Text = reader.ReadString();
             MapMd5 = reader.ReadString();
-            Mods = (Mods) reader.ReadUInt32();
+            Mods = (LegacyMods) reader.ReadUInt32();
             Mode = (GameMode) reader.ReadByte();
             MapId = reader.ReadInt32();
         }

@@ -11,6 +11,7 @@ using Chikatto.Extensions;
 using Chikatto.Multiplayer;
 using Chikatto.Utils;
 using Chikatto.Enums;
+using osu.Game.Beatmaps.Legacy;
 
 namespace Chikatto.Objects
 {
@@ -54,7 +55,7 @@ namespace Chikatto.Objects
             Action = BanchoAction.Idle, 
             Text = null, 
             MapMd5 = null, 
-            Mods = Mods.NoMod,
+            Mods = LegacyMods.None,
             Mode = GameMode.Standard,
             MapId = 0
         };
@@ -67,6 +68,38 @@ namespace Chikatto.Objects
         public int PlayCount;
         public short PP;
         public float Accuracy;
+
+        public async Task CalculatePPFromBests(GameMode mode, bool isRelax)
+        {
+            var scores = 
+                (await Db.FetchAll<Score>("SELECT pp, accuracy FROM scores JOIN beatmaps WHERE beatmaps.beatmap_md5 = scores.beatmap_md5 AND userid = @Id AND completed = 3 AND (ranked = 3 OR ranked = 2) AND mode = @mode AND is_relax = @isRelax AND disable_pp = false ORDER BY pp DESC LIMIT 100",
+                    new
+                    {
+                        Id, 
+                        isRelax,
+                        mode
+                    }))
+                .ToArray();
+            
+            var pp = (ushort)scores.Select((t, i) => t.Performance * Math.Pow(0.95, i)).Sum();
+            var acc = scores.Select(t => t.Accuracy).Average();
+
+            var table = isRelax ? Misc.RelaxStatsColumn : Misc.NomodStatsColumn;
+
+            var strmode = mode switch
+            {
+                GameMode.Standard => "std",
+                GameMode.Taiko => "taiko",
+                GameMode.Catch => "catch",
+                GameMode.Mania => "mania",
+                _ => "std"
+            };
+
+            await Db.Execute($"UPDATE {table} SET pp_{strmode} = @pp, avg_accuracy_{strmode} = @acc WHERE id = @Id", new
+            {
+                Id, acc, pp
+            });
+        }
 
         public async Task<int> GetRank()
         {
@@ -119,16 +152,9 @@ namespace Chikatto.Objects
             return stats;
         }
 
-        public async Task UpdateStats()
+        public async Task UpdateStats(GameMode gamemode, LegacyMods mods, bool force = false)
         {
-            Stats = await Db.FetchOne<Stats>($"SELECT * FROM {StatsTable} WHERE id = @uid", new {uid = Id});
-        }
-
-        public async Task UpdateStatus(BanchoUserStatus status)
-        {
-            Status = status;
-            
-            var mode = Status.Mode switch
+            var mode = gamemode switch
             {
                 GameMode.Standard => "STD",
                 GameMode.Taiko => "Taiko",
@@ -137,15 +163,12 @@ namespace Chikatto.Objects
                 _ => "STD"
             };
 
-            var table = !Global.Config.EnableRelax || (Status.Mods & Mods.Relax) == 0 ? Misc.NomodStatsColumn : Misc.RelaxStatsColumn;
+            var table = !Global.Config.EnableRelax || (mods & LegacyMods.Relax) == 0 ? Misc.NomodStatsColumn : Misc.RelaxStatsColumn;
 
-            if (mode != ModeName || table != StatsTable)
+            if (mode != ModeName || table != StatsTable || force)
             {
-                if (StatsTable != table)
-                {
-                    StatsTable = table;
-                    Stats = await Db.FetchOne<Stats>($"SELECT * FROM {StatsTable} WHERE id = @uid", new {uid = Id});
-                }
+                StatsTable = table;
+                Stats = await Db.FetchOne<Stats>($"SELECT * FROM {StatsTable} WHERE id = @uid", new {uid = Id});
                 
                 ModeName = mode;
 
@@ -166,6 +189,32 @@ namespace Chikatto.Objects
                 
                 Rank = await GetRank();
             }
+        }
+
+        public async Task IncreasePlaycount(GameMode gamemode, LegacyMods mods)
+        {
+            var mode = gamemode switch
+            {
+                GameMode.Standard => "std",
+                GameMode.Taiko => "taiko",
+                GameMode.Catch => "ctb",
+                GameMode.Mania => "mania",
+                _ => "std"
+            };
+            
+            var statsTable = !Global.Config.EnableRelax || (mods & LegacyMods.Relax) == 0 ? Misc.NomodStatsColumn : Misc.RelaxStatsColumn;
+            
+            await Db.Execute($"UPDATE {statsTable} SET playcount_{mode} = playcount_{mode} + 1 WHERE id = @Id", 
+                new { Id });
+
+            await UpdateStats(gamemode, mods, true);
+        }
+
+        public async Task UpdateStatus(BanchoUserStatus status)
+        {
+            Status = status;
+
+            await UpdateStats(Status.Mode, Status.Mods);
         }
 
         public async Task<BanchoUserPresence> GetUserPresence()

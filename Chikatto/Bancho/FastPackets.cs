@@ -7,6 +7,7 @@ using Chikatto.Multiplayer;
 using Chikatto.Objects;
 using Chikatto.Enums;
 using Microsoft.AspNetCore.Http;
+using osu.Game.Beatmaps.Legacy;
 
 namespace Chikatto.Bancho
 {
@@ -52,7 +53,7 @@ namespace Chikatto.Bancho
                 Action = BanchoAction.Editing,
                 Text = "Chikatto's source code",
                 MapMd5 = null,
-                Mods = Mods.NoMod,
+                Mods = LegacyMods.None,
                 Mode = GameMode.Standard,
                 MapId = 0
             };

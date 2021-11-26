@@ -4,6 +4,7 @@ using Chikatto.Bancho;
 using Chikatto.Bancho.Enums;
 using Chikatto.Enums;
 using Chikatto.Objects;
+using osu.Game.Beatmaps.Legacy;
 
 namespace Chikatto.Events.Types
 {
@@ -30,7 +31,7 @@ namespace Chikatto.Events.Types
             slot.Team = uSlot.Team;
             
             uSlot.User = null;
-            uSlot.Mods = Mods.NoMod;
+            uSlot.Mods = LegacyMods.None;
             uSlot.Team = MatchTeam.Neutral;
             uSlot.Status = SlotStatus.Open;
             

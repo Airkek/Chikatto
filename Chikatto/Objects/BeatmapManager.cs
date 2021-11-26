@@ -81,7 +81,7 @@ namespace Chikatto.Objects
                 var status = osuApiToRankedStatus((RankedStatusOsuApi) int.Parse((string)dmap.approved));
                 var map = new Beatmap
                 {
-                    Ranked = status != RankedStatus.Pending,
+                    Ranked = status,
                     Checksum = (string)dmap.file_md5,
                     FileName = $"{dmap.beatmap_id}.osu",
                     MapId = int.Parse((string)dmap.beatmap_id),

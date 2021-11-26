@@ -16,6 +16,8 @@ namespace Chikatto
 
         public static ConfigScheme Config;
 
+        public static readonly ConcurrentStack<string> SubmittedScores = new(); // anti-duplicate scores (temp fix)
+
         public static readonly OnlineManager OnlineManager = new ();
         public static readonly BeatmapManager BeatmapManager = new ();
         

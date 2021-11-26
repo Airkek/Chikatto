@@ -24,7 +24,7 @@ namespace Chikatto.Database.Models
         [Column("bpm")] public int BPM { get; set; }
         [Column("playcount")] public int Playcount { get; set; }
         [Column("passcount")] public int Passcount { get; set; }
-        [Column("ranked")] public bool Ranked { get; set; }
+        [Column("ranked")] public RankedStatus Ranked { get; set; }
         [Column("latest_update")] public int LatestUpdate { get; set; }
         [Column("ranked_status_freezed")] public bool Frozen { get; set; }
         [Column("disable_pp")] public bool DisablePP { get; set; }

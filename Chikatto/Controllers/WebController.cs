@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Chikatto.ChatCommands.Enums;
 using Chikatto.Database;
 using Chikatto.Database.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -11,6 +12,7 @@ using Chikatto.Utils;
 using Chikatto.Utils.Cheesegull;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.WebUtilities;
+using osu.Game.Beatmaps.Legacy;
 
 namespace Chikatto.Controllers
 {
@@ -60,6 +62,15 @@ namespace Chikatto.Controllers
             var scoreData = await Submission.Decrypt(dataB64, ivB64, osuver);
             var score = await Submission.ScoreDataToScore(scoreData);
 
+            if (score.IsRelax && !Global.Config.EnableRelax ||
+                (score.Mods & (LegacyMods.Autopilot | LegacyMods.Cinema | LegacyMods.Autoplay)) != 0 ||
+                (score.Mods & (LegacyMods.NoFail | LegacyMods.SuddenDeath)) == (LegacyMods.NoFail | LegacyMods.SuddenDeath) ||
+                (score.Mods & (LegacyMods.NoFail | LegacyMods.Perfect)) == (LegacyMods.NoFail | LegacyMods.Perfect) ||
+                (score.Mods & (LegacyMods.Perfect | LegacyMods.SuddenDeath)) == (LegacyMods.Perfect | LegacyMods.SuddenDeath) ||
+                (score.Mods & (LegacyMods.Easy | LegacyMods.HardRock)) == (LegacyMods.Easy | LegacyMods.HardRock) ||
+                (score.Mods & (LegacyMods.HalfTime | LegacyMods.DoubleTime)) == (LegacyMods.HalfTime | LegacyMods.DoubleTime))
+                return Ok("error: mods");
+
             var username = scoreData[1].TrimEnd(); // remove anticheat flags
 
             var user = await GetPresence(username, passwordMd5);
@@ -69,41 +80,89 @@ namespace Chikatto.Controllers
 
             if (user.Restricted)
                 return Ok("error: ban");
+            
+            if (Global.SubmittedScores.Contains(score.ChickenMcNuggetsHash))
+            {
+                XConsole.Log($"{user} submitted duplicate score", back: ConsoleColor.Yellow);
+                return Ok("error: dup");
+            }
+            
+            Global.SubmittedScores.Push(score.ChickenMcNuggetsHash);
 
             var map = await Global.BeatmapManager.FromDb(score.BeatmapChecksum);
 
             if (map is null)
                 return Ok("error: no");
+            
+            if (!map.DisablePP)
+                await PPCalculation.Calculate(score, map);
+            else
+                score.Performance = 0;
+            
+            await user.UpdateStats(score.PlayMode, score.Mods);
 
-            await PPCalculation.Calculate(score, map);
+            if (score.IsRelax && !map.DisablePP) 
+                score.GameScore = (long)score.Performance;
             
             var oldBest = await Db.FetchOne<Score>(
-                "SELECT * FROM scores WHERE userid = @uid AND beatmap_md5 = @bmMd5 AND is_relax = @isRelax ORDER BY pp DESC LIMIT 1",
+                "SELECT * FROM scores WHERE userid = @uid AND beatmap_md5 = @bmMd5 AND is_relax = @isRelax AND completed = 3 LIMIT 1",
                 new { uid = user.Id, bmMd5 = score.BeatmapChecksum, isRelax = score.IsRelax });
 
-            var oldMapRank = oldBest is null ? 0 :
-                await Db.FetchOne<int>("SELECT COUNT(*) FROM scores WHERE beatmap_md5 = @bmMd5 AND is_relax = @isRelax AND pp > @pp",
-                    new { bmMd5 = score.BeatmapChecksum, isRelax = score.IsRelax, pp = oldBest.Performance});
+            if (oldBest is null || (map.DisablePP && oldBest.GameScore < score.GameScore) ||
+                (!map.DisablePP && oldBest.Performance < score.Performance))
+            {
+                if(oldBest is not null)
+                    await Db.Execute("UPDATE scores SET completed = 2 WHERE id = @id", new { id = oldBest.Id });
+                
+                score.Completed = RippleScoreCompleted.Best;
+            }
 
-            var oldMC = await Db.FetchOne<int>("SELECT max_combo FROM scores WHERE userid = @uid AND is_relax = @isRelax ORDER BY max_combo DESC LIMIT 1",
-                new { isRelax = score.IsRelax, uid = user.Id });
+            await Db.Execute(
+                "INSERT INTO scores (beatmap_md5, userid, score, max_combo, full_combo, mods, `300_count`, `100_count`, `50_count`, katus_count, gekis_count, misses_count, time, play_mode, completed, accuracy, pp, playtime, is_relax) " +
+                "VALUES (@mapMd5, @uid, @score, @maxCombo, @fc, @mods, @c300, @c100, @c50, @ck, @cg, @cm, @time, @mode, @completed, @acc, @pp, @playtime, @isRelax)",
+                new
+                {
+                    mapMd5 = score.BeatmapChecksum, uid = user.Id, score = score.GameScore, maxCombo = score.MaxCombo,
+                    fc = score.Perfect, mods = score.Mods, c300 = score.Count300, c100 = score.Count100,
+                    c50 = score.Count50, ck = score.CountKatu, cg = score.CountGeki, cm = score.CountMiss, 
+                    time = score.Time, mode = score.PlayMode, completed = score.Completed, acc = score.Accuracy, 
+                    pp = score.Performance, playtime = score.PlayTime, isRelax = score.IsRelax
+                });
             
+            if ((byte)score.Completed <= 1 || failed)
+            {
+                var failTime = int.Parse(Request.Form["ft"]);
+
+                if (failTime > 1000) 
+                    await user.IncreasePlaycount(score.PlayMode, score.Mods);
+
+                return Ok("error: no");
+            }
+
+            var oldMapRank = oldBest is null ? 0 :
+                await Db.FetchOne<int>("SELECT COUNT(*) FROM scores WHERE beatmap_md5 = @bmMd5 AND is_relax = @isRelax AND score > @score",
+                    new { bmMd5 = score.BeatmapChecksum, isRelax = score.IsRelax, score = oldBest.GameScore}) + 1;
+
+            var oldMC = await Db.FetchOne<int>("SELECT max_combo FROM scores WHERE userid = @uid AND is_relax = @isRelax AND completed =3 ORDER BY max_combo DESC LIMIT 1",
+                new { isRelax = score.IsRelax, uid = user.Id });
+
             var oldRank = user.Rank;
             var oldRS = user.RankedScore;
             var oldTS = user.TotalScore;
             var oldAcc = user.Accuracy;
             var oldPP = user.PP;
             
-            var newMapRank = await Db.FetchOne<int>("SELECT COUNT(*) FROM scores WHERE beatmap_md5 = @bmMd5 AND is_relax = @isRelax AND pp > @pp",
-                new { bmMd5 = score.BeatmapChecksum, isRelax = score.IsRelax, pp = score.Performance});
+            var newMapRank = await Db.FetchOne<int>("SELECT COUNT(*) FROM scores WHERE beatmap_md5 = @bmMd5 AND is_relax = @isRelax AND score > @score",
+                new { bmMd5 = score.BeatmapChecksum, isRelax = score.IsRelax, score = score.GameScore}) + 1;
 
-            await user.UpdateStats();
-            
-            var newMC = await Db.FetchOne<int>("SELECT max_combo FROM scores WHERE userid = @uid AND is_relax = @isRelax ORDER BY max_combo DESC LIMIT 1",
+            await user.CalculatePPFromBests(score.PlayMode, score.IsRelax);
+            await user.IncreasePlaycount(score.PlayMode, score.Mods);
+
+            var newMC = await Db.FetchOne<int>("SELECT max_combo FROM scores WHERE userid = @uid AND is_relax = @isRelax AND completed =3 ORDER BY max_combo DESC LIMIT 1",
                 new { isRelax = score.IsRelax, uid = user.Id });
-            
-            XConsole.Log(score.Accuracy.ToString());
-            
+
+            user.LastScore = score;
+
             var charts = new[]
             {
                 $"beatmapId:{map.MapId}",
@@ -113,7 +172,7 @@ namespace Chikatto.Controllers
                 "approvedDate:0",
                 "\n",
                 "chartId:beatmap",
-                "chartUrl:localhost:5000",
+                $"chartUrl:https://{Global.Config.Domain}/b/{map.MapId}",
                 "chartName:Beatmap Ranking",
                 Submission.ChartEntry("rank", oldMapRank == 0 ? "" : oldMapRank.ToString(), newMapRank.ToString()),
                 Submission.ChartEntry("rankedScore", oldBest?.GameScore.ToString(), score.GameScore.ToString()),
