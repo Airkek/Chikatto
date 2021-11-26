@@ -4,6 +4,8 @@
 based on ripple database scheme so in future should be 
 compatible with all ripple stack servers
 
+PP Calculation through osu!Lazer (!)
+
 - [ ] Bancho
     - [X] Logging in
     - [X] Chat
@@ -51,7 +53,7 @@ compatible with all ripple stack servers
     - [X] osu!direct
     - [ ] Screenshot uploading
     - [X] Screenshot viewing
-    - [ ] Score submission
+    - [X] Score submission
     - [ ] Map leaderboards
         - [ ] Global
         - [ ] Friends
